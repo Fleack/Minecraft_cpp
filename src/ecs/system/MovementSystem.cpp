@@ -11,9 +11,9 @@ MovementSystem::MovementSystem(ECS& ecs) : m_ecs(ecs)
 {
 }
 
-void MovementSystem::Update(float deltaTime) override
+void MovementSystem::update(float deltaTime)
 {
-    auto& transforms = m_ecs.GetAllComponents<TransformComponent>();
+    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
     for (auto& transform : transforms | std::views::values)
     {
         transform.x += 0.25f * deltaTime;

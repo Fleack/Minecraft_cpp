@@ -22,33 +22,33 @@ public:
     }
 
     template <typename T>
-    void AddComponent(Entity e, T component)
+    void addComponent(Entity e, T component)
     {
         m_components.Add<T>(e, component);
     }
 
     template <typename T>
-    T* GetComponent(Entity e)
+    T* getComponent(Entity e)
     {
         return m_components.Get<T>(e);
     }
 
     template <typename T>
-    std::unordered_map<Entity, T>& GetAllComponents()
+    std::unordered_map<Entity, T>& getAllComponents()
     {
         return m_components.GetAll<T>();
     }
 
-    void AddSystem(std::shared_ptr<ISystem> system)
+    void addSystem(std::shared_ptr<ISystem> system)
     {
         m_systems.push_back(system);
     }
 
-    void Update(float dt)
+    void update(float dt)
     {
         for (auto& sys : m_systems)
         {
-            sys->Update(dt);
+            sys->update(dt);
         }
     }
 
