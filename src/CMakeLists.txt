@@ -1,18 +1,8 @@
-file(GLOB_RECURSE RENDER_SRC
-        ${CMAKE_SOURCE_DIR}/src/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/core/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/ecs/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/game/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/input/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/render/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/ui/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/utils/*.cpp
-        ${CMAKE_SOURCE_DIR}/src/world/*.cpp
-)
+file(GLOB_RECURSE SRC_FILES *.cpp)
 
 add_executable(Minecraft ${SRC_FILES})
 
-#
+# OpenGL
 target_link_libraries(Minecraft PRIVATE opengl32)
 
 # GLAD
