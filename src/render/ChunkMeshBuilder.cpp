@@ -33,7 +33,7 @@ constexpr glm::vec2 uvs[] = {
     {1.0f, 1.0f}, {0.0f, 1.0f}
 };
 
-bool isFaceVisible(const world::Chunk& chunk, int x, int y, int z)
+bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
 {
     using namespace world;
     if (x < 0 || x >= ChunkSizeX ||
@@ -46,7 +46,7 @@ bool isFaceVisible(const world::Chunk& chunk, int x, int y, int z)
 }
 }
 
-void ChunkMeshBuilder::build(const world::Chunk& chunk, ChunkMesh& mesh)
+void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
 {
     std::vector<Vertex> vertices;
 

@@ -57,8 +57,8 @@ bool Window::initGLFW()
 
 bool Window::initGLAD()
 {
-    if (!gladLoadGL(glfwGetProcAddress))
-    {
+    if (!gladLoadGL(glfwGetProcAddress)) {
+        Logger::get()->error("Failed to initialize GLAD!");
         return false;
     }
     Logger::get()->info("OpenGL loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));

@@ -1,9 +1,9 @@
 #include "render/Shader.hpp"
 
-#include <array>
 #include <fstream>
-#include <iostream>
 #include <sstream>
+
+#include "core/Logger.hpp"
 
 namespace mc::render
 {
@@ -62,15 +62,16 @@ GLuint Shader::compileShader(GLenum type, const std::string& source) const
 void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
 {
     GLint success;
-    std::array<GLchar, 1024> infoLog;
+    GLchar infoLog[1024];
 
     if (type != "PROGRAM")
     {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success)
         {
-            glGetShaderInfoLog(shader, 1024, nullptr, infoLog.data());
-            std::cerr << "[SHADER COMPILE ERROR] " << type << ": " << infoLog.data() << std::endl;
+            glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
+            core::Logger::get()->error(std::format("[SHADER COMPILE ERROR]: {}", infoLog));
+
         }
     }
     else
@@ -78,8 +79,8 @@ void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success)
         {
-            glGetProgramInfoLog(shader, 1024, nullptr, infoLog.data());
-            std::cerr << "[SHADER LINK ERROR] " << type << ": " << infoLog.data() << std::endl;
+            glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
+           core::Logger::get()->error(std::format("[PROGRAM LINK ERROR]: {}", infoLog));
         }
     }
 }

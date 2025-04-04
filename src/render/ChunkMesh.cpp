@@ -10,11 +10,20 @@ ChunkMesh::ChunkMesh()
 
 ChunkMesh::~ChunkMesh()
 {
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteVertexArrays(1, &m_vao);
+    if (m_vbo != 0)
+    {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
+    }
+
+    if (m_vao != 0)
+    {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
+    }
 }
 
-void ChunkMesh::upload(const std::vector<Vertex>& vertices)
+void ChunkMesh::upload(std::vector<Vertex> const& vertices)
 {
     m_vertexCount = vertices.size();
 
