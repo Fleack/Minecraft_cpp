@@ -7,45 +7,45 @@ namespace mc::core
 {
 Window::Window(const std::string& title, int width, int height)
 {
-    if (!InitGLFW()) return;
+    if (!initGLFW()) return;
 
-    m_Window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    if (!m_Window)
+    m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    if (!m_window)
     {
-        Logger::GetLogger()->error("Failed to create GLFW window");
+        Logger::get()->error("Failed to create GLFW window");
         glfwTerminate();
         return;
     }
 
-    glfwMakeContextCurrent(m_Window);
+    glfwMakeContextCurrent(m_window);
     glfwSwapInterval(1); // Enable vsync
 
-    if (!InitGLAD())
+    if (!initGLAD())
     {
-        Logger::GetLogger()->error("Failed to initialize GLAD");
-        glfwDestroyWindow(m_Window);
-        m_Window = nullptr;
+        Logger::get()->error("Failed to initialize GLAD");
+        glfwDestroyWindow(m_window);
+        m_window = nullptr;
         return;
     }
 
     glViewport(0, 0, width, height);
-    Logger::GetLogger()->info("Window created: {}x{}", width, height);
+    Logger::get()->info("Window created: {}x{}", width, height);
 }
 
 Window::~Window()
 {
-    if (m_Window)
+    if (m_window)
     {
-        glfwDestroyWindow(m_Window);
+        glfwDestroyWindow(m_window);
         glfwTerminate();
     }
 }
 
-bool Window::InitGLFW()
+bool Window::initGLFW()
 {
     if (!glfwInit())
     {
-        Logger::GetLogger()->error("Failed to initialize GLFW");
+        Logger::get()->error("Failed to initialize GLFW");
         return false;
     }
 
@@ -55,28 +55,28 @@ bool Window::InitGLFW()
     return true;
 }
 
-bool Window::InitGLAD()
+bool Window::initGLAD()
 {
     if (!gladLoadGL(glfwGetProcAddress))
     {
         return false;
     }
-    Logger::GetLogger()->info("OpenGL loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    Logger::get()->info("OpenGL loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     return true;
 }
 
-void Window::PollEvents()
+void Window::pollEvents()
 {
     glfwPollEvents();
 }
 
-void Window::SwapBuffers()
+void Window::swapBuffers()
 {
-    glfwSwapBuffers(m_Window);
+    glfwSwapBuffers(m_window);
 }
 
-bool Window::IsOpen() const
+bool Window::isOpen() const
 {
-    return m_Window && !glfwWindowShouldClose(m_Window);
+    return m_window && !glfwWindowShouldClose(m_window);
 }
 }

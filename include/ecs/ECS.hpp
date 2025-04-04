@@ -16,7 +16,7 @@ public:
     {
     }
 
-    Entity CreateEntity()
+    Entity createEntity()
     {
         return m_nextEntity++;
     }

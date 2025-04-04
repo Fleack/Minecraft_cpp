@@ -3,6 +3,6 @@
 int main()
 {
     mc::core::Application app;
-    app.Run();
+    app.run();
     return 0;
 }

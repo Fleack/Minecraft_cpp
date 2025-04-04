@@ -8,18 +8,18 @@ namespace mc::core
 class Window
 {
 public:
-    Window(const std::string& title, int width, int height);
+    Window(std::string const& title, int width, int height);
     ~Window();
 
-    void PollEvents();
-    void SwapBuffers();
-    [[nodiscard]] bool IsOpen() const;
+    void pollEvents();
+    void swapBuffers();
+    [[nodiscard]] bool isOpen() const;
 
 private:
-    bool InitGLFW();
-    bool InitGLAD();
+    bool initGLFW();
+    bool initGLAD();
 
 private:
-    GLFWwindow* m_Window = nullptr;
+    GLFWwindow* m_window = nullptr;
 };
 }

@@ -8,11 +8,10 @@ namespace mc::core
 class Logger
 {
 public:
-    static void Init();
-
-    static std::shared_ptr<spdlog::logger>& GetLogger();
+    static void init();
+    static std::shared_ptr<spdlog::logger>& get();
 
 private:
-    static std::shared_ptr<spdlog::logger> s_Logger;
+    static std::shared_ptr<spdlog::logger> s_logger;
 };
 }
