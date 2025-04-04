@@ -15,10 +15,11 @@ target_link_libraries(Minecraft PRIVATE glad_lib)
 target_link_libraries(Minecraft PRIVATE glfw)
 
 # GLM, STB, FastNoiseLite (header-only)
+message("noise = ${fastnoise_SOURCE_DIR}")
 target_include_directories(Minecraft PRIVATE
         ${glm_SOURCE_DIR}
         ${stb_SOURCE_DIR}
-        ${fastnoise_SOURCE_DIR}
+        ${fastnoise_SOURCE_DIR}/Cpp
 )
 
 # ImGui
