@@ -37,7 +37,7 @@ Renderer::~Renderer()
 
 void Renderer::Draw() const
 {
-    m_shader->Bind();
+    m_shader->bind();
     glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
