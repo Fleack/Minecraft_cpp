@@ -1,0 +1,33 @@
+# === CLion ===
+.idea/
+cmake-build-*/
+*.iml
+
+# === CMake ===
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
+compile_commands.json
+
+# === Windows artifacts ===
+*.exe
+*.obj
+*.pdb
+*.dll
+*.lib
+*.exp
+
+# === macOS artifacts ===
+.DS_Store
+
+# === Unix/Linux artifacts ===
+*.out
+*.so
+
+# === Logs and backups ===
+*.log
+*.tmp
+*.swp
+*~
