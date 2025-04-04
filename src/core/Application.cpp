@@ -1,62 +1,83 @@
+#include <glad/gl.h> // Must be first!
+
 #include "core/Application.hpp"
 #include "core/Logger.hpp"
 #include "core/Window.hpp"
 
-#include <memory>
+#include "ecs/ECS.hpp"
+#include "ecs/component/CameraComponent.hpp"
+#include "ecs/system/CameraSystem.hpp"
+
+#include <GLFW/glfw3.h>
 
 namespace mc::core
 {
-static std::unique_ptr<Window> s_Window;
-
 Application::Application()
 {
-    Logger::Init();
-    Logger::GetLogger()->info("Application created");
+    Logger::init();
+    Logger::get()->info("Application created");
 }
 
 Application::~Application()
 {
-    Shutdown();
+    shutdown();
 }
 
-bool Application::Initialize()
+bool Application::initialize()
 {
-    if (!s_Window)
+    m_window = std::make_unique<Window>("Minecraft", 1280, 720);
+    if (!m_window->isOpen())
     {
-        s_Window = std::make_unique<Window>("Minecraft", 1280, 720);
+        return false;
     }
-    return s_Window->IsOpen();
+
+    m_ecs = std::make_unique<ecs::ECS>();
+
+    const auto cameraEntity = m_ecs->createEntity();
+    m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
+
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1280.0f / 720.0f);
+    m_ecs->addSystem(m_cameraSystem);
+
+    m_lastFrameTime = glfwGetTime();
+    return true;
 }
 
-void Application::Run()
+void Application::run()
 {
-    if (!Initialize()) return;
+    if (!initialize()) return;
 
-    while (s_Window->IsOpen())
+    while (m_window->isOpen())
     {
-        s_Window->PollEvents();
+        double currentTime = glfwGetTime();
+        float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
+        m_lastFrameTime = currentTime;
 
-        Update();
-        Render();
-
-        s_Window->SwapBuffers();
+        m_window->pollEvents();
+        update(deltaTime);
+        render();
+        m_window->swapBuffers();
     }
 }
 
-void Application::Update()
+void Application::update(float deltaTime)
 {
-    // TODO: Input, ECS update, Game logic
+    m_ecs->update(deltaTime);
 }
 
-void Application::Render()
+void Application::render()
 {
-    glClearColor(0.15f, 0.15f, 0.25f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // TODO render calls
 }
 
-void Application::Shutdown()
+void Application::shutdown()
 {
-    Logger::GetLogger()->info("Shutting down");
-    s_Window.reset();
+    Logger::get()->info("Application shutdown");
+    m_cameraSystem.reset();
+    m_ecs.reset();
+    m_window.reset();
 }
 }
