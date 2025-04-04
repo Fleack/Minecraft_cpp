@@ -2,7 +2,7 @@
 
 #include "component/ComponentStorage.hpp"
 #include "ecs/Entity.hpp"
-#include "ecs/System.hpp"
+#include "ecs/system/ISystem.hpp"
 
 #include <memory>
 #include <vector>
@@ -41,12 +41,12 @@ public:
 
     void AddSystem(std::shared_ptr<ISystem> system)
     {
-        m_Systems.push_back(system);
+        m_systems.push_back(system);
     }
 
     void Update(float dt)
     {
-        for (auto& sys : m_Systems)
+        for (auto& sys : m_systems)
         {
             sys->Update(dt);
         }
@@ -55,6 +55,6 @@ public:
 private:
     Entity m_nextEntity;
     ComponentStorage m_components;
-    std::vector<std::shared_ptr<ISystem>> m_Systems;
+    std::vector<std::shared_ptr<ISystem>> m_systems;
 };
 }
