@@ -27,48 +27,68 @@ Application::Application()
 Application::~Application()
 {
     shutdown();
+    // TODO Fix GL ERROR 1282
 }
 
 bool Application::initialize()
 {
+    if (!initializeWindow()) { return false; }
+
+    initializeECS();
+    initializeCamera();
+    initializeWorld();
+    initializeRenderSystems();
+
+    m_lastFrameTime = glfwGetTime();
+    return true;
+}
+
+bool Application::initializeWindow()
+{
     m_window = std::make_unique<Window>("VoxelGame", 1280, 720);
-    if (!m_window->isOpen()) { return false; }
+    return m_window->isOpen();
+}
 
+void Application::initializeECS()
+{
     m_ecs = std::make_unique<ecs::ECS>();
+}
 
-    // Camera
+void Application::initializeCamera()
+{
     const auto cameraEntity = m_ecs->createEntity();
     m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
+
     m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1280.0f / 720.0f);
     m_ecs->addSystem(m_cameraSystem);
+}
 
-    // World
+void Application::initializeWorld()
+{
     m_world = std::make_unique<world::World>();
     m_world->generateInitialArea(1);
 
-    // Meshes
     for (int x = -1; x <= 1; ++x)
     {
         for (int z = -1; z <= 1; ++z)
         {
             const glm::ivec3 pos{x, 0, z};
             auto chunk = m_world->getChunk(pos);
-            if (!chunk) continue;
+            if (!chunk.has_value()) { continue; }
 
             auto mesh = std::make_shared<render::ChunkMesh>();
             render::ChunkMeshBuilder::build(*chunk, *mesh);
 
-            auto entity = m_ecs->createEntity();
+            const auto entity = m_ecs->createEntity();
             m_ecs->addComponent<ecs::MeshComponent>(entity, ecs::MeshComponent{mesh});
         }
     }
+}
 
-    // Render system
+void Application::initializeRenderSystems()
+{
     m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem);
     m_ecs->addSystem(m_renderSystem);
-
-    m_lastFrameTime = glfwGetTime();
-    return true;
 }
 
 void Application::run()

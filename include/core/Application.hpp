@@ -29,6 +29,13 @@ public:
 
 private:
     bool initialize();
+
+    bool initializeWindow();
+    void initializeECS();
+    void initializeCamera();
+    void initializeWorld();
+    void initializeRenderSystems();
+
     void update(float deltaTime);
     void render();
     void shutdown();
