@@ -16,6 +16,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "ecs/component/TransformComponent.hpp"
+#include "ecs/system/ChunkLoadingSystem.hpp"
+
 namespace mc::core
 {
 Application::Application()
@@ -58,6 +61,7 @@ void Application::initializeCamera()
 {
     const auto cameraEntity = m_ecs->createEntity();
     m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
+    m_ecs->addComponent<ecs::TransformComponent>(cameraEntity, ecs::TransformComponent{});
 
     m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1280.0f / 720.0f);
     m_ecs->addSystem(m_cameraSystem);
@@ -65,29 +69,29 @@ void Application::initializeCamera()
 
 void Application::initializeWorld()
 {
+    constexpr uint8_t areaRadius{1};
     m_world = std::make_unique<world::World>();
-    m_world->generateInitialArea(1);
+    m_world->generateInitialArea(areaRadius);
 
-    for (int x = -1; x <= 1; ++x)
+    for (int x = -areaRadius; x <= areaRadius; ++x)
     {
-        for (int z = -1; z <= 1; ++z)
+        for (int z = -areaRadius; z <= areaRadius; ++z)
         {
             const glm::ivec3 pos{x, 0, z};
-            auto chunk = m_world->getChunk(pos);
-            if (!chunk.has_value()) { continue; }
-
-            auto mesh = std::make_shared<render::ChunkMesh>();
-            render::ChunkMeshBuilder::build(*chunk, *mesh);
-
-            const auto entity = m_ecs->createEntity();
-            m_ecs->addComponent<ecs::MeshComponent>(entity, ecs::MeshComponent{mesh});
+            if (!m_world->isChunkLoaded(pos))
+            {
+                m_world->loadChunk(pos);
+            }
         }
     }
 }
 
 void Application::initializeRenderSystems()
 {
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem);
+    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, 9);
+    m_ecs->addSystem(m_chunkLoadingSystem);
+
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, 8);
     m_ecs->addSystem(m_renderSystem);
 }
 
@@ -117,6 +121,8 @@ void Application::render()
 {
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_ecs->update(0.0f); // TODO replace with render()
 }
 
 void Application::shutdown()

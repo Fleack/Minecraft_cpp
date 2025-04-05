@@ -28,7 +28,7 @@ public:
     }
 
     template <typename T>
-    T* getComponent(Entity e)
+    std::optional<T> getComponent(Entity e)
     {
         return m_components.Get<T>(e);
     }

@@ -18,6 +18,8 @@ Window::Window(const std::string& title, int width, int height)
     }
 
     glfwMakeContextCurrent(m_window);
+    glfwMakeContextCurrent(m_window);
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1); // Enable vsync
 
     if (!initGLAD())

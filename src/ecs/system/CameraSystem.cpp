@@ -6,9 +6,11 @@
 
 #include <GLFW/glfw3.h>
 
+#include "ecs/component/TransformComponent.hpp"
+
 namespace mc::ecs
 {
-CameraSystem::CameraSystem(mc::ecs::ECS& ecs, float aspectRatio)
+CameraSystem::CameraSystem(ECS& ecs, float aspectRatio)
     : m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
     updateMatrices();
@@ -18,6 +20,16 @@ void CameraSystem::update(float dt)
 {
     handleInput(dt);
     updateMatrices();
+
+    auto& cameras = m_ecs.getAllComponents<CameraComponent>();
+    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
+
+    if (!cameras.empty() && !transforms.empty())
+    {
+        auto& camera = cameras.begin()->second;
+        auto& transform = transforms.begin()->second;
+        transform.position = camera.position;
+    }
 }
 
 void CameraSystem::handleInput(float dt)

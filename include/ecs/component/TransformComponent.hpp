@@ -1,10 +1,11 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 namespace mc::ecs
 {
 struct TransformComponent
 {
-    float x = 0.0f;
-    float y = 0.0f;
+    glm::vec3 position{0.0f};
 };
 }

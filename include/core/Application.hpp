@@ -9,6 +9,7 @@ class World;
 
 namespace mc::ecs
 {
+class ChunkLoadingSystem;
 class RenderSystem;
 class CameraSystem;
 class ECS;
@@ -44,6 +45,7 @@ private:
     std::unique_ptr<ecs::ECS> m_ecs;
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
     std::shared_ptr<ecs::RenderSystem> m_renderSystem;
+    std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem;
     std::unique_ptr<world::World> m_world;
 
     double m_lastFrameTime = 0.0;

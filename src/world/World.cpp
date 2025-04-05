@@ -25,6 +25,11 @@ std::optional<Chunk> World::getChunk(glm::ivec3 const& chunkPos)
     return std::nullopt;
 }
 
+bool World::isChunkLoaded(glm::ivec3 const& pos) const
+{
+    return m_chunks.contains(pos);
+}
+
 void World::generateInitialArea(int radius)
 {
     for (int x = -radius; x <= radius; ++x)

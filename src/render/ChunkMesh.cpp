@@ -1,5 +1,7 @@
 #include "render/ChunkMesh.hpp"
 
+#include "core/Logger.hpp"
+
 namespace mc::render
 {
 ChunkMesh::ChunkMesh()
@@ -10,17 +12,8 @@ ChunkMesh::ChunkMesh()
 
 ChunkMesh::~ChunkMesh()
 {
-    if (m_vbo != 0)
-    {
-        glDeleteBuffers(1, &m_vbo);
-        m_vbo = 0;
-    }
-
-    if (m_vao != 0)
-    {
-        glDeleteVertexArrays(1, &m_vao);
-        m_vao = 0;
-    }
+    glDeleteBuffers(1, &m_vbo);
+    glDeleteVertexArrays(1, &m_vao);
 }
 
 void ChunkMesh::upload(std::vector<Vertex> const& vertices)

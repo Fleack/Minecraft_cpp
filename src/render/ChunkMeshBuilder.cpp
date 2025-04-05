@@ -36,9 +36,9 @@ constexpr glm::vec2 uvs[] = {
 bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
 {
     using namespace world;
-    if (x < 0 || x >= ChunkSizeX ||
-        y < 0 || y >= ChunkSizeY ||
-        z < 0 || z >= ChunkSizeZ)
+    if (x < 0 || x >= CHUNK_SIZE_X ||
+        y < 0 || y >= CHUNK_SIZE_Y ||
+        z < 0 || z >= CHUNK_SIZE_Z)
     {
         return true;
     }
@@ -48,13 +48,21 @@ bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
 
 void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
 {
+    mesh.setChunkPosition(chunk.getPosition());
+
+    auto chunkOffset = glm::vec3(
+        chunk.getPosition().x * world::CHUNK_SIZE_X,
+        chunk.getPosition().y * world::CHUNK_SIZE_Y,
+        chunk.getPosition().z * world::CHUNK_SIZE_Z
+    );
+
     std::vector<Vertex> vertices;
 
-    for (int x = 0; x < world::ChunkSizeX; ++x)
+    for (int x = 0; x < world::CHUNK_SIZE_X; ++x)
     {
-        for (int y = 0; y < world::ChunkSizeY; ++y)
+        for (int y = 0; y < world::CHUNK_SIZE_Y; ++y)
         {
-            for (int z = 0; z < world::ChunkSizeZ; ++z)
+            for (int z = 0; z < world::CHUNK_SIZE_Z; ++z)
             {
                 const auto block = chunk.getBlock(x, y, z);
                 if (!block.isSolid()) { continue; }
@@ -70,7 +78,7 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
                     for (int i : {0, 1, 2, 0, 2, 3})
                     {
                         Vertex v;
-                        v.position = glm::vec3(x, y, z) + faceVertices[face][i];
+                        v.position = glm::vec3(x, y, z) + faceVertices[face][i] + chunkOffset;
                         v.normal = faceNormals[face];
                         v.uv = uvs[i % 4];
                         vertices.push_back(v);
