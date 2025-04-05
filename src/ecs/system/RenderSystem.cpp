@@ -58,7 +58,6 @@ void RenderSystem::drawChunksInRadius(const glm::ivec3& currentChunkPos)
         {
             glm::ivec3 chunkPos = currentChunkPos + glm::ivec3{x, 0, z};
 
-            // Проверяем, есть ли сущность для этого чанка
             if (!m_chunkToEntity.contains(chunkPos))
             {
                 auto mesh = std::make_shared<render::ChunkMesh>();
@@ -78,7 +77,6 @@ void RenderSystem::drawChunksInRadius(const glm::ivec3& currentChunkPos)
             glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "u_Model"), 1, GL_FALSE, glm::value_ptr(model));
 
             meshComp->mesh->draw();
-
         }
     }
 }

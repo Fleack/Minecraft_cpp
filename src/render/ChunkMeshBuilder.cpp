@@ -1,5 +1,10 @@
 #include "render/ChunkMeshBuilder.hpp"
 
+#include <random>
+
+static std::mt19937 g_rng(std::random_device{}());
+static std::uniform_real_distribution<float> g_colorDist(0.0f, 1.0f);
+
 namespace mc::render
 {
 namespace
@@ -67,6 +72,12 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
                 const auto block = chunk.getBlock(x, y, z);
                 if (!block.isSolid()) { continue; }
 
+                glm::vec3 blockColor = {
+                    g_colorDist(g_rng),
+                    g_colorDist(g_rng),
+                    g_colorDist(g_rng)
+                };
+
                 for (int face = 0; face < 6; ++face)
                 {
                     const int nx = x + static_cast<int>(faceNormals[face].x);
@@ -81,6 +92,7 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
                         v.position = glm::vec3(x, y, z) + faceVertices[face][i] + chunkOffset;
                         v.normal = faceNormals[face];
                         v.uv = uvs[i % 4];
+                        v.color = blockColor;
                         vertices.push_back(v);
                     }
                 }
