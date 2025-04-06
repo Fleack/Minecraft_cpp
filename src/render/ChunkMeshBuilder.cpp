@@ -2,9 +2,6 @@
 
 #include <random>
 
-static std::mt19937 g_rng(std::random_device{}());
-static std::uniform_real_distribution<float> g_colorDist(0.0f, 1.0f);
-
 namespace mc::render
 {
 namespace
@@ -49,6 +46,15 @@ bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
     }
     return !chunk.getBlock(x, y, z).isSolid();
 }
+
+glm::vec3 getColorForBlock(world::BlockType type) {
+    switch (type) {
+    case world::BlockType::Grass: return {0.3f, 0.9f, 0.3f};
+    case world::BlockType::Dirt: return {0.5f, 0.3f, 0.2f};
+    case world::BlockType::Stone: return {0.5f, 0.5f, 0.5f};
+    default: return {1.0f, 1.0f, 1.0f};
+    }
+}
 }
 
 void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
@@ -72,11 +78,7 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
                 const auto block = chunk.getBlock(x, y, z);
                 if (!block.isSolid()) { continue; }
 
-                glm::vec3 blockColor = {
-                    g_colorDist(g_rng),
-                    g_colorDist(g_rng),
-                    g_colorDist(g_rng)
-                };
+                glm::vec3 blockColor = getColorForBlock(block.type);
 
                 for (int face = 0; face < 6; ++face)
                 {

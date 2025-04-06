@@ -32,7 +32,6 @@ Application::Application()
 Application::~Application()
 {
     shutdown();
-    // TODO Fix GL ERROR 1282
 }
 
 bool Application::initialize()
