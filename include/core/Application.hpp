@@ -2,6 +2,11 @@
 
 #include <memory>
 
+namespace mc::input
+{
+class IInputProvider;
+}
+
 namespace mc::world
 {
 class World;
@@ -33,6 +38,7 @@ private:
 
     bool initializeWindow();
     void initializeECS();
+    void initializeInput();
     void initializeCamera();
     void initializeWorld();
     void initializeRenderSystems();
@@ -43,6 +49,7 @@ private:
 
     std::unique_ptr<Window> m_window;
     std::unique_ptr<ecs::ECS> m_ecs;
+    std::shared_ptr<input::IInputProvider> m_inputProvider;
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
     std::shared_ptr<ecs::RenderSystem> m_renderSystem;
     std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem;

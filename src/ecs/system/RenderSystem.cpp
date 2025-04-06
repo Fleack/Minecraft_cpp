@@ -19,11 +19,11 @@ namespace mc::ecs
 {
 RenderSystem::RenderSystem(ECS& ecs,
                            std::shared_ptr<CameraSystem> cameraSystem,
+                           std::shared_ptr<render::IShader> shader,
                            world::World& world,
                            uint8_t renderRadius)
-    : m_ecs{ecs}, m_cameraSystem{std::move(cameraSystem)}, m_world{world}, m_renderRadius{renderRadius}
+    : m_ecs {ecs}, m_cameraSystem {std::move(cameraSystem)}, m_shader {std::move(shader)}, m_world {world}, m_renderRadius {renderRadius}
 {
-    m_shader = std::make_shared<render::Shader>("shaders/voxel.vert", "shaders/voxel.frag");
 }
 
 void RenderSystem::update(float /*deltaTime*/)
@@ -50,13 +50,13 @@ void RenderSystem::update(float /*deltaTime*/)
     m_shader->unbind();
 }
 
-void RenderSystem::drawChunksInRadius(const glm::ivec3& currentChunkPos)
+void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 {
     for (int x = -m_renderRadius; x <= m_renderRadius; ++x)
     {
         for (int z = -m_renderRadius; z <= m_renderRadius; ++z)
         {
-            glm::ivec3 chunkPos = currentChunkPos + glm::ivec3{x, 0, z};
+            glm::ivec3 chunkPos = currentChunkPos + glm::ivec3 {x, 0, z};
 
             if (!m_chunkToEntity.contains(chunkPos))
             {
@@ -64,7 +64,7 @@ void RenderSystem::drawChunksInRadius(const glm::ivec3& currentChunkPos)
                 render::ChunkMeshBuilder::build(m_world.getChunk(chunkPos).value(), *mesh);
 
                 auto entity = m_ecs.createEntity();
-                m_ecs.addComponent<MeshComponent>(entity, MeshComponent{mesh});
+                m_ecs.addComponent<MeshComponent>(entity, MeshComponent {mesh});
 
                 m_chunkToEntity[chunkPos] = entity;
             }

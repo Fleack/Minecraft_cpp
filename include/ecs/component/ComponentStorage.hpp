@@ -35,6 +35,12 @@ public:
         return GetStorage<T>();
     }
 
+    template <typename T>
+    void Clear()
+    {
+        GetStorage<T>().clear();
+    }
+
 private:
     template <typename T>
     std::unordered_map<Entity, T>& GetStorage()

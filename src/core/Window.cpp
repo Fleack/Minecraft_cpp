@@ -59,7 +59,8 @@ bool Window::initGLFW()
 
 bool Window::initGLAD()
 {
-    if (!gladLoadGL(glfwGetProcAddress)) {
+    if (!gladLoadGL(glfwGetProcAddress))
+    {
         Logger::get()->error("Failed to initialize GLAD!");
         return false;
     }
@@ -80,5 +81,10 @@ void Window::swapBuffers()
 bool Window::isOpen() const
 {
     return m_window && !glfwWindowShouldClose(m_window);
+}
+
+GLFWwindow* Window::getNativeWindow()
+{
+    return m_window;
 }
 }

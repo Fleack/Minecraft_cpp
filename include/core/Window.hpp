@@ -15,6 +15,8 @@ public:
     void swapBuffers();
     [[nodiscard]] bool isOpen() const;
 
+    GLFWwindow* getNativeWindow();
+
 private:
     bool initGLFW();
     bool initGLAD();

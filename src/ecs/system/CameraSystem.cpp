@@ -10,8 +10,8 @@
 
 namespace mc::ecs
 {
-CameraSystem::CameraSystem(ECS& ecs, float aspectRatio)
-    : m_ecs(ecs), m_aspectRatio(aspectRatio)
+CameraSystem::CameraSystem(ECS& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider)
+    : m_input(std::move(inputProvider)), m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
     updateMatrices();
 }
@@ -38,28 +38,27 @@ void CameraSystem::handleInput(float dt)
     if (cams.empty()) return;
 
     CameraComponent& cam = cams.begin()->second;
-    GLFWwindow* window = glfwGetCurrentContext();
-    if (!window) return;
 
     float velocity = cam.speed * dt;
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (m_input->isKeyPressed(GLFW_KEY_W))
         cam.position += cam.front * velocity;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (m_input->isKeyPressed(GLFW_KEY_S))
         cam.position -= cam.front * velocity;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (m_input->isKeyPressed(GLFW_KEY_A))
         cam.position -= glm::normalize(glm::cross(cam.front, cam.up)) * velocity;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (m_input->isKeyPressed(GLFW_KEY_D))
         cam.position += glm::normalize(glm::cross(cam.front, cam.up)) * velocity;
 
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
+    glm::dvec2 cursor = m_input->getCursorPosition();
+    double xpos = cursor.x;
+    double ypos = cursor.y;
 
-    if (m_firstMouse)
+    if (m_firstMouseInput)
     {
         m_lastX = static_cast<float>(xpos);
         m_lastY = static_cast<float>(ypos);
-        m_firstMouse = false;
+        m_firstMouseInput = false;
     }
 
     float xoffset = static_cast<float>(xpos) - m_lastX;

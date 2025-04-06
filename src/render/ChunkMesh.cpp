@@ -12,8 +12,6 @@ ChunkMesh::ChunkMesh()
 
 ChunkMesh::~ChunkMesh()
 {
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteVertexArrays(1, &m_vao);
 }
 
 void ChunkMesh::upload(std::vector<Vertex> const& vertices)

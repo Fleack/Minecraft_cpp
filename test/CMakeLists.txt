@@ -8,9 +8,14 @@ target_include_directories(UnitTests PRIVATE
         ${fastnoise_SOURCE_DIR}/Cpp
 )
 
+set(GLAD_SOURCE_DIR "${LIBS_SOURCE_DIR}/glad")
+target_include_directories(glad_lib PUBLIC ${GLAD_SOURCE_DIR}/include)
+
 target_link_libraries(UnitTests
         PRIVATE
-        Catch2::Catch2WithMain
         voxel_engine
+        Catch2::Catch2WithMain
         spdlog::spdlog
+        glfw
+        glad_lib
 )

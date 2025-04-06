@@ -4,25 +4,22 @@
 
 #include <glad/gl.h>
 
+#include "render/IShader.hpp"
+
 namespace mc::render
 {
-class Shader
+class Shader : public IShader
 {
 public:
     Shader(std::string const& vertexPath, std::string const& fragmentPath);
-    ~Shader();
+    ~Shader() override;
 
-    void bind() const;
-    void unbind() const;
-
-    [[nodiscard]] GLuint getID() const { return m_id; }
+    void bind() override;
+    void unbind() override;
 
 private:
     std::string readFile(const std::string& path) const;
     GLuint compileShader(GLenum type, const std::string& source) const;
     void checkCompileErrors(GLuint shader, const std::string& type) const;
-
-private:
-    GLuint m_id;
 };
 }

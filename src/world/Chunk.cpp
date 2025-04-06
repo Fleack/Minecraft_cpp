@@ -16,7 +16,7 @@ Chunk::Chunk(glm::ivec3 position)
     }
 }
 
-const glm::ivec3& Chunk::getPosition() const
+glm::ivec3 const& Chunk::getPosition() const
 {
     return m_position;
 }

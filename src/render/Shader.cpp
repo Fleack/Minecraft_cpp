@@ -28,15 +28,14 @@ Shader::Shader(std::string const& vertexPath, std::string const& fragmentPath)
 
 Shader::~Shader()
 {
-    glDeleteProgram(m_id);
 }
 
-void Shader::bind() const
+void Shader::bind()
 {
     glUseProgram(m_id);
 }
 
-void Shader::unbind() const
+void Shader::unbind()
 {
     glUseProgram(0);
 }
@@ -71,7 +70,6 @@ void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
         {
             glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
             core::Logger::get()->error(std::format("[SHADER COMPILE ERROR]: {}", infoLog));
-
         }
     }
     else
@@ -80,7 +78,7 @@ void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
         if (!success)
         {
             glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
-           core::Logger::get()->error(std::format("[PROGRAM LINK ERROR]: {}", infoLog));
+            core::Logger::get()->error(std::format("[PROGRAM LINK ERROR]: {}", infoLog));
         }
     }
 }
