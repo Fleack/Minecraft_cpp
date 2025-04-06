@@ -71,4 +71,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
+# ==============================
+# Catch2
+# ==============================
+FetchContent_Declare(
+        catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.8.0
+)
+FetchContent_MakeAvailable(catch2)
+
 add_subdirectory(src)
+add_subdirectory(test)

@@ -34,6 +34,6 @@ void ChunkGenerator::generate(Chunk& chunk) const
             }
         }
     }
-    core::Logger::get()->debug(std::format("Chunk at {},{}", static_cast<float>(pos.x), static_cast<float>(pos.z)));
+    core::Logger::get()->debug(std::format("Generated new chunk at [{}, {}]", static_cast<float>(pos.x), static_cast<float>(pos.z)));
 }
 }
