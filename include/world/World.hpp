@@ -18,7 +18,7 @@ public:
     World();
 
     void loadChunk(glm::ivec3 const& chunkPos);
-    [[nodiscard]] std::optional<Chunk> getChunk(const glm::ivec3& chunkPos);
+    [[nodiscard]] std::optional<std::reference_wrapper<Chunk>> getChunk(const glm::ivec3& chunkPos);
     [[nodiscard]] auto const& getChunks() const { return m_chunks; }
     [[nodiscard]] bool isChunkLoaded(glm::ivec3 const& pos) const;
 
