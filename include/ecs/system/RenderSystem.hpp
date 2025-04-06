@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "ecs/Entity.hpp"
+#include "render/TextureAtlas.hpp"
 
 namespace mc::world
 {
@@ -29,7 +30,12 @@ class CameraSystem;
 class RenderSystem final : public ISystem
 {
 public:
-    RenderSystem(ECS& ecs, std::shared_ptr<CameraSystem> cameraSystem, std::shared_ptr<render::IShader> shader, world::World& world, uint8_t renderRadius);
+    RenderSystem(ECS& ecs,
+                 std::shared_ptr<CameraSystem> cameraSystem,
+                 std::unique_ptr<render::IShader> shader,
+                 std::unique_ptr<render::TextureAtlas> atlas,
+                 world::World& world,
+                 uint8_t renderRadius);
 
     void update(float deltaTime) override;
 
@@ -38,9 +44,11 @@ private:
 
 private:
     ECS& m_ecs;
-    std::shared_ptr<CameraSystem> m_cameraSystem;
-    std::shared_ptr<render::IShader> m_shader;
     world::World& m_world;
+
+    std::shared_ptr<CameraSystem> m_cameraSystem;
+    std::unique_ptr<render::IShader> m_shader;
+    std::unique_ptr<render::TextureAtlas> m_atlas;
 
     std::unordered_map<glm::ivec3, Entity, utils::IVec3Hasher> m_chunkToEntity;
 

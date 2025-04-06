@@ -18,7 +18,6 @@ Window::Window(const std::string& title, int width, int height)
     }
 
     glfwMakeContextCurrent(m_window);
-    glfwMakeContextCurrent(m_window);
     glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1); // Enable vsync
 
@@ -31,6 +30,7 @@ Window::Window(const std::string& title, int width, int height)
     }
 
     glViewport(0, 0, width, height);
+    glEnable(GL_DEPTH_TEST);
     Logger::get()->info("Window created: {}x{}", width, height);
 }
 
@@ -55,7 +55,6 @@ bool Window::initGLFW()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    glEnable(GL_DEPTH_TEST);
     return true;
 }
 

@@ -5,9 +5,11 @@
 
 namespace mc::render
 {
+class TextureAtlas;
+
 class ChunkMeshBuilder
 {
 public:
-    static void build(const world::Chunk& chunk, ChunkMesh& mesh);
+    static void build(world::Chunk const& chunk, ChunkMesh& mesh, TextureAtlas const& atlas);
 };
 }

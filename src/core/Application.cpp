@@ -6,20 +6,17 @@
 #include "core/Window.hpp"
 #include "ecs/ECS.hpp"
 #include "ecs/component/CameraComponent.hpp"
-#include "ecs/component/MeshComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
 #include "ecs/system/ChunkLoadingSystem.hpp"
 #include "ecs/system/RenderSystem.hpp"
 #include "input/GLFWInputProvider.hpp"
-#include "render/ChunkMesh.hpp"
-#include "render/ChunkMeshBuilder.hpp"
+#include "render/Shader.hpp"
+#include "render/TextureAtlas.hpp"
 #include "world/World.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
-#include "render/Shader.hpp"
 
 namespace mc::core
 {
@@ -95,12 +92,13 @@ void Application::initializeWorld()
 
 void Application::initializeRenderSystems()
 {
-    static constexpr uint8_t render {1};
+    static constexpr uint8_t render {10};
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, render);
     m_ecs->addSystem(m_chunkLoadingSystem);
 
-    auto shader = std::make_shared<render::Shader>("shaders/voxel.vert", "shaders/voxel.frag");
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, shader, *m_world, render);
+    auto atlas = std::make_unique<render::TextureAtlas>(32);
+    auto shader = std::make_unique<render::Shader>("shaders/voxel.vert", "shaders/voxel.frag");
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, std::move(shader), std::move(atlas), *m_world, render);
     m_ecs->addSystem(m_renderSystem);
 }
 

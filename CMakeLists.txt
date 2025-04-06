@@ -9,7 +9,6 @@ include_directories(include)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(LIBS_SOURCE_DIR "${PROJECT_SOURCE_DIR}/libs")
-file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 # ==============================
 # GLFW
@@ -83,3 +82,9 @@ FetchContent_MakeAvailable(catch2)
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+# Copy shaders
+file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+# Copy assets
+file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+

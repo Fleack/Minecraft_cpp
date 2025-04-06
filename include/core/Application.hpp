@@ -2,6 +2,11 @@
 
 #include <memory>
 
+namespace mc::render
+{
+class TextureAtlas;
+}
+
 namespace mc::input
 {
 class IInputProvider;

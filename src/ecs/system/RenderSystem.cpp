@@ -19,20 +19,29 @@ namespace mc::ecs
 {
 RenderSystem::RenderSystem(ECS& ecs,
                            std::shared_ptr<CameraSystem> cameraSystem,
-                           std::shared_ptr<render::IShader> shader,
+                           std::unique_ptr<render::IShader> shader,
+                           std::unique_ptr<render::TextureAtlas> atlas,
                            world::World& world,
                            uint8_t renderRadius)
-    : m_ecs {ecs}, m_cameraSystem {std::move(cameraSystem)}, m_shader {std::move(shader)}, m_world {world}, m_renderRadius {renderRadius}
+    : m_ecs{ecs},
+      m_world{world},
+      m_cameraSystem{std::move(cameraSystem)},
+      m_shader{std::move(shader)},
+      m_atlas{std::move(atlas)},
+      m_renderRadius{renderRadius}
 {
+    m_atlas->loadFromDirectory("assets/textures/blocks/");
 }
 
 void RenderSystem::update(float /*deltaTime*/)
 {
     m_shader->bind();
+    m_atlas->bind();
 
     const glm::mat4 view = m_cameraSystem->getViewMatrix();
     const glm::mat4 projection = m_cameraSystem->getProjectionMatrix();
 
+    glUniform1i(glGetUniformLocation(m_shader->getID(), "u_Texture"), 0);
     glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "u_View"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "u_Projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -56,15 +65,15 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
     {
         for (int z = -m_renderRadius; z <= m_renderRadius; ++z)
         {
-            glm::ivec3 chunkPos = currentChunkPos + glm::ivec3 {x, 0, z};
+            glm::ivec3 chunkPos = currentChunkPos + glm::ivec3{x, 0, z};
 
             if (!m_chunkToEntity.contains(chunkPos))
             {
                 auto mesh = std::make_shared<render::ChunkMesh>();
-                render::ChunkMeshBuilder::build(m_world.getChunk(chunkPos).value(), *mesh);
+                render::ChunkMeshBuilder::build(m_world.getChunk(chunkPos).value(), *mesh, *m_atlas.get());
 
                 auto entity = m_ecs.createEntity();
-                m_ecs.addComponent<MeshComponent>(entity, MeshComponent {mesh});
+                m_ecs.addComponent<MeshComponent>(entity, MeshComponent{mesh});
 
                 m_chunkToEntity[chunkPos] = entity;
             }

@@ -1,6 +1,9 @@
 #include "render/ChunkMeshBuilder.hpp"
 
-#include <random>
+#include "core/Logger.hpp"
+
+#include "render/BlockTextureMapper.hpp"
+#include "render/TextureAtlas.hpp"
 
 namespace mc::render
 {
@@ -46,18 +49,9 @@ bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
     }
     return !chunk.getBlock(x, y, z).isSolid();
 }
-
-glm::vec3 getColorForBlock(world::BlockType type) {
-    switch (type) {
-    case world::BlockType::Grass: return {0.3f, 0.9f, 0.3f};
-    case world::BlockType::Dirt: return {0.5f, 0.3f, 0.2f};
-    case world::BlockType::Stone: return {0.5f, 0.5f, 0.5f};
-    default: return {1.0f, 1.0f, 1.0f};
-    }
-}
 }
 
-void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
+void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, TextureAtlas const& atlas)
 {
     mesh.setChunkPosition(chunk.getPosition());
 
@@ -78,8 +72,6 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
                 const auto block = chunk.getBlock(x, y, z);
                 if (!block.isSolid()) { continue; }
 
-                glm::vec3 blockColor = getColorForBlock(block.type);
-
                 for (int face = 0; face < 6; ++face)
                 {
                     const int nx = x + static_cast<int>(faceNormals[face].x);
@@ -93,8 +85,12 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh)
                         Vertex v;
                         v.position = glm::vec3(x, y, z) + faceVertices[face][i] + chunkOffset;
                         v.normal = faceNormals[face];
-                        v.uv = uvs[i % 4];
-                        v.color = blockColor;
+
+                        auto texName = getTextureNameForBlock(block.type);
+                        auto tileUV = atlas.getUV(texName);
+                        float tileSize = 1.0f / static_cast<float>(atlas.getAtlasSize());
+
+                        v.uv = tileUV + (uvs[i % 4] * tileSize);
                         vertices.push_back(v);
                     }
                 }
