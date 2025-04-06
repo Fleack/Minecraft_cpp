@@ -88,10 +88,11 @@ void Application::initializeWorld()
 
 void Application::initializeRenderSystems()
 {
-    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, 9);
+    static constexpr uint8_t render{1};
+    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, render);
     m_ecs->addSystem(m_chunkLoadingSystem);
 
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, 8);
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, render);
     m_ecs->addSystem(m_renderSystem);
 }
 

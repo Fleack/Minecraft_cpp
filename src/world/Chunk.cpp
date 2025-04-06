@@ -20,11 +20,11 @@ int Chunk::index(int x, int y, int z) const
 
 Block Chunk::getBlock(int x, int y, int z) const
 {
-    return m_blocks[index(x, y, z)];
+    return m_blocks.at(index(x, y, z));
 }
 
 void Chunk::setBlock(int x, int y, int z, Block block)
 {
-    m_blocks[index(x, y, z)] = block;
+    m_blocks.at(index(x, y, z)) = block;
 }
 }
