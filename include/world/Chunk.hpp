@@ -15,6 +15,7 @@ constexpr int CHUNK_SIZE_Z = 16;
 class Chunk
 {
 public:
+    using block_volume = std::vector<std::vector<std::vector<Block>>>;
     explicit Chunk(glm::ivec3 position);
 
     [[nodiscard]] glm::ivec3 const& getPosition() const;
@@ -24,8 +25,6 @@ public:
 
 private:
     glm::ivec3 m_position;
-    std::vector<Block> m_blocks;
-
-    [[nodiscard]] int index(int x, int y, int z) const;
+    block_volume m_blocks;
 };
 }
