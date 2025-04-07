@@ -11,8 +11,7 @@ public:
     ChunkGenerator();
 
     void generate(Chunk& chunk) const;
-
 private:
-    FastNoiseLite m_noise;
+    FastNoiseLite m_noise{};
 };
 }
