@@ -20,9 +20,9 @@ TEST_CASE("ChunkMesh uploads and draws vertex data", "[Render][ChunkMesh]")
     REQUIRE(mesh.getChunkPosition() == glm::ivec3(2, 0, 3));
 
     std::vector<Vertex> vertices {
-        {{0, 0, 0}, {0, 1, 0}, {0, 0}, {1, 0, 0}},
-        {{1, 0, 0}, {0, 1, 0}, {1, 0}, {0, 1, 0}},
-        {{0, 1, 0}, {0, 1, 0}, {0, 1}, {0, 0, 1}}
+        {{0, 0, 0}, {0, 1, 0}, {0, 0}},
+        {{1, 0, 0}, {0, 1, 0}, {1, 0}},
+        {{0, 1, 0}, {0, 1, 0}, {0, 1}}
     };
 
     mesh.upload(vertices);
