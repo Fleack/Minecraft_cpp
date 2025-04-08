@@ -5,6 +5,7 @@ cmake-build-*/
 
 # === CMake ===
 CMakeFiles/
+CMakeUserPresets.json
 CMakeCache.txt
 cmake_install.cmake
 Makefile
@@ -31,3 +32,6 @@ compile_commands.json
 *.tmp
 *.swp
 *~
+
+# === Conan ===
+conan_provider.cmake
