@@ -23,6 +23,7 @@ find_package(stb REQUIRED)
 find_package(fastnoise-lite REQUIRED)
 find_package(imgui REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(cppcoro REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 

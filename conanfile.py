@@ -14,7 +14,8 @@ class MinecraftConan(ConanFile):
         "spdlog/1.15.1",
         "catch2/3.8.0",
         "fastnoise-lite/1.1.1@local/testing",
-        "glad/2.0.8@local/testing"
+        "glad/2.0.8@local/testing",
+        "andreasbuhr-cppcoro/cci.20230629"
     ]
     default_options = {
         "glfw/*:shared": False,
