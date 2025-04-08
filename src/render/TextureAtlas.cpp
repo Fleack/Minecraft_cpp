@@ -74,7 +74,7 @@ std::vector<uint8_t> TextureAtlas::generateAtlasData(std::vector<std::string> co
         int height;
         int ch;
         stbi_uc* data = stbi_load(file.c_str(), &width, &height, &ch, STBI_rgb_alpha);
-        if (!data || width != m_tileSize || height != m_tileSize)
+        if (!data || static_cast<std::size_t>(width) != m_tileSize || static_cast<std::size_t>(height) != m_tileSize)
         {
             core::Logger::get()->error(std::format("Failed to load texture or wrong size: {}", file));
             continue;
@@ -99,9 +99,9 @@ std::vector<uint8_t> TextureAtlas::generateAtlasData(std::vector<std::string> co
 
 void TextureAtlas::copyTileToAtlas(const stbi_uc* data, int tileX, int tileY, std::vector<uint8_t>& atlasData, int atlasPixels, int channels) const
 {
-    for (int y = 0; y < m_tileSize; ++y)
+    for (std::size_t y = 0; y < m_tileSize; ++y)
     {
-        for (int x = 0; x < m_tileSize; ++x)
+        for (std::size_t x = 0; x < m_tileSize; ++x)
         {
             int srcIdx = (y * m_tileSize + x) * channels;
             int dstIdx = ((tileY * m_tileSize + y) * atlasPixels + (tileX * m_tileSize + x)) * channels;
