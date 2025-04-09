@@ -10,7 +10,7 @@
 
 namespace mc::ecs
 {
-CameraSystem::CameraSystem(ECS& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider)
+CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider)
     : m_input(std::move(inputProvider)), m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
     updateMatrices();

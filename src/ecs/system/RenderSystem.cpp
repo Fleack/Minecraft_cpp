@@ -17,7 +17,7 @@
 
 namespace mc::ecs
 {
-RenderSystem::RenderSystem(ECS& ecs,
+RenderSystem::RenderSystem(Ecs& ecs,
                            std::shared_ptr<CameraSystem> cameraSystem,
                            std::unique_ptr<render::IShader> shader,
                            std::unique_ptr<render::TextureAtlas> atlas,

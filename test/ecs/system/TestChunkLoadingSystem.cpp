@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/ChunkLoadingSystem.hpp"
 #include "world/World.hpp"
@@ -10,7 +10,7 @@ using namespace mc::world;
 
 TEST_CASE("ChunkLoadingSystem loads chunks around camera", "[ECS][System][ChunkLoadingSystem]")
 {
-    ECS ecs;
+    Ecs ecs;
     World world;
     int loadRadius = 1;
 
@@ -37,7 +37,7 @@ TEST_CASE("ChunkLoadingSystem loads chunks around camera", "[ECS][System][ChunkL
 
 TEST_CASE("ChunkLoadingSystem does not reload chunks when camera stays in same chunk", "[ECS][System][ChunkLoadingSystem]")
 {
-    ECS ecs;
+    Ecs ecs;
     World world;
     int loadRadius = 1;
 
@@ -57,7 +57,7 @@ TEST_CASE("ChunkLoadingSystem does not reload chunks when camera stays in same c
 
 TEST_CASE("ChunkLoadingSystem loads correct chunks when camera moves to new chunk", "[ChunkLoadingSystem]")
 {
-    ECS ecs;
+    Ecs ecs;
     World world;
     uint8_t loadRadius = 1;
 

@@ -9,10 +9,10 @@
 
 namespace mc::ecs
 {
-class ECS
+class Ecs
 {
 public:
-    ECS() : m_nextEntity(1)
+    Ecs() : m_nextEntity(1)
     {
     }
 

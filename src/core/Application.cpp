@@ -4,7 +4,7 @@
 
 #include "core/Logger.hpp"
 #include "core/Window.hpp"
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/component/CameraComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
@@ -53,7 +53,7 @@ bool Application::initializeWindow()
 
 void Application::initializeECS()
 {
-    m_ecs = std::make_unique<ecs::ECS>();
+    m_ecs = std::make_unique<ecs::Ecs>();
 }
 
 void Application::initializeInput()

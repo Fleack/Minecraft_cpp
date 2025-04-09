@@ -2,12 +2,12 @@
 
 #include <ranges>
 
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
 
 namespace mc::ecs
 {
-MovementSystem::MovementSystem(ECS& ecs) : m_ecs(ecs)
+MovementSystem::MovementSystem(Ecs& ecs) : m_ecs(ecs)
 {
 }
 

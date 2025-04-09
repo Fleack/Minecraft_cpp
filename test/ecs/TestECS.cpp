@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/system/ISystem.hpp"
 
 using namespace mc::ecs;
@@ -25,7 +25,7 @@ public:
 
 TEST_CASE("ECS creates entities with unique IDs", "[ECS]")
 {
-    ECS ecs;
+    Ecs ecs;
 
     Entity e1 = ecs.createEntity();
     Entity e2 = ecs.createEntity();
@@ -37,7 +37,7 @@ TEST_CASE("ECS creates entities with unique IDs", "[ECS]")
 
 TEST_CASE("ECS adds and retrieves components correctly", "[ECS]")
 {
-    ECS ecs;
+    Ecs ecs;
     Entity e = ecs.createEntity();
 
     ecs.addComponent<MockComponent>(e, {42});
@@ -49,7 +49,7 @@ TEST_CASE("ECS adds and retrieves components correctly", "[ECS]")
 
 TEST_CASE("ECS getAllComponents returns correct map", "[ECS]")
 {
-    ECS ecs;
+    Ecs ecs;
     Entity e1 = ecs.createEntity();
     Entity e2 = ecs.createEntity();
 
@@ -64,7 +64,7 @@ TEST_CASE("ECS getAllComponents returns correct map", "[ECS]")
 
 TEST_CASE("ECS systems update when ECS::update is called", "[ECS]")
 {
-    ECS ecs;
+    Ecs ecs;
     auto system = std::make_shared<MockSystem>();
 
     ecs.addSystem(system);

@@ -1,4 +1,4 @@
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/component/CameraComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
@@ -34,7 +34,7 @@ public:
 
 TEST_CASE("CameraSystem updates view and projection matrices", "[ECS][System][CameraSystem]")
 {
-    ECS ecs;
+    Ecs ecs;
 
     Entity cameraEntity = ecs.createEntity();
     CameraComponent camComp {
@@ -58,7 +58,7 @@ TEST_CASE("CameraSystem updates view and projection matrices", "[ECS][System][Ca
 
 TEST_CASE("CameraSystem syncs camera position to transform", "[ECS][System][CameraSystem]")
 {
-    ECS ecs;
+    Ecs ecs;
 
     Entity e = ecs.createEntity();
 
@@ -89,7 +89,7 @@ TEST_CASE("CameraSystem syncs camera position to transform", "[ECS][System][Came
 
 TEST_CASE("CameraSystem handleInput updates position and rotation", "[ECS][System][CameraSystem]")
 {
-    ECS ecs;
+    Ecs ecs;
     Entity e = ecs.createEntity();
 
     CameraComponent cam;

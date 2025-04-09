@@ -22,7 +22,7 @@ namespace mc::ecs
 class ChunkLoadingSystem;
 class RenderSystem;
 class CameraSystem;
-class ECS;
+class Ecs;
 class ISystem;
 }
 
@@ -53,7 +53,7 @@ private:
     void shutdown();
 
     std::unique_ptr<Window> m_window;
-    std::unique_ptr<ecs::ECS> m_ecs;
+    std::unique_ptr<ecs::Ecs> m_ecs;
     std::shared_ptr<input::IInputProvider> m_inputProvider;
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
     std::shared_ptr<ecs::RenderSystem> m_renderSystem;

@@ -1,12 +1,12 @@
 #include "ecs/system/ChunkLoadingSystem.hpp"
 
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "world/World.hpp"
 
 namespace mc::ecs
 {
-ChunkLoadingSystem::ChunkLoadingSystem(ECS& ecs, world::World& world, int radius)
+ChunkLoadingSystem::ChunkLoadingSystem(Ecs& ecs, world::World& world, int radius)
     : m_ecs(ecs), m_world(world), m_loadRadius(radius)
 {
 }

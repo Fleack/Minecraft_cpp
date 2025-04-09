@@ -15,7 +15,7 @@ class World;
 
 namespace mc::ecs
 {
-class ECS;
+class Ecs;
 }
 
 namespace mc::render
@@ -30,7 +30,7 @@ class CameraSystem;
 class RenderSystem final : public ISystem
 {
 public:
-    RenderSystem(ECS& ecs,
+    RenderSystem(Ecs& ecs,
                  std::shared_ptr<CameraSystem> cameraSystem,
                  std::unique_ptr<render::IShader> shader,
                  std::unique_ptr<render::TextureAtlas> atlas,
@@ -43,7 +43,7 @@ private:
     void drawChunksInRadius(glm::ivec3 const& currentChunkPos);
 
 private:
-    ECS& m_ecs;
+    Ecs& m_ecs;
     world::World& m_world;
 
     std::shared_ptr<CameraSystem> m_cameraSystem;

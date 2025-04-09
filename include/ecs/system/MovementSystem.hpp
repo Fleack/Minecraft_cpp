@@ -4,16 +4,16 @@
 
 namespace mc::ecs
 {
-class ECS;
+class Ecs;
 
 class MovementSystem final : public ISystem
 {
 public:
-    explicit MovementSystem(ECS& ecs);
+    explicit MovementSystem(Ecs& ecs);
 
     void update(float deltaTime) override;
 
 private:
-    ECS& m_ecs;
+    Ecs& m_ecs;
 };
 }

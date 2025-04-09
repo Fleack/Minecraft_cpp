@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/ECS.hpp"
+#include "ecs/Ecs.hpp"
 #include "ecs/system/ISystem.hpp"
 #include "input/IInputProvider.hpp"
 
@@ -11,7 +11,7 @@ namespace mc::ecs
 class CameraSystem final : public ISystem
 {
 public:
-    explicit CameraSystem(ECS& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider);
+    explicit CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider);
 
     void update(float deltaTime) override;
 
@@ -25,7 +25,7 @@ private:
 private:
     std::shared_ptr<input::IInputProvider> m_input;
 
-    ECS& m_ecs;
+    Ecs& m_ecs;
     float m_aspectRatio = 16.0f / 9.0f;
 
     glm::mat4 m_viewMatrix{};
