@@ -1,6 +1,7 @@
 from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 
+
 class MinecraftConan(ConanFile):
     name = "minecraft"
     version = "0.1"
@@ -15,7 +16,7 @@ class MinecraftConan(ConanFile):
         "catch2/3.8.0",
         "fastnoise-lite/1.1.1@local/testing",
         "glad/2.0.8@local/testing",
-        "andreasbuhr-cppcoro/cci.20230629"
+        "concurrencpp/0.1.7"
     ]
     default_options = {
         "glfw/*:shared": False,

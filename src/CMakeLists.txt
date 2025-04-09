@@ -4,12 +4,12 @@ list(REMOVE_ITEM SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 add_library(voxel_engine STATIC ${SRC_FILES})
 
 target_include_directories(voxel_engine
-    PUBLIC
+        PUBLIC
         ${CMAKE_SOURCE_DIR}/include
 )
 
 target_link_libraries(voxel_engine
-    PRIVATE
+        PRIVATE
         glfw
         glm::glm
         glad::glad
@@ -17,6 +17,7 @@ target_link_libraries(voxel_engine
         fastnoise-lite::fastnoise-lite
         imgui::imgui
         spdlog::spdlog
+        concurrencpp::concurrencpp
 )
 
 add_executable(Minecraft main.cpp)
