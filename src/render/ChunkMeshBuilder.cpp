@@ -81,8 +81,6 @@ bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
 
 void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, TextureAtlas const& atlas)
 {
-    mesh.setChunkPosition(chunk.getPosition());
-
     auto chunkOffset = glm::vec3(
         chunk.getPosition().x * world::CHUNK_SIZE_X,
         chunk.getPosition().y * world::CHUNK_SIZE_Y,
@@ -115,10 +113,10 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, Texture
                         v.normal = FACE_NORMALS[face];
 
                         auto texName = getTextureNameForBlock(block.type);
-                        auto tileUV = atlas.getUv(texName);
+                        auto tileUv = atlas.getUv(texName);
                         float tileSize = 1.0f / static_cast<float>(atlas.getAtlasSize());
 
-                        v.uv = tileUV + (UVS[i % 4] * tileSize);
+                        v.uv = tileUv + (UVS[i % 4] * tileSize);
                         vertices.push_back(v);
                     }
                 }

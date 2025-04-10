@@ -69,7 +69,7 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 
             if (!m_chunkToEntity.contains(chunkPos))
             {
-                auto mesh = std::make_shared<render::ChunkMesh>();
+                auto mesh = std::make_shared<render::ChunkMesh>(chunkPos);
                 render::ChunkMeshBuilder::build(m_world.getChunk(chunkPos).value(), *mesh, *m_atlas.get());
 
                 auto entity = m_ecs.createEntity();

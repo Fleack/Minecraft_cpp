@@ -4,7 +4,8 @@
 
 namespace mc::render
 {
-ChunkMesh::ChunkMesh()
+ChunkMesh::ChunkMesh(glm::ivec3 pos)
+    : m_chunkPosition{pos}
 {
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);

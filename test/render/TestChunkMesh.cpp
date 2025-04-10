@@ -15,8 +15,7 @@ TEST_CASE("ChunkMesh uploads and draws vertex data", "[Render][ChunkMesh]")
     glfwMakeContextCurrent(window);
     REQUIRE(gladLoadGL(glfwGetProcAddress));
 
-    ChunkMesh mesh;
-    mesh.setChunkPosition({2, 0, 3});
+    ChunkMesh mesh({2, 0, 3});
     REQUIRE(mesh.getChunkPosition() == glm::ivec3(2, 0, 3));
 
     std::vector<Vertex> vertices {
