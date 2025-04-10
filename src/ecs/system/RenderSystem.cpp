@@ -41,9 +41,9 @@ void RenderSystem::update(float /*deltaTime*/)
     const glm::mat4 view = m_cameraSystem->getViewMatrix();
     const glm::mat4 projection = m_cameraSystem->getProjectionMatrix();
 
-    glUniform1i(glGetUniformLocation(m_shader->getID(), "u_Texture"), 0);
-    glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "u_View"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "u_Projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform1i(glGetUniformLocation(m_shader->getId(), "u_Texture"), 0);
+    glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_View"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_Projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     const auto& cameraTransform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
     const glm::vec3 cameraPos = cameraTransform.position;
@@ -83,7 +83,7 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
             if (!meshComp || !meshComp->mesh) { continue; }
 
             auto model = glm::mat4(1.0f);
-            glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "u_Model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_Model"), 1, GL_FALSE, glm::value_ptr(model));
 
             meshComp->mesh->draw();
         }

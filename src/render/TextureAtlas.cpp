@@ -19,7 +19,7 @@ TextureAtlas::TextureAtlas(std::size_t tileSize)
 
 TextureAtlas::~TextureAtlas()
 {
-    glDeleteTextures(1, &m_textureID);
+    glDeleteTextures(1, &m_textureId);
 }
 
 void TextureAtlas::loadFromDirectory(std::string const& path)
@@ -27,16 +27,16 @@ void TextureAtlas::loadFromDirectory(std::string const& path)
     std::vector<std::string> files = collectPngFiles(path);
     calculateAtlasSize(files.size());
     std::vector<uint8_t> atlasData = generateAtlasData(files);
-    uploadToGPU(atlasData);
+    uploadToGpu(atlasData);
 }
 
 void TextureAtlas::bind(uint32_t unit) const
 {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_textureId);
 }
 
-glm::vec2 TextureAtlas::getUV(std::string const& name) const
+glm::vec2 TextureAtlas::getUv(std::string const& name) const
 {
     auto it = m_uvMap.find(name);
     if (it != m_uvMap.end()) return it->second;
@@ -110,12 +110,12 @@ void TextureAtlas::copyTileToAtlas(const stbi_uc* data, int tileX, int tileY, st
     }
 }
 
-void TextureAtlas::uploadToGPU(const std::vector<uint8_t>& atlasData)
+void TextureAtlas::uploadToGpu(const std::vector<uint8_t>& atlasData)
 {
     const uint64_t atlasPixels = m_atlasSize * m_tileSize;
 
-    glGenTextures(1, &m_textureID);
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glGenTextures(1, &m_textureId);
+    glBindTexture(GL_TEXTURE_2D, m_textureId);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlasPixels, atlasPixels, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

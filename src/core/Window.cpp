@@ -7,7 +7,7 @@ namespace mc::core
 {
 Window::Window(const std::string& title, int width, int height)
 {
-    if (!initGLFW()) return;
+    if (!initGlfw()) return;
 
     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!m_window)
@@ -21,7 +21,7 @@ Window::Window(const std::string& title, int width, int height)
     glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1); // Enable vsync
 
-    if (!initGLAD())
+    if (!initGlad())
     {
         Logger::get()->error("Failed to initialize GLAD");
         glfwDestroyWindow(m_window);
@@ -43,7 +43,7 @@ Window::~Window()
     }
 }
 
-bool Window::initGLFW()
+bool Window::initGlfw() const
 {
     if (!glfwInit())
     {
@@ -58,7 +58,7 @@ bool Window::initGLFW()
     return true;
 }
 
-bool Window::initGLAD()
+bool Window::initGlad() const
 {
     if (!gladLoadGL(glfwGetProcAddress))
     {
@@ -69,12 +69,12 @@ bool Window::initGLAD()
     return true;
 }
 
-void Window::pollEvents()
+void Window::pollEvents() const
 {
     glfwPollEvents();
 }
 
-void Window::swapBuffers()
+void Window::swapBuffers() const
 {
     glfwSwapBuffers(m_window);
 }

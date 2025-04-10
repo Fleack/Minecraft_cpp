@@ -30,36 +30,91 @@ namespace mc::core
 {
 class Window;
 
+/**
+ * @brief Main application class for running the voxel game.
+ *
+ * Handles initialization, main loop, ECS setup, input, camera, rendering,
+ * world management, and shutdown procedures.
+ */
 class Application
 {
 public:
     Application();
     ~Application();
 
+    /**
+     * @brief Runs the main game loop.
+     *
+     * Handles per-frame update and rendering.
+     */
     void run();
 
 private:
+    /**
+     * @brief Performs all necessary initialization steps.
+     *
+     * @return True if initialization succeeded, false otherwise.
+     */
     bool initialize();
 
+    /**
+     * @brief Initializes the main application window.
+     *
+     * @return True if the window was created successfully.
+     */
     bool initializeWindow();
-    void initializeECS();
+
+    /**
+     * @brief Initializes the ECS (Entity-Component-System) core.
+     */
+    void initializeEcs();
+
+    /**
+     * @brief Initializes input handling and maps it to the ECS.
+     */
     void initializeInput();
+
+    /**
+     * @brief Sets up the camera system and default camera entity.
+     */
     void initializeCamera();
+
+    /**
+     * @brief Initializes the world and loads the initial chunks.
+     */
     void initializeWorld();
+
+    /**
+     * @brief Registers and sets up render-related ECS systems.
+     */
     void initializeRenderSystems();
 
+    /**
+     * @brief Updates game logic and ECS systems.
+     *
+     * @param deltaTime Time since the last frame in seconds.
+     */
     void update(float deltaTime);
+
+    /**
+     * @brief Renders the current frame.
+     */
     void render();
+
+    /**
+     * @brief Cleans up and shuts down the application.
+     */
     void shutdown();
 
-    std::unique_ptr<Window> m_window;
-    std::unique_ptr<ecs::Ecs> m_ecs;
-    std::shared_ptr<input::IInputProvider> m_inputProvider;
-    std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
-    std::shared_ptr<ecs::RenderSystem> m_renderSystem;
-    std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem;
-    std::unique_ptr<world::World> m_world;
+private:
+    std::unique_ptr<Window> m_window; ///< Window context.
+    std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.
+    std::shared_ptr<input::IInputProvider> m_inputProvider; ///< Input abstraction layer.
+    std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
+    std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.
+    std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem; ///< Dynamically loads chunks.
+    std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
 
-    double m_lastFrameTime = 0.0;
+    double m_lastFrameTime = 0.0; ///< Time of the previous frame (for delta time calculation).
 };
 }

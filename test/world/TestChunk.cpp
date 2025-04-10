@@ -19,12 +19,12 @@ TEST_CASE("Chunk::setBlock and getBlock work correctly", "[World][Chunk]")
     glm::ivec3 pos{0, 0, 0};
     Chunk chunk(pos);
 
-    Block block{BlockType::Grass};
+    Block block{BlockType::GRASS};
 
     chunk.setBlock(1, 2, 3, block);
     Block result = chunk.getBlock(1, 2, 3);
 
-    REQUIRE(result.type == BlockType::Grass);
+    REQUIRE(result.type == BlockType::GRASS);
 }
 
 TEST_CASE("Chunk throws on out-of-bounds access", "[World][Chunk]")
@@ -40,7 +40,7 @@ TEST_CASE("Chunk throws on out-of-bounds access", "[World][Chunk]")
     REQUIRE_THROWS_AS(chunk.getBlock(0, maxY, 0), std::out_of_range);
     REQUIRE_THROWS_AS(chunk.getBlock(0, 0, maxZ), std::out_of_range);
 
-    REQUIRE_THROWS_AS(chunk.setBlock(maxX, 0, 0, {BlockType::Stone}), std::out_of_range);
-    REQUIRE_THROWS_AS(chunk.setBlock(0, maxY, 0, {BlockType::Stone}), std::out_of_range);
-    REQUIRE_THROWS_AS(chunk.setBlock(0, 0, maxZ, {BlockType::Stone}), std::out_of_range);
+    REQUIRE_THROWS_AS(chunk.setBlock(maxX, 0, 0, {BlockType::STONE}), std::out_of_range);
+    REQUIRE_THROWS_AS(chunk.setBlock(0, maxY, 0, {BlockType::STONE}), std::out_of_range);
+    REQUIRE_THROWS_AS(chunk.setBlock(0, 0, maxZ, {BlockType::STONE}), std::out_of_range);
 }

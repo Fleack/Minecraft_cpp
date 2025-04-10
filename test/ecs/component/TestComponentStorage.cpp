@@ -18,12 +18,12 @@ struct Velocity
 TEST_CASE("ComponentStorage adds and retrieves components", "[ECS][ComponentStorage]")
 {
     ComponentStorage storage;
-    storage.Clear<Position>();
+    storage.clear<Position>();
 
     Entity e = 1;
 
-    storage.Add<Position>(e, {1.0f, 2.0f, 3.0f});
-    auto pos = storage.Get<Position>(e);
+    storage.add<Position>(e, {1.0f, 2.0f, 3.0f});
+    auto pos = storage.get<Position>(e);
 
     REQUIRE(pos.has_value());
     REQUIRE(pos->x == Catch::Approx(1.0f));
@@ -34,28 +34,28 @@ TEST_CASE("ComponentStorage adds and retrieves components", "[ECS][ComponentStor
 TEST_CASE("ComponentStorage returns nullopt for missing component", "[ECS][ComponentStorage]")
 {
     ComponentStorage storage;
-    storage.Clear<Velocity>();
+    storage.clear<Velocity>();
 
     Entity e = 42;
 
-    auto result = storage.Get<Velocity>(e);
+    auto result = storage.get<Velocity>(e);
     REQUIRE_FALSE(result.has_value());
 }
 
 TEST_CASE("ComponentStorage stores components of different types separately", "[ECS][ComponentStorage]")
 {
     ComponentStorage storage;
-    storage.Clear<Position>();
-    storage.Clear<Velocity>();
+    storage.clear<Position>();
+    storage.clear<Velocity>();
 
     Entity e1 = 1;
     Entity e2 = 2;
 
-    storage.Add<Position>(e1, {1.0f, 1.0f, 1.0f});
-    storage.Add<Velocity>(e2, {0.1f, 0.2f, 0.3f});
+    storage.add<Position>(e1, {1.0f, 1.0f, 1.0f});
+    storage.add<Velocity>(e2, {0.1f, 0.2f, 0.3f});
 
-    auto pos = storage.Get<Position>(e1);
-    auto vel = storage.Get<Velocity>(e2);
+    auto pos = storage.get<Position>(e1);
+    auto vel = storage.get<Velocity>(e2);
 
     REQUIRE(pos.has_value());
     REQUIRE(vel.has_value());
@@ -67,15 +67,15 @@ TEST_CASE("ComponentStorage stores components of different types separately", "[
 TEST_CASE("ComponentStorage returns full map via GetAll", "[ECS][ComponentStorage]")
 {
     ComponentStorage storage;
-    storage.Clear<Velocity>();
+    storage.clear<Velocity>();
 
     Entity e1 = 10;
     Entity e2 = 11;
 
-    storage.Add<Velocity>(e1, {1, 2, 3});
-    storage.Add<Velocity>(e2, {4, 5, 6});
+    storage.add<Velocity>(e1, {1, 2, 3});
+    storage.add<Velocity>(e2, {4, 5, 6});
 
-    auto& all = storage.GetAll<Velocity>();
+    auto& all = storage.getAll<Velocity>();
     REQUIRE(all.size() == 2);
     REQUIRE(all[e1].dx == Catch::Approx(1));
     REQUIRE(all[e2].dy == Catch::Approx(5));

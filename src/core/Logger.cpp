@@ -4,17 +4,17 @@
 
 namespace mc::core
 {
-std::shared_ptr<spdlog::logger> Logger::s_logger;
+std::shared_ptr<spdlog::logger> Logger::m_sLogger;
 
 void Logger::init()
 {
     spdlog::set_pattern("[%H:%M:%S] [%^%l%$] %v");
-    s_logger = spdlog::stdout_color_mt("Minecraft");
-    s_logger->set_level(spdlog::level::trace);
+    m_sLogger = spdlog::stdout_color_mt("Minecraft");
+    m_sLogger->set_level(spdlog::level::trace);
 }
 
 std::shared_ptr<spdlog::logger>& Logger::get()
 {
-    return s_logger;
+    return m_sLogger;
 }
 }

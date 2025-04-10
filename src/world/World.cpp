@@ -2,10 +2,6 @@
 
 namespace mc::world
 {
-World::World()
-{
-}
-
 void World::loadChunk(glm::ivec3 const& chunkPos)
 {
     if (m_chunks.contains(chunkPos)) { return; }

@@ -36,7 +36,7 @@ bool Application::initialize()
     if (!initializeWindow()) { return false; }
 
     initializeInput();
-    initializeECS();
+    initializeEcs();
     initializeCamera();
     initializeWorld();
     initializeRenderSystems();
@@ -51,14 +51,14 @@ bool Application::initializeWindow()
     return m_window->isOpen();
 }
 
-void Application::initializeECS()
+void Application::initializeEcs()
 {
     m_ecs = std::make_unique<ecs::Ecs>();
 }
 
 void Application::initializeInput()
 {
-    m_inputProvider = std::make_shared<input::GLFWInputProvider>(*m_window->getNativeWindow());
+    m_inputProvider = std::make_shared<input::GlfwInputProvider>(*m_window->getNativeWindow());
 }
 
 void Application::initializeCamera()

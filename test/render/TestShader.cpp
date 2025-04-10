@@ -51,7 +51,7 @@ TEST_CASE("Shader loads, compiles and links correctly", "[Render][Shader]")
     shader.bind();
     GLint currentProgram = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-    REQUIRE(static_cast<GLuint>(currentProgram) == shader.getID());
+    REQUIRE(static_cast<GLuint>(currentProgram) == shader.getId());
 
     shader.unbind();
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);

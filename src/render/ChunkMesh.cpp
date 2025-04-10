@@ -10,10 +10,6 @@ ChunkMesh::ChunkMesh()
     glGenBuffers(1, &m_vbo);
 }
 
-ChunkMesh::~ChunkMesh()
-{
-}
-
 void ChunkMesh::upload(std::vector<Vertex> const& vertices)
 {
     m_vertexCount = vertices.size();

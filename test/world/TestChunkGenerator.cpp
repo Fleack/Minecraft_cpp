@@ -23,7 +23,7 @@ TEST_CASE("ChunkGenerator fills chunk with blocks", "[World][ChunkGenerator]")
             for (int y = 0; y < CHUNK_SIZE_Y; ++y)
             {
                 Block block = chunk.getBlock(x, y, z);
-                if (block.type != BlockType::Air)
+                if (block.type != BlockType::AIR)
                 {
                     hasBlocks = true;
                     break;
@@ -51,7 +51,7 @@ TEST_CASE("ChunkGenerator produces top grass blocks", "[World][ChunkGenerator]")
             int topY = -1;
             for (int y = CHUNK_SIZE_Y - 1; y >= 0; --y)
             {
-                if (chunk.getBlock(x, y, z).type != BlockType::Air)
+                if (chunk.getBlock(x, y, z).type != BlockType::AIR)
                 {
                     topY = y;
                     break;
@@ -61,7 +61,7 @@ TEST_CASE("ChunkGenerator produces top grass blocks", "[World][ChunkGenerator]")
             if (topY != -1)
             {
                 Block topBlock = chunk.getBlock(x, topY, z);
-                REQUIRE(topBlock.type == BlockType::Grass);
+                REQUIRE(topBlock.type == BlockType::GRASS);
             }
         }
     }
@@ -83,7 +83,7 @@ TEST_CASE("ChunkGenerator terrain has some stone underground", "[World][ChunkGen
         {
             for (int y = 0; y < CHUNK_SIZE_Y; ++y)
             {
-                if (chunk.getBlock(x, y, z).type == BlockType::Stone)
+                if (chunk.getBlock(x, y, z).type == BlockType::STONE)
                 {
                     hasStone = true;
                     break;
