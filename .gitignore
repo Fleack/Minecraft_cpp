@@ -35,3 +35,6 @@ compile_commands.json
 
 # === Conan ===
 conan_provider.cmake
+
+# === Doxygen ===
+/docs
