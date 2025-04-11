@@ -20,7 +20,8 @@ public:
     /**
      * @brief Constructs a new ECS instance.
      */
-    Ecs() : m_nextEntity(1)
+    Ecs()
+        : m_nextEntity(1)
     {
     }
 
@@ -92,6 +93,17 @@ public:
         for (auto& sys : m_systems)
         {
             sys->update(dt);
+        }
+    }
+
+    /**
+     * @brief Calls render for all systems
+     */
+    void render()
+    {
+        for (auto& sys : m_systems)
+        {
+            sys->render();
         }
     }
 

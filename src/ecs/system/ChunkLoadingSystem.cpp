@@ -6,7 +6,7 @@
 
 namespace mc::ecs
 {
-ChunkLoadingSystem::ChunkLoadingSystem(Ecs& ecs, world::World& world, int radius)
+ChunkLoadingSystem::ChunkLoadingSystem(Ecs& ecs, world::World& world, uint8_t radius)
     : m_ecs(ecs), m_world(world), m_loadRadius(radius)
 {
 }

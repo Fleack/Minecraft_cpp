@@ -35,6 +35,10 @@ RenderSystem::RenderSystem(Ecs& ecs,
 
 void RenderSystem::update(float /*deltaTime*/)
 {
+}
+
+void RenderSystem::render()
+{
     m_shader->bind();
     m_atlas->bind();
 
@@ -58,6 +62,7 @@ void RenderSystem::update(float /*deltaTime*/)
 
     m_shader->unbind();
 }
+
 
 void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 {

@@ -19,6 +19,8 @@ public:
         lastDelta = deltaTime;
     }
 
+    void render() override {};
+
     bool updated = false;
     float lastDelta = 0.0f;
 };

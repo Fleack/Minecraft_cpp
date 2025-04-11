@@ -5,6 +5,8 @@
 
 #include <catch2/catch_all.hpp>
 #include <GLFW/glfw3.h>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/epsilon.hpp>
 
 using namespace mc::ecs;
 
@@ -32,12 +34,12 @@ public:
     }
 };
 
-TEST_CASE("CameraSystem updates view and projection matrices", "[ECS][System][CameraSystem]")
+TEST_CASE("CameraSystem computes correct view/projection matrices", "[ECS][System][CameraSystem]")
 {
     Ecs ecs;
 
     Entity cameraEntity = ecs.createEntity();
-    CameraComponent camComp {
+    CameraComponent camComp{
         .position = {0.0f, 0.0f, 3.0f},
         .front = {0.0f, 0.0f, -1.0f},
         .up = {0.0f, 1.0f, 0.0f},
@@ -46,11 +48,20 @@ TEST_CASE("CameraSystem updates view and projection matrices", "[ECS][System][Ca
 
     ecs.addComponent<CameraComponent>(cameraEntity, camComp);
 
-    CameraSystem cameraSystem(ecs, 16.0f / 9.0f, std::make_shared<MockInputProvider>());
-    ecs.addSystem(std::make_shared<CameraSystem>(cameraSystem));
+    auto system = std::make_shared<CameraSystem>(ecs, 16.0f / 9.0f, std::make_shared<MockInputProvider>());
+    ecs.addSystem(system);
 
-    const auto& view = cameraSystem.getViewMatrix();
-    const auto& proj = cameraSystem.getProjectionMatrix();
+    system->render();
+
+    glm::mat4 const& view = system->getViewMatrix();
+    glm::mat4 const& proj = system->getProjectionMatrix();
+
+    glm::mat4 expectedView = glm::lookAt(camComp.position, camComp.position + camComp.front, camComp.up);
+
+    for (int i = 0; i < 4; ++i)
+    {
+        REQUIRE(glm::all(glm::epsilonEqual(view[i], expectedView[i], 0.001f)));
+    }
 
     REQUIRE(view != glm::mat4(1.0f));
     REQUIRE(proj != glm::mat4(0.0f));

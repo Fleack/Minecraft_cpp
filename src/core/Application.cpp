@@ -129,7 +129,7 @@ void Application::render()
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_ecs->update(0.0f); // TODO replace with render()
+    m_ecs->render();
 }
 
 void Application::shutdown()

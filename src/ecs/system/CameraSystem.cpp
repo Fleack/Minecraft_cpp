@@ -11,15 +11,13 @@
 namespace mc::ecs
 {
 CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider)
-    : m_input(std::move(inputProvider)), m_ecs(ecs), m_aspectRatio(aspectRatio)
+    : m_ecs(ecs), m_input(std::move(inputProvider)), m_aspectRatio(aspectRatio)
 {
-    updateMatrices();
 }
 
 void CameraSystem::update(float dt)
 {
     handleInput(dt);
-    updateMatrices();
 
     auto& cameras = m_ecs.getAllComponents<CameraComponent>();
     auto& transforms = m_ecs.getAllComponents<TransformComponent>();
@@ -30,6 +28,17 @@ void CameraSystem::update(float dt)
         auto& transform = transforms.begin()->second;
         transform.position = camera.position;
     }
+}
+
+void CameraSystem::render()
+{
+    auto& cams = m_ecs.getAllComponents<CameraComponent>();
+    if (cams.empty()) return;
+
+    const auto& cam = cams.begin()->second;
+
+    m_viewMatrix = render::Camera::getViewMatrix(cam.position, cam.front, cam.up);
+    m_projectionMatrix = render::Camera::getProjectionMatrix(cam.fov, m_aspectRatio);
 }
 
 void CameraSystem::handleInput(float dt)
@@ -80,17 +89,6 @@ void CameraSystem::handleInput(float dt)
     front.y = sin(glm::radians(cam.pitch));
     front.z = sin(glm::radians(cam.yaw)) * cos(glm::radians(cam.pitch));
     cam.front = glm::normalize(front);
-}
-
-void CameraSystem::updateMatrices()
-{
-    auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty()) { return; }
-
-    CameraComponent const& cam = cams.begin()->second;
-
-    m_viewMatrix = render::Camera::getViewMatrix(cam.position, cam.front, cam.up);
-    m_projectionMatrix = render::Camera::getProjectionMatrix(cam.fov, m_aspectRatio);
 }
 
 const glm::mat4& CameraSystem::getViewMatrix() const
