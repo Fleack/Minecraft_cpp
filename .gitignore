@@ -38,3 +38,6 @@ conan_provider.cmake
 
 # === Doxygen ===
 /docs
+
+# === Out ===
+/out
