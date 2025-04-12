@@ -1,7 +1,39 @@
 #pragma once
 
+#include <format>
 #include <memory>
+
 #include <spdlog/spdlog.h>
+
+#define LOG(level, fmt, ...) \
+    mc::core::Logger::get()->log( \
+        toSpdlogLevel(LogLevel::level), \
+        std::format(fmt __VA_OPT__(,) __VA_ARGS__) \
+    )
+
+enum class LogLevel
+{
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    CRITICAL
+};
+
+inline spdlog::level::level_enum toSpdlogLevel(LogLevel level)
+{
+    switch (level)
+    {
+    case LogLevel::TRACE: return spdlog::level::trace;
+    case LogLevel::DEBUG: return spdlog::level::debug;
+    case LogLevel::INFO: return spdlog::level::info;
+    case LogLevel::WARN: return spdlog::level::warn;
+    case LogLevel::ERROR: return spdlog::level::err;
+    case LogLevel::CRITICAL: return spdlog::level::critical;
+    default: return spdlog::level::debug;
+    }
+}
 
 namespace mc::core
 {

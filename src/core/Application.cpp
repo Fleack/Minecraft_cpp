@@ -23,7 +23,7 @@ namespace mc::core
 Application::Application()
 {
     Logger::init();
-    Logger::get()->info("Application created");
+    LOG(INFO, "Application created");
 }
 
 Application::~Application()
@@ -134,7 +134,7 @@ void Application::render()
 
 void Application::shutdown()
 {
-    Logger::get()->info("Shutting down application");
+    LOG(INFO, "Shutting down application");
     m_renderSystem.reset();
     m_cameraSystem.reset();
     m_world.reset();

@@ -76,7 +76,7 @@ std::vector<uint8_t> TextureAtlas::generateAtlasData(std::vector<std::string> co
         stbi_uc* data = stbi_load(file.c_str(), &width, &height, &ch, STBI_rgb_alpha);
         if (!data || static_cast<std::size_t>(width) != m_tileSize || static_cast<std::size_t>(height) != m_tileSize)
         {
-            core::Logger::get()->error(std::format("Failed to load texture or wrong size: {}", file));
+            LOG(WARN,"Failed to load texture or wrong size: {}", file);
             continue;
         }
 

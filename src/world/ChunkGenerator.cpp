@@ -50,7 +50,7 @@ void ChunkGenerator::generate(Chunk& chunk) const
             }
         }
     }
-    core::Logger::get()->debug(
-        std::format("Generated new chunk at [{}, {}]", chunk.getPosition().x, chunk.getPosition().z));
+
+    // LOG(DEBUG, "Generated new chunk at [{}, {}]", chunk.getPosition().x, chunk.getPosition().z);
 }
 }

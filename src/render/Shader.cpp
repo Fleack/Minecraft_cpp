@@ -65,7 +65,7 @@ void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
         if (!success)
         {
             glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
-            core::Logger::get()->error(std::format("[SHADER COMPILE ERROR]: {}", infoLog));
+            LOG(ERROR, "[SHADER COMPILE ERROR]: {}", infoLog);
         }
     }
     else
@@ -74,7 +74,7 @@ void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
         if (!success)
         {
             glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
-            core::Logger::get()->error(std::format("[PROGRAM LINK ERROR]: {}", infoLog));
+            LOG(ERROR, "[PROGRAM LINK ERROR]: {}", infoLog);
         }
     }
 }

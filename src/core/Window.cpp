@@ -12,7 +12,7 @@ Window::Window(const std::string& title, int width, int height)
     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!m_window)
     {
-        Logger::get()->error("Failed to create GLFW window");
+        LOG(ERROR, "Failed to create GLFW window");
         glfwTerminate();
         return;
     }
@@ -23,7 +23,7 @@ Window::Window(const std::string& title, int width, int height)
 
     if (!initGlad())
     {
-        Logger::get()->error("Failed to initialize GLAD");
+        LOG(ERROR, "Failed to initialize GLAD");
         glfwDestroyWindow(m_window);
         m_window = nullptr;
         return;
@@ -31,7 +31,7 @@ Window::Window(const std::string& title, int width, int height)
 
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
-    Logger::get()->info("Window created: {}x{}", width, height);
+    LOG(INFO, "Window created: {}x{}", width, height);
 }
 
 Window::~Window()
@@ -47,7 +47,7 @@ bool Window::initGlfw() const
 {
     if (!glfwInit())
     {
-        Logger::get()->error("Failed to initialize GLFW");
+        LOG(ERROR, "Failed to initialize GLFW");
         return false;
     }
 
@@ -62,10 +62,10 @@ bool Window::initGlad() const
 {
     if (!gladLoadGL(glfwGetProcAddress))
     {
-        Logger::get()->error("Failed to initialize GLAD!");
+        LOG(ERROR, "Failed to initialize GLAD!");
         return false;
     }
-    Logger::get()->info("OpenGL loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    LOG(INFO, "OpenGL loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     return true;
 }
 
