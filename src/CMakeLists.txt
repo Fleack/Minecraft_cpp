@@ -9,7 +9,7 @@ target_include_directories(voxel_engine
 )
 
 target_link_libraries(voxel_engine
-        PRIVATE
+        PUBLIC
         glfw
         glm::glm
         glad::glad
@@ -19,6 +19,8 @@ target_link_libraries(voxel_engine
         spdlog::spdlog
         concurrencpp::concurrencpp
 )
+
+target_compile_features(voxel_engine PRIVATE cxx_std_23)
 
 add_executable(Minecraft main.cpp)
 target_link_libraries(Minecraft PRIVATE voxel_engine)

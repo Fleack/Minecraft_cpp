@@ -34,15 +34,6 @@ Window::Window(const std::string& title, int width, int height)
     LOG(INFO, "Window created: {}x{}", width, height);
 }
 
-Window::~Window()
-{
-    if (m_window)
-    {
-        glfwDestroyWindow(m_window);
-        glfwTerminate();
-    }
-}
-
 bool Window::initGlfw() const
 {
     if (!glfwInit())

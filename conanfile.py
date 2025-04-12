@@ -14,8 +14,8 @@ class MinecraftConan(ConanFile):
         "imgui/1.89.9",
         "spdlog/1.15.1",
         "catch2/3.8.0",
-        "fastnoise-lite/1.1.1@local/testing",
-        "glad/2.0.8@local/testing",
+        "fastnoise-lite/1.1.1@local",
+        "glad/2.0.8@local",
         "concurrencpp/0.1.7"
     ]
     default_options = {

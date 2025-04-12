@@ -25,7 +25,7 @@ public:
      * @param height Height in pixels.
      */
     Window(std::string const& title, int width, int height);
-    ~Window();
+    ~Window() = default;
 
     /**
      * @brief Polls GLFW events (input, window resize, etc.).
