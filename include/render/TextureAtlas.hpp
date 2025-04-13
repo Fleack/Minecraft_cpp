@@ -48,7 +48,7 @@ public:
      *
      * @return Top-left UV coordinate of the tile (normalized [0, 1]).
      */
-    [[nodiscard]] glm::vec2 getUv(const std::string& name) const;
+    [[nodiscard]] glm::vec2 getUv(std::string const& name) const;
 
     [[nodiscard]] GLuint getId() const { return m_textureId; }
     [[nodiscard]] std::size_t getTileSize() const { return m_tileSize; }

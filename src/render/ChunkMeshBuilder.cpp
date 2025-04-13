@@ -45,13 +45,21 @@ constexpr glm::vec3 FACE_VERTICES[6][4] = {
 };
 
 /**
- * @brief UV coordinates for a quad (in normalized [0,1] space).
- *
- * Order: bottom-left, bottom-right, top-right, top-left.
+ * @brief Vertex order (indexes in UVS) for each face (6 faces with 6 triangular indexes)
  */
-constexpr glm::vec2 UVS[] = {
-    {0.0f, 0.0f}, {1.0f, 0.0f},
-    {1.0f, 1.0f}, {0.0f, 1.0f}
+constexpr glm::vec2 FACE_UVS[6][4] = {
+    // Front
+    {{0, 1}, {1, 1}, {1, 0}, {0, 0}},
+    // Back
+    {{1, 1}, {0, 1}, {0, 0}, {1, 0}},
+    // Top
+    {{0, 0}, {1, 0}, {1, 1}, {0, 1}},
+    // Bottom
+    {{0, 1}, {1, 1}, {1, 0}, {0, 0}},
+    // Right
+    {{0, 1}, {1, 1}, {1, 0}, {0, 0}},
+    // Left
+    {{1, 1}, {0, 1}, {0, 0}, {1, 0}}
 };
 
 /**
@@ -66,7 +74,7 @@ constexpr glm::vec2 UVS[] = {
  * @param z Z-coordinate of the neighbor block.
  * @return True if the face should be rendered, false otherwise.
  */
-bool isFaceVisible(world::Chunk const& chunk, int x, int y, int z)
+bool is_face_visible(world::Chunk const& chunk, int x, int y, int z)
 {
     using namespace world;
     if (x < 0 || x >= CHUNK_SIZE_X ||
@@ -104,19 +112,18 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, Texture
                     const int ny = y + static_cast<int>(FACE_NORMALS[face].y);
                     const int nz = z + static_cast<int>(FACE_NORMALS[face].z);
 
-                    if (!isFaceVisible(chunk, nx, ny, nz)) { continue; }
+                    if (!is_face_visible(chunk, nx, ny, nz)) { continue; }
+
+                    auto texName = get_texture_name_for_block(block.type, face);
+                    auto tileUv = atlas.getUv(texName);
+                    float tileSize = 1.0f / static_cast<float>(atlas.getAtlasSize());
 
                     for (int i : {0, 1, 2, 0, 2, 3})
                     {
                         Vertex v;
                         v.position = glm::vec3(x, y, z) + FACE_VERTICES[face][i] + chunkOffset;
                         v.normal = FACE_NORMALS[face];
-
-                        auto texName = getTextureNameForBlock(block.type);
-                        auto tileUv = atlas.getUv(texName);
-                        float tileSize = 1.0f / static_cast<float>(atlas.getAtlasSize());
-
-                        v.uv = tileUv + (UVS[i % 4] * tileSize);
+                        v.uv = tileUv + (FACE_UVS[face][i % 4] * tileSize);
                         vertices.push_back(v);
                     }
                 }
