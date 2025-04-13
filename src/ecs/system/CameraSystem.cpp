@@ -50,6 +50,8 @@ void CameraSystem::handleInput(float dt)
 
     float velocity = cam.speed * dt;
 
+    if (m_input->isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+        velocity *= 2.5f;
     if (m_input->isKeyPressed(GLFW_KEY_W))
         cam.position += cam.front * velocity;
     if (m_input->isKeyPressed(GLFW_KEY_S))
@@ -58,6 +60,10 @@ void CameraSystem::handleInput(float dt)
         cam.position -= glm::normalize(glm::cross(cam.front, cam.up)) * velocity;
     if (m_input->isKeyPressed(GLFW_KEY_D))
         cam.position += glm::normalize(glm::cross(cam.front, cam.up)) * velocity;
+    if (m_input->isKeyPressed(GLFW_KEY_SPACE))
+        cam.position += cam.up * velocity;
+    if (m_input->isKeyPressed(GLFW_KEY_LEFT_CONTROL))
+        cam.position -= cam.up * velocity;
 
     glm::dvec2 cursor = m_input->getCursorPosition();
     double xpos = cursor.x;
