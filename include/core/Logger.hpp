@@ -3,11 +3,12 @@
 #include <format>
 #include <memory>
 
+#include <spdlog/async.h>
 #include <spdlog/spdlog.h>
 
 #define LOG(level, fmt, ...) \
     mc::core::Logger::get()->log( \
-        toSpdlogLevel(LogLevel::level), \
+        to_spdlog_level(LogLevel::level), \
         std::format(fmt __VA_OPT__(,) __VA_ARGS__) \
     )
 
@@ -21,7 +22,7 @@ enum class LogLevel
     CRITICAL
 };
 
-inline spdlog::level::level_enum toSpdlogLevel(LogLevel level)
+inline spdlog::level::level_enum to_spdlog_level(LogLevel level)
 {
     switch (level)
     {
