@@ -32,10 +32,14 @@ void ChunkLoadingSystem::update(float /*dt*/)
     if (currentChunk == m_lastCameraChunk) return;
     m_lastCameraChunk = currentChunk;
 
+    const float radiusWithPadding = static_cast<float>(m_loadRadius) + 0.5f;
+    const float radiusSq = radiusWithPadding * radiusWithPadding;
     for (int x = -m_loadRadius; x <= m_loadRadius; ++x)
     {
         for (int z = -m_loadRadius; z <= m_loadRadius; ++z)
         {
+            if (static_cast<float>(x * x + z * z) > radiusSq) continue;
+
             glm::ivec3 chunkPos = currentChunk + glm::ivec3{x, 0, z};
             m_world.loadChunk(chunkPos);
         }

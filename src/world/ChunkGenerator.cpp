@@ -14,9 +14,12 @@ ChunkGenerator::ChunkGenerator()
     m_noise.SetFrequency(0.005f);
 }
 
-void ChunkGenerator::generate(Chunk& chunk) const
+concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shared_ptr<concurrencpp::executor> executor) const
 {
+    LOG(DEBUG, "Generating chunk [{}, {}]", chunk.getPosition().x, chunk.getPosition().z);
+    co_await concurrencpp::resume_on(executor);
     const glm::ivec3 origin = chunk.getPosition() * glm::ivec3(CHUNK_SIZE_X, 1, CHUNK_SIZE_Z);
+
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
         for (int z = 0; z < CHUNK_SIZE_Z; ++z)
@@ -51,6 +54,6 @@ void ChunkGenerator::generate(Chunk& chunk) const
         }
     }
 
-    // LOG(DEBUG, "Generated new chunk at [{}, {}]", chunk.getPosition().x, chunk.getPosition().z);
+    LOG(DEBUG, "Generated new chunk at [{}, {}]", chunk.getPosition().x, chunk.getPosition().z);
 }
 }

@@ -21,16 +21,19 @@ class Chunk;
 class World
 {
 public:
-    World() = default;
+    explicit World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor);
 
     /**
      * @brief Loads and generates a chunk at the given chunk-space position.
      *
-     * If the chunk is already loaded, this function does nothing.
+     * If the chunk is already loaded or pending to be loaded,
+     * this function does nothing.
      *
      * @param chunkPos Position of the chunk in chunk-space coordinates.
+     *
+     * @return A result which is available after chunk generated and loaded
      */
-    void loadChunk(glm::ivec3 const& chunkPos);
+    concurrencpp::result<void> loadChunk(glm::ivec3 const& chunkPos);
 
     /**
      * @brief Retrieves a loaded chunk by its position.
@@ -48,19 +51,21 @@ public:
      */
     [[nodiscard]] bool isChunkLoaded(glm::ivec3 const& pos) const;
 
-    [[nodiscard]] auto const& getChunks() const { return m_chunks; }
-
     /**
-     * @brief Generates a square area of chunks centered at origin.
+     * @brief Checks whether a chunk is currently pending to be loaded.
      *
-     * Useful during world initialization to pre-load visible terrain.
-     *
-     * @param radius Number of chunks to load in each direction (X and Z).
+     * @param pos Chunk position to check.
+     * @return True if the chunk is pending to be loaded in memory.
      */
-    void generateInitialArea(int radius = 1);
+    [[nodiscard]] bool isChunkPending(glm::ivec3 const& pos) const;
+
+    [[nodiscard]] auto const& getChunks() const { return m_chunks; }
+    [[nodiscard]] auto const& getPendingChunks() const { return m_pendingChunks; }
 
 private:
     std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_chunks; ///< Map of loaded chunks.
+    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_pendingChunks; ///< Map of chunks pending generation
+    std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
     ChunkGenerator m_generator; ///< Procedural terrain generator.
 };
 }

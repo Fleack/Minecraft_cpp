@@ -20,7 +20,9 @@
 
 namespace mc::core
 {
-Application::Application()
+Application::Application(concurrencpp::runtime_options&& options)
+    : m_runtime{std::move(options)},
+      m_chunkExecutor{m_runtime.thread_pool_executor()}
 {
     Logger::init();
     LOG(INFO, "Application created");
@@ -33,13 +35,14 @@ Application::~Application()
 
 bool Application::initialize()
 {
+    static constexpr uint8_t renderDistance{5};
     if (!initializeWindow()) { return false; }
 
     initializeInput();
     initializeEcs();
     initializeCamera();
-    initializeWorld();
-    initializeRenderSystems();
+    initializeWorld(renderDistance);
+    initializeRenderSystems(renderDistance);
 
     m_lastFrameTime = glfwGetTime();
     return true;
@@ -47,7 +50,7 @@ bool Application::initialize()
 
 bool Application::initializeWindow()
 {
-    m_window = std::make_unique<Window>("VoxelGame", 1280, 720);
+    m_window = std::make_unique<Window>("VoxelGame", 1920, 1080);
     return m_window->isOpen();
 }
 
@@ -64,41 +67,26 @@ void Application::initializeInput()
 void Application::initializeCamera()
 {
     const auto cameraEntity = m_ecs->createEntity();
-    m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent {});
-    m_ecs->addComponent<ecs::TransformComponent>(cameraEntity, ecs::TransformComponent {});
+    m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
+    m_ecs->addComponent<ecs::TransformComponent>(cameraEntity, ecs::TransformComponent{});
 
-    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1280.0f / 720.0f, m_inputProvider);
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1920.0f / 1080.0f, m_inputProvider);
     m_ecs->addSystem(m_cameraSystem);
 }
 
-void Application::initializeWorld()
+void Application::initializeWorld(uint8_t renderDistance)
 {
-    constexpr uint8_t areaRadius {1};
-    m_world = std::make_unique<world::World>();
-    m_world->generateInitialArea(areaRadius);
+    m_world = std::make_unique<world::World>(m_chunkExecutor);
 
-    for (int x = -areaRadius; x <= areaRadius; ++x)
-    {
-        for (int z = -areaRadius; z <= areaRadius; ++z)
-        {
-            const glm::ivec3 pos {x, 0, z};
-            if (!m_world->isChunkLoaded(pos))
-            {
-                m_world->loadChunk(pos);
-            }
-        }
-    }
+    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
+    m_ecs->addSystem(m_chunkLoadingSystem);
 }
 
-void Application::initializeRenderSystems()
+void Application::initializeRenderSystems(uint8_t renderDistance)
 {
-    static constexpr uint8_t render {10};
-    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, render);
-    m_ecs->addSystem(m_chunkLoadingSystem);
-
     auto atlas = std::make_unique<render::TextureAtlas>(32);
     auto shader = std::make_unique<render::Shader>("shaders/voxel.vert", "shaders/voxel.frag");
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, std::move(shader), std::move(atlas), *m_world, render);
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, std::move(shader), std::move(atlas), *m_world, renderDistance);
     m_ecs->addSystem(m_renderSystem);
 }
 

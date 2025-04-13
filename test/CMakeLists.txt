@@ -15,9 +15,12 @@ target_link_libraries(UnitTests
         imgui::imgui
         spdlog::spdlog
         Catch2::Catch2WithMain
+        concurrencpp::concurrencpp
 )
 
 target_include_directories(UnitTests
     PRIVATE
         ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/test
+        ${CMAKE_SOURCE_DIR}/test/utils
 )

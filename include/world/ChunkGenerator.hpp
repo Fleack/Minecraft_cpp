@@ -1,7 +1,11 @@
 #pragma once
 
-#include <FastNoiseLite.h>
 #include "world/Chunk.hpp"
+
+#include <memory>
+
+#include <FastNoiseLite.h>
+#include <concurrencpp/concurrencpp.h>
 
 namespace mc::world
 {
@@ -31,9 +35,10 @@ public:
      * Generates terrain height based on noise,
      * then fills block columns depending on the height.
      *
-     * @param chunk Reference to the chunk to populate.
+     * @param chunk A result which is available
      */
-    void generate(Chunk& chunk) const;
+    concurrencpp::lazy_result<void> generate(Chunk& chunk, std::shared_ptr<concurrencpp::executor> executor) const;
+
 private:
     FastNoiseLite m_noise{}; ///< Noise generator used for terrain shaping.
 };

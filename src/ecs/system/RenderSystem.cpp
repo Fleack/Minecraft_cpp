@@ -2,18 +2,17 @@
 
 #include "ecs/system/RenderSystem.hpp"
 
+#include "core/Logger.hpp"
 #include "ecs/component/MeshComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
 #include "render/ChunkMesh.hpp"
+#include "render/ChunkMeshBuilder.hpp"
 #include "render/Shader.hpp"
 #include "world/Chunk.hpp"
+#include "world/World.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
-
-#include "render/ChunkMeshBuilder.hpp"
-
-#include "world/World.hpp"
 
 namespace mc::ecs
 {
@@ -63,19 +62,24 @@ void RenderSystem::render()
     m_shader->unbind();
 }
 
-
 void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 {
+    const float radiusWithPadding = static_cast<float>(m_renderRadius) + 0.5f;
+    const float radiusSq = radiusWithPadding * radiusWithPadding;
     for (int x = -m_renderRadius; x <= m_renderRadius; ++x)
     {
         for (int z = -m_renderRadius; z <= m_renderRadius; ++z)
         {
+            if (static_cast<float>(x * x + z * z) > radiusSq) continue;
             glm::ivec3 chunkPos = currentChunkPos + glm::ivec3{x, 0, z};
 
             if (!m_chunkToEntity.contains(chunkPos))
             {
+                auto chunk = m_world.getChunk(chunkPos);
+                if (!chunk)
+                    continue;
                 auto mesh = std::make_shared<render::ChunkMesh>(chunkPos);
-                render::ChunkMeshBuilder::build(m_world.getChunk(chunkPos).value(), *mesh, *m_atlas.get());
+                render::ChunkMeshBuilder::build(*chunk, *mesh, *m_atlas.get());
 
                 auto entity = m_ecs.createEntity();
                 m_ecs.addComponent<MeshComponent>(entity, MeshComponent{mesh});

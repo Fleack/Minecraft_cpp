@@ -4,6 +4,7 @@
 #include "core/Logger.hpp"
 
 #include "TestEventListener.hpp"
+
 CATCH_REGISTER_LISTENER(TestLoggerListener)
 
 int main(int argc, char* argv[])

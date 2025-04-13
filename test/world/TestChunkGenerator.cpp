@@ -1,5 +1,6 @@
 #include <catch2/catch_all.hpp>
 
+#include "global_vars.hpp"
 #include "world/Block.hpp"
 #include "world/Chunk.hpp"
 #include "world/ChunkGenerator.hpp"
@@ -12,7 +13,7 @@ TEST_CASE("ChunkGenerator fills chunk with blocks", "[World][ChunkGenerator]")
     Chunk chunk(pos);
     ChunkGenerator generator;
 
-    generator.generate(chunk);
+    generator.generate(chunk, g_runtime.thread_pool_executor()).run().get();
 
     bool hasBlocks = false;
 
@@ -42,7 +43,7 @@ TEST_CASE("ChunkGenerator produces top grass blocks", "[World][ChunkGenerator]")
     Chunk chunk(pos);
     ChunkGenerator generator;
 
-    generator.generate(chunk);
+    generator.generate(chunk, g_runtime.thread_pool_executor()).run().get();
 
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
@@ -73,7 +74,7 @@ TEST_CASE("ChunkGenerator terrain has some stone underground", "[World][ChunkGen
     Chunk chunk(pos);
     ChunkGenerator generator;
 
-    generator.generate(chunk);
+    generator.generate(chunk, g_runtime.thread_pool_executor()).run().get();
 
     bool hasStone = false;
 

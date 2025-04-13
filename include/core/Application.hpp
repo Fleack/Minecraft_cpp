@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <concurrencpp/concurrencpp.h>
+
 namespace mc::render
 {
 class TextureAtlas;
@@ -39,7 +41,7 @@ class Window;
 class Application
 {
 public:
-    Application();
+    Application(concurrencpp::runtime_options&& options);
     ~Application();
 
     /**
@@ -81,13 +83,17 @@ private:
 
     /**
      * @brief Initializes the world and loads the initial chunks.
+     *
+     * @param renderDistance render distance from camera position
      */
-    void initializeWorld();
+    void initializeWorld(uint8_t renderDistance);
 
     /**
      * @brief Registers and sets up render-related ECS systems.
+     *
+     * @param renderDistance render distance from camera position
      */
-    void initializeRenderSystems();
+    void initializeRenderSystems(uint8_t renderDistance);
 
     /**
      * @brief Updates game logic and ECS systems.
@@ -107,13 +113,16 @@ private:
     void shutdown();
 
 private:
+    concurrencpp::runtime m_runtime;
+    std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
+
     std::unique_ptr<Window> m_window; ///< Window context.
     std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.
+    std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
     std::shared_ptr<input::IInputProvider> m_inputProvider; ///< Input abstraction layer.
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
     std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.
     std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem; ///< Dynamically loads chunks.
-    std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
 
     double m_lastFrameTime = 0.0; ///< Time of the previous frame (for delta time calculation).
 };

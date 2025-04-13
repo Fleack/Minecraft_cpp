@@ -2,6 +2,9 @@
 
 #include <glm/glm.hpp>
 
+#include <utils/wait_until.hpp>
+
+#include "global_vars.hpp"
 #include "world/Block.hpp"
 #include "world/Chunk.hpp"
 #include "world/World.hpp"
@@ -10,24 +13,24 @@ using namespace mc::world;
 
 TEST_CASE("World::loadChunk and isChunkLoaded", "[World]")
 {
-    World world;
+    World world{g_runtime.background_executor()};
     glm::ivec3 pos{0, 0, 0};
 
     REQUIRE_FALSE(world.isChunkLoaded(pos));
 
-    world.loadChunk(pos);
+    world.loadChunk(pos).get();
 
     REQUIRE(world.isChunkLoaded(pos));
 }
 
 TEST_CASE("World::getChunk returns correct chunk", "[World]")
 {
-    World world;
+    World world{g_runtime.background_executor()};
     glm::ivec3 pos{1, 0, -2};
 
     REQUIRE_FALSE(world.getChunk(pos).has_value());
 
-    world.loadChunk(pos);
+    world.loadChunk(pos).get();
 
     auto chunkOpt = world.getChunk(pos);
     REQUIRE(chunkOpt.has_value());
@@ -36,34 +39,14 @@ TEST_CASE("World::getChunk returns correct chunk", "[World]")
 
 TEST_CASE("World::loadChunk doesn't reload existing chunk", "[World]")
 {
-    World world;
+    World world{g_runtime.background_executor()};
     glm::ivec3 pos{3, 0, 5};
 
-    world.loadChunk(pos);
+    world.loadChunk(pos).get();
 
     const Chunk* firstChunkPtr = &world.getChunk(pos).value().get();
-    world.loadChunk(pos);
+    world.loadChunk(pos).get();
     const Chunk* secondChunkPtr = &world.getChunk(pos).value().get();
 
     REQUIRE(firstChunkPtr == secondChunkPtr);
-}
-
-TEST_CASE("World::generateInitialArea loads correct chunks", "[World]")
-{
-    World world;
-
-    int radius = 3;
-    world.generateInitialArea(radius);
-
-    for (int x = -radius; x <= radius; ++x)
-    {
-        for (int z = -radius; z <= radius; ++z)
-        {
-            glm::ivec3 pos{x, 0, z};
-            REQUIRE(world.isChunkLoaded(pos));
-        }
-    }
-
-    glm::ivec3 outsidePos{radius + 1, 0, 0};
-    REQUIRE_FALSE(world.isChunkLoaded(outsidePos));
 }
