@@ -1,5 +1,6 @@
 #include "ecs/system/ChunkLoadingSystem.hpp"
 
+#include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "world/World.hpp"
@@ -9,6 +10,7 @@ namespace mc::ecs
 ChunkLoadingSystem::ChunkLoadingSystem(Ecs& ecs, world::World& world, uint8_t radius)
     : m_ecs(ecs), m_world(world), m_loadRadius(radius)
 {
+    LOG(INFO, "ChunkLoadingSystem initialized with load radius: {}", radius);
 }
 
 glm::ivec3 ChunkLoadingSystem::worldPosToChunk(glm::vec3 const& pos) const
@@ -31,6 +33,8 @@ void ChunkLoadingSystem::update(float /*dt*/)
 
     if (currentChunk == m_lastCameraChunk) return;
     m_lastCameraChunk = currentChunk;
+    LOG(INFO, "Camera moved to new chunk at position [{}, {}]",
+        currentChunk.x, currentChunk.z);
 
     const float radiusWithPadding = static_cast<float>(m_loadRadius) + 0.5f;
     const float radiusSq = radiusWithPadding * radiusWithPadding;
@@ -41,6 +45,7 @@ void ChunkLoadingSystem::update(float /*dt*/)
             if (static_cast<float>(x * x + z * z) > radiusSq) continue;
 
             glm::ivec3 chunkPos = currentChunk + glm::ivec3{x, 0, z};
+            LOG(DEBUG, "Loading chunk at position [{}, {}]", chunkPos.x, chunkPos.z);
             m_world.loadChunk(chunkPos);
         }
     }

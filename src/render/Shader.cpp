@@ -9,6 +9,9 @@ namespace mc::render
 {
 Shader::Shader(std::string const& vertexPath, std::string const& fragmentPath)
 {
+    LOG(INFO, "Loading vertex shader from: {}", vertexPath);
+    LOG(INFO, "Loading fragment shader from: {}", fragmentPath);
+
     std::string vertexCode = readFile(vertexPath);
     std::string fragmentCode = readFile(fragmentPath);
 
@@ -24,6 +27,8 @@ Shader::Shader(std::string const& vertexPath, std::string const& fragmentPath)
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+
+    LOG(INFO, "Shader program successfully created with ID: {}", m_id);
 }
 
 void Shader::bind()
@@ -39,8 +44,15 @@ void Shader::unbind()
 std::string Shader::readFile(const std::string& path) const
 {
     std::ifstream file(path);
+    if (!file.is_open())
+    {
+        LOG(ERROR, "Failed to open shader file: {}", path);
+        return "";
+    }
+
     std::stringstream ss;
     ss << file.rdbuf();
+    LOG(DEBUG, "Read shader file: {}", path);
     return ss.str();
 }
 
@@ -51,6 +63,7 @@ GLuint Shader::compileShader(GLenum type, const std::string& source) const
     glShaderSource(shader, 1, &src, nullptr);
     glCompileShader(shader);
     checkCompileErrors(shader, type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT");
+    LOG(INFO, "Successfully compiled {} shader", type == GL_VERTEX_SHADER ? "vertex" : "fragment");
     return shader;
 }
 

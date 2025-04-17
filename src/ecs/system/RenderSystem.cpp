@@ -30,6 +30,7 @@ RenderSystem::RenderSystem(Ecs& ecs,
       m_renderRadius{renderRadius}
 {
     m_atlas->loadFromDirectory("assets/textures/blocks/");
+    LOG(INFO, "RenderSystem initialized with render radius: {}", renderRadius);
 }
 
 void RenderSystem::update(float /*deltaTime*/)
@@ -77,7 +78,11 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
             {
                 auto chunk = m_world.getChunk(chunkPos);
                 if (!chunk)
+                {
+                    LOG(DEBUG, "Chunk at position [{}, {}] not found", chunkPos.x, chunkPos.z);
                     continue;
+                }
+                LOG(INFO, "Creating mesh for chunk at [{}, {}]", chunkPos.x, chunkPos.z);
                 auto mesh = std::make_shared<render::ChunkMesh>(chunkPos);
                 render::ChunkMeshBuilder::build(*chunk, *mesh, *m_atlas.get());
 
@@ -89,7 +94,11 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 
             auto it = m_chunkToEntity.find(chunkPos);
             auto meshComp = m_ecs.getComponent<MeshComponent>(it->second);
-            if (!meshComp || !meshComp->mesh) { continue; }
+            if (!meshComp || !meshComp->mesh)
+            {
+                LOG(WARN, "Missing or invalid mesh for chunk at [{}, {}]", chunkPos.x, chunkPos.z);
+                continue;
+            }
 
             auto model = glm::mat4(1.0f);
             glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_Model"), 1, GL_FALSE, glm::value_ptr(model));

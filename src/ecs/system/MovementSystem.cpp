@@ -2,13 +2,16 @@
 
 #include <ranges>
 
+#include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
 
 namespace mc::ecs
 {
-MovementSystem::MovementSystem(Ecs& ecs) : m_ecs(ecs)
+MovementSystem::MovementSystem(Ecs& ecs)
+    : m_ecs(ecs)
 {
+    LOG(INFO, "MovementSystem initialized");
 }
 
 void MovementSystem::update(float deltaTime)

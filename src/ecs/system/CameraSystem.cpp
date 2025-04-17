@@ -1,4 +1,5 @@
 #include "ecs/system/CameraSystem.hpp"
+#include "core/Logger.hpp"
 #include "ecs/component/CameraComponent.hpp"
 #include "render/Camera.hpp"
 
@@ -13,6 +14,7 @@ namespace mc::ecs
 CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider)
     : m_ecs(ecs), m_input(std::move(inputProvider)), m_aspectRatio(aspectRatio)
 {
+    LOG(INFO, "CameraSystem initialized with aspect ratio: {}", aspectRatio);
 }
 
 void CameraSystem::update(float dt)
@@ -33,7 +35,11 @@ void CameraSystem::update(float dt)
 void CameraSystem::render()
 {
     auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty()) return;
+    if (cams.empty())
+    {
+        LOG(WARN, "No camera components found during render");
+        return;
+    }
 
     const auto& cam = cams.begin()->second;
 
@@ -44,7 +50,11 @@ void CameraSystem::render()
 void CameraSystem::handleInput(float dt)
 {
     auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty()) return;
+    if (cams.empty())
+    {
+        LOG(WARN, "No camera component found for input handling");
+        return;
+    }
 
     CameraComponent& cam = cams.begin()->second;
 

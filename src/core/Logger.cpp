@@ -22,7 +22,7 @@ void Logger::init()
     spdlog::register_logger(m_sLogger);
 
     spdlog::set_default_logger(m_sLogger);
-    spdlog::set_pattern("[%H:%M:%S] [%^%l%$] %v");
+    spdlog::set_pattern("[%H:%M:%S] [%^%l%$] %v (%s:%#)");
     spdlog::set_level(spdlog::level::trace);
 }
 

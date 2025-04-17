@@ -7,7 +7,11 @@ namespace mc::core
 {
 Window::Window(const std::string& title, int width, int height)
 {
-    if (!initGlfw()) return;
+    if (!initGlfw())
+    {
+        LOG(ERROR, "GLFW initialization failed");
+        return;
+    }
 
     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!m_window)
@@ -16,6 +20,7 @@ Window::Window(const std::string& title, int width, int height)
         glfwTerminate();
         return;
     }
+    LOG(INFO, "GLFW window created with size: {}x{}", width, height);
 
     glfwMakeContextCurrent(m_window);
     glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -28,10 +33,10 @@ Window::Window(const std::string& title, int width, int height)
         m_window = nullptr;
         return;
     }
+    LOG(INFO, "OpenGL context loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
-    LOG(INFO, "Window created: {}x{}", width, height);
 }
 
 bool Window::initGlfw() const
@@ -56,7 +61,6 @@ bool Window::initGlad() const
         LOG(ERROR, "Failed to initialize GLAD!");
         return false;
     }
-    LOG(INFO, "OpenGL loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     return true;
 }
 

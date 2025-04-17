@@ -35,8 +35,13 @@ Application::~Application()
 
 bool Application::initialize()
 {
+    LOG(INFO, "Initialization started");
     static constexpr uint8_t renderDistance{5};
-    if (!initializeWindow()) { return false; }
+    if (!initializeWindow())
+    {
+        LOG(ERROR, "Failed to initialize window");
+        return false;
+    }
 
     initializeInput();
     initializeEcs();
@@ -45,23 +50,27 @@ bool Application::initialize()
     initializeRenderSystems(renderDistance);
 
     m_lastFrameTime = glfwGetTime();
+    LOG(INFO, "Initialization completed");
     return true;
 }
 
 bool Application::initializeWindow()
 {
-    m_window = std::make_unique<Window>("VoxelGame", 1920, 1080);
+    m_window = std::make_unique<Window>("OLEG PIDORAS", 1920, 1080);
+    LOG(INFO, "Window initialized");
     return m_window->isOpen();
 }
 
 void Application::initializeEcs()
 {
     m_ecs = std::make_unique<ecs::Ecs>();
+    LOG(INFO, "Entity component system initialized");
 }
 
 void Application::initializeInput()
 {
     m_inputProvider = std::make_shared<input::GlfwInputProvider>(*m_window->getNativeWindow());
+    LOG(INFO, "Input provider initialized with native GLFW window");
 }
 
 void Application::initializeCamera()
@@ -72,6 +81,7 @@ void Application::initializeCamera()
 
     m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1920.0f / 1080.0f, m_inputProvider);
     m_ecs->addSystem(m_cameraSystem);
+    LOG(INFO, "Camera system initialized");
 }
 
 void Application::initializeWorld(uint8_t renderDistance)
@@ -80,6 +90,7 @@ void Application::initializeWorld(uint8_t renderDistance)
 
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
     m_ecs->addSystem(m_chunkLoadingSystem);
+    LOG(INFO, "World initialized with render distance: {}", renderDistance);
 }
 
 void Application::initializeRenderSystems(uint8_t renderDistance)
@@ -88,11 +99,17 @@ void Application::initializeRenderSystems(uint8_t renderDistance)
     auto shader = std::make_unique<render::Shader>("shaders/voxel.vert", "shaders/voxel.frag");
     m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, std::move(shader), std::move(atlas), *m_world, renderDistance);
     m_ecs->addSystem(m_renderSystem);
+    LOG(INFO, "Render systems initialized");
 }
 
 void Application::run()
 {
-    if (!initialize()) return;
+    LOG(INFO, "Application run loop started");
+    if (!initialize())
+    {
+        LOG(ERROR, "Application failed to initialize");
+        return;
+    }
 
     while (m_window->isOpen())
     {
@@ -105,6 +122,7 @@ void Application::run()
         render();
         m_window->swapBuffers();
     }
+    LOG(INFO, "Exiting run loop");
 }
 
 void Application::update(float deltaTime)
@@ -128,5 +146,6 @@ void Application::shutdown()
     m_world.reset();
     m_ecs.reset();
     m_window.reset();
+    LOG(INFO, "Shutdown complete");
 }
 }

@@ -16,6 +16,7 @@ concurrencpp::result<void> World::loadChunk(const glm::ivec3& chunkPos)
         return concurrencpp::make_ready_result<void>();
     }
 
+    LOG(INFO, "Loading new chunk at [{} , {}]", chunkPos.x, chunkPos.z);
     m_pendingChunks.emplace(chunkPos, std::make_unique<Chunk>(chunkPos));
     auto generationResult = m_generator.generate(*m_pendingChunks[chunkPos], m_chunkExecutor).run();
 
@@ -28,7 +29,7 @@ concurrencpp::result<void> World::loadChunk(const glm::ivec3& chunkPos)
             genResult.get();
             m_chunks[chunkPos] = std::move(m_pendingChunks[chunkPos]);
             m_pendingChunks.erase(chunkPos);
-
+            LOG(INFO, "Chunk generation succeeded at [{}, {}]", chunkPos.x, chunkPos.z);
             promise.set_result();
         }
         catch (const std::exception& e)

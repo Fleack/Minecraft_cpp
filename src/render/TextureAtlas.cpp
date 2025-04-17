@@ -15,19 +15,25 @@ namespace mc::render
 TextureAtlas::TextureAtlas(std::size_t tileSize)
     : m_tileSize(tileSize)
 {
+    LOG(INFO, "Initializing TextureAtlas with tile size: {}", tileSize);
 }
 
 TextureAtlas::~TextureAtlas()
 {
     glDeleteTextures(1, &m_textureId);
+    LOG(INFO, "Deleted TextureAtlas texture with ID: {}", m_textureId);
 }
 
 void TextureAtlas::loadFromDirectory(std::string const& path)
 {
+    LOG(INFO, "Loading textures from directory: {}", path);
     std::vector<std::string> files = collectPngFiles(path);
+    LOG(INFO, "Found {} PNG files in directory", files.size());
     calculateAtlasSize(files.size());
+    LOG(INFO, "Calculated atlas size: {}x{}", m_atlasSize, m_atlasSize);
     std::vector<uint8_t> atlasData = generateAtlasData(files);
     uploadToGpu(atlasData);
+    LOG(INFO, "TextureAtlas uploaded to GPU with texture ID: {}", m_textureId);
 }
 
 void TextureAtlas::bind(uint32_t unit) const
@@ -40,6 +46,7 @@ glm::vec2 TextureAtlas::getUv(std::string const& name) const
 {
     auto it = m_uvMap.find(name);
     if (it != m_uvMap.end()) return it->second;
+    LOG(WARN, "UV for texture '{}' not found, returning default (0,0)", name);
     return {0.0f, 0.0f};
 }
 
@@ -53,12 +60,14 @@ std::vector<std::string> TextureAtlas::collectPngFiles(std::string const& path) 
             files.push_back(entry.path().string());
         }
     }
+    LOG(INFO, "Collected {} PNG files from directory: {}", files.size(), path);
     return files;
 }
 
 void TextureAtlas::calculateAtlasSize(std::size_t textureCount)
 {
     m_atlasSize = static_cast<std::size_t>(std::ceil(std::sqrt(textureCount)));
+    LOG(INFO, "Calculated atlas size: {} for {} textures", m_atlasSize, textureCount);
 }
 
 std::vector<uint8_t> TextureAtlas::generateAtlasData(std::vector<std::string> const& files)
@@ -74,9 +83,16 @@ std::vector<uint8_t> TextureAtlas::generateAtlasData(std::vector<std::string> co
         int height;
         int ch;
         stbi_uc* data = stbi_load(file.c_str(), &width, &height, &ch, STBI_rgb_alpha);
-        if (!data || static_cast<std::size_t>(width) != m_tileSize || static_cast<std::size_t>(height) != m_tileSize)
+        if (!data)
         {
-            LOG(WARN,"Failed to load texture or wrong size: {}", file);
+            LOG(WARN, "Failed to load texture: {}", file);
+            continue;
+        }
+
+        if (static_cast<std::size_t>(width) != m_tileSize || static_cast<std::size_t>(height) != m_tileSize)
+        {
+            LOG(WARN, "Texture size mismatch in file: {}. Expected: {}x{}, Actual: {}x{}", file, m_tileSize, m_tileSize, width, height);
+            stbi_image_free(data);
             continue;
         }
 
@@ -119,5 +135,6 @@ void TextureAtlas::uploadToGpu(const std::vector<uint8_t>& atlasData)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlasPixels, atlasPixels, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    LOG(INFO, "Uploaded TextureAtlas to GPU with ID: {}", m_textureId);
 }
 }

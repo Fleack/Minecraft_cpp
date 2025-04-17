@@ -8,6 +8,7 @@
 
 #define LOG(level, fmt, ...) \
     mc::core::Logger::get()->log( \
+        spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, \
         to_spdlog_level(LogLevel::level), \
         std::format(fmt __VA_OPT__(,) __VA_ARGS__) \
     )
