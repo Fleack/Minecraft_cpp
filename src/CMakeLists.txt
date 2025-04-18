@@ -10,6 +10,7 @@ target_include_directories(voxel_engine
 
 target_link_libraries(voxel_engine
         PUBLIC
+        dbghelp
         glfw
         glm::glm
         glad::glad
@@ -18,6 +19,7 @@ target_link_libraries(voxel_engine
         imgui::imgui
         spdlog::spdlog
         concurrencpp::concurrencpp
+        cpptrace::cpptrace
 )
 
 target_compile_features(voxel_engine PRIVATE cxx_std_23)

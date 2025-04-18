@@ -24,7 +24,6 @@ Application::Application(concurrencpp::runtime_options&& options)
     : m_runtime{std::move(options)},
       m_chunkExecutor{m_runtime.thread_pool_executor()}
 {
-    Logger::init();
     LOG(INFO, "Application created");
 }
 
@@ -56,7 +55,7 @@ bool Application::initialize()
 
 bool Application::initializeWindow()
 {
-    m_window = std::make_unique<Window>("OLEG PIDORAS", 1920, 1080);
+    m_window = std::make_unique<Window>("MinecraftX", 1920, 1080);
     LOG(INFO, "Window initialized");
     return m_window->isOpen();
 }

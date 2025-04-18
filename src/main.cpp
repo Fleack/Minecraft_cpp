@@ -1,9 +1,12 @@
 #include "core/Application.hpp"
+#include "core/CrashReporter.hpp"
 
 #include "core/Logger.hpp"
 
 int main()
 {
+    mc::core::Logger::init();
+    mc::core::CrashReporter::init();
     concurrencpp::runtime_options options;
     options.thread_started_callback = [](std::string_view name) {
         using namespace mc::core;
