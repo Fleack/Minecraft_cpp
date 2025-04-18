@@ -1,10 +1,11 @@
 #pragma once
 
+#include "stb_image.h"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <stb_image.h>
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 
@@ -50,9 +51,18 @@ public:
      */
     [[nodiscard]] glm::vec2 getUv(std::string const& name) const;
 
-    [[nodiscard]] GLuint getId() const { return m_textureId; }
-    [[nodiscard]] std::size_t getTileSize() const { return m_tileSize; }
-    [[nodiscard]] std::size_t getAtlasSize() const { return m_atlasSize; }
+    [[nodiscard]] GLuint getId() const
+    {
+        return m_textureId;
+    }
+    [[nodiscard]] std::size_t getTileSize() const
+    {
+        return m_tileSize;
+    }
+    [[nodiscard]] std::size_t getAtlasSize() const
+    {
+        return m_atlasSize;
+    }
 
 private:
     /**
@@ -105,4 +115,4 @@ private:
     std::size_t m_atlasSize{0}; ///< Number of tiles per row/column.
     std::unordered_map<std::string, glm::vec2> m_uvMap; ///< Map of tile names to UV offsets.
 };
-}
+} // namespace mc::render

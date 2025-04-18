@@ -39,4 +39,4 @@ public:
 private:
     Ecs& m_ecs; ///< Reference to the ECS manager.
 };
-}
+} // namespace mc::ecs

@@ -4,8 +4,7 @@
 
 namespace mc::render
 {
-ChunkMesh::ChunkMesh(glm::ivec3 pos)
-    : m_chunkPosition{pos}
+ChunkMesh::ChunkMesh(glm::ivec3 pos) : m_chunkPosition{pos}
 {
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
@@ -19,8 +18,7 @@ void ChunkMesh::upload(std::vector<Vertex> const& vertices)
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<void*>(offsetof(Vertex, position)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
     glEnableVertexAttribArray(0);
 
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
@@ -37,4 +35,4 @@ void ChunkMesh::draw() const
     glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_vertexCount));
 }
-}
+} // namespace mc::render

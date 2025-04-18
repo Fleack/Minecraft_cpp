@@ -61,4 +61,4 @@ private:
      */
     void checkCompileErrors(GLuint shader, const std::string& type) const;
 };
-}
+} // namespace mc::render

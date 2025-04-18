@@ -23,4 +23,4 @@ struct CameraComponent
     float speed = 10.0f; ///< Movement speed of the camera.
     float sensitivity = 0.1f; ///< Mouse sensitivity for controlling the camera.
 };
-}
+} // namespace mc::ecs

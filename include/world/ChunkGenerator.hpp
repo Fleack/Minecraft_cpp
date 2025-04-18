@@ -42,4 +42,4 @@ public:
 private:
     FastNoiseLite m_noise{}; ///< Noise generator used for terrain shaping.
 };
-}
+} // namespace mc::world

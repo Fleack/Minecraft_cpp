@@ -116,4 +116,4 @@ const glm::mat4& CameraSystem::getProjectionMatrix() const
 {
     return m_projectionMatrix;
 }
-}
+} // namespace mc::ecs

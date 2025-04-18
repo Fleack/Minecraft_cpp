@@ -55,4 +55,4 @@ struct Block
         return type != BlockType::AIR;
     }
 };
-}
+} // namespace mc::world

@@ -26,7 +26,7 @@ class RenderSystem;
 class CameraSystem;
 class Ecs;
 class ISystem;
-}
+} // namespace mc::ecs
 
 namespace mc::core
 {
@@ -126,4 +126,4 @@ private:
 
     double m_lastFrameTime = 0.0; ///< Time of the previous frame (for delta time calculation).
 };
-}
+} // namespace mc::core

@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+
 #include <glm/glm.hpp>
 
 namespace mc::world
@@ -59,8 +60,15 @@ public:
      */
     [[nodiscard]] bool isChunkPending(glm::ivec3 const& pos) const;
 
-    [[nodiscard]] auto const& getChunks() const { return m_chunks; }
-    [[nodiscard]] auto const& getPendingChunks() const { return m_pendingChunks; }
+    [[nodiscard]] auto const& getChunks() const
+    {
+        return m_chunks;
+    }
+
+    [[nodiscard]] auto const& getPendingChunks() const
+    {
+        return m_pendingChunks;
+    }
 
 private:
     std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_chunks; ///< Map of loaded chunks.
@@ -68,4 +76,4 @@ private:
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
     ChunkGenerator m_generator; ///< Procedural terrain generator.
 };
-}
+} // namespace mc::world

@@ -16,26 +16,20 @@
 
 namespace mc::ecs
 {
-RenderSystem::RenderSystem(Ecs& ecs,
-                           std::shared_ptr<CameraSystem> cameraSystem,
-                           std::unique_ptr<render::IShader> shader,
-                           std::unique_ptr<render::TextureAtlas> atlas,
-                           world::World& world,
-                           uint8_t renderRadius)
-    : m_ecs{ecs},
-      m_world{world},
-      m_cameraSystem{std::move(cameraSystem)},
-      m_shader{std::move(shader)},
-      m_atlas{std::move(atlas)},
-      m_renderRadius{renderRadius}
+RenderSystem::RenderSystem(
+    Ecs& ecs,
+    std::shared_ptr<CameraSystem> cameraSystem,
+    std::unique_ptr<render::IShader> shader,
+    std::unique_ptr<render::TextureAtlas> atlas,
+    world::World& world,
+    uint8_t renderRadius)
+    : m_ecs{ecs}, m_world{world}, m_cameraSystem{std::move(cameraSystem)}, m_shader{std::move(shader)}, m_atlas{std::move(atlas)}, m_renderRadius{renderRadius}
 {
     m_atlas->loadFromDirectory("assets/textures/blocks/");
     LOG(INFO, "RenderSystem initialized with render radius: {}", renderRadius);
 }
 
-void RenderSystem::update(float /*deltaTime*/)
-{
-}
+void RenderSystem::update(float /*deltaTime*/) {}
 
 void RenderSystem::render()
 {
@@ -53,10 +47,8 @@ void RenderSystem::render()
     const glm::vec3 cameraPos = cameraTransform.position;
 
     const glm::ivec3 currentChunkPos = {
-        static_cast<int>(std::floor(cameraPos.x / static_cast<float>(world::CHUNK_SIZE_X))),
-        0,
-        static_cast<int>(std::floor(cameraPos.z / static_cast<float>(world::CHUNK_SIZE_Z)))
-    };
+        static_cast<int>(std::floor(cameraPos.x / static_cast<float>(world::CHUNK_SIZE_X))), 0,
+        static_cast<int>(std::floor(cameraPos.z / static_cast<float>(world::CHUNK_SIZE_Z)))};
 
     drawChunksInRadius(currentChunkPos);
 
@@ -107,4 +99,4 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
         }
     }
 }
-}
+} // namespace mc::ecs

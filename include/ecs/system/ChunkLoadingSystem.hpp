@@ -62,4 +62,4 @@ private:
     uint8_t m_loadRadius; ///< Number of chunks to load around the current chunk.
     glm::ivec3 m_lastCameraChunk{std::numeric_limits<int>::max()}; ///< Tracks last known camera chunk position to avoid redundant loading.
 };
-}
+} // namespace mc::ecs

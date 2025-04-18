@@ -67,4 +67,4 @@ private:
     glm::ivec3 m_position; ///< Chunk position in chunk-space (not world-space).
     block_volume m_blocks; ///< 3D grid of blocks within the chunk.
 };
-}
+} // namespace mc::world

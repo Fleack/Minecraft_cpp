@@ -27,9 +27,12 @@ public:
      *
      * @return GLuint representing the shader program ID.
      */
-    [[nodiscard]] GLuint getId() const { return m_id; }
+    [[nodiscard]] GLuint getId() const
+    {
+        return m_id;
+    }
 
 protected:
     GLuint m_id{0}; ///< OpenGL shader program ID.
 };
-}
+} // namespace mc::render

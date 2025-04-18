@@ -18,4 +18,4 @@ struct MeshComponent
 {
     std::shared_ptr<render::ChunkMesh> mesh; ///< Shared pointer to the chunk mesh.
 };
-}
+} // namespace mc::ecs

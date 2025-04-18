@@ -27,4 +27,4 @@ inline std::string get_texture_name_for_block(world::BlockType type, uint8_t fac
     default: return "error";
     }
 }
-}
+} // namespace mc::render

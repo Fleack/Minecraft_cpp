@@ -50,4 +50,4 @@ public:
 private:
     GLFWwindow& m_window; ///< Reference to the GLFW window used for input queries.
 };
-}
+} // namespace mc::input

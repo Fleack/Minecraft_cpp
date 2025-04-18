@@ -4,10 +4,7 @@
 
 namespace mc::world
 {
-World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor)
-    : m_chunkExecutor{chunkExecutor}
-{
-}
+World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor) : m_chunkExecutor{chunkExecutor} {}
 
 concurrencpp::result<void> World::loadChunk(const glm::ivec3& chunkPos)
 {
@@ -61,4 +58,4 @@ bool World::isChunkPending(glm::ivec3 const& pos) const
 {
     return m_pendingChunks.contains(pos);
 }
-}
+} // namespace mc::world

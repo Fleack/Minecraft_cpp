@@ -45,9 +45,12 @@ concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shar
                 using enum BlockType;
                 BlockType type = AIR;
 
-                if (y == height) type = GRASS;
-                else if (y > height - 4 && y < height) type = DIRT;
-                else if (y < height) type = STONE;
+                if (y == height)
+                    type = GRASS;
+                else if (y > height - 4 && y < height)
+                    type = DIRT;
+                else if (y < height)
+                    type = STONE;
 
                 chunk.setBlock(x, y, z, Block{type});
             }

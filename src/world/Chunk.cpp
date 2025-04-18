@@ -30,4 +30,4 @@ void Chunk::setBlock(int x, int y, int z, Block block)
 {
     m_blocks.at(x).at(y).at(z) = block;
 }
-}
+} // namespace mc::world

@@ -16,8 +16,7 @@ void Logger::init()
         "Minecraft",
         consoleSink,
         spdlog::thread_pool(),
-        spdlog::async_overflow_policy::block
-    );
+        spdlog::async_overflow_policy::block);
 
     spdlog::register_logger(m_sLogger);
 
@@ -30,4 +29,4 @@ std::shared_ptr<spdlog::logger>& Logger::get()
 {
     return m_sLogger;
 }
-}
+} // namespace mc::core

@@ -68,4 +68,4 @@ private:
     float m_lastX = 640.0f; ///< Last known mouse X position.
     float m_lastY = 360.0f; ///< Last known mouse Y position.
 };
-}
+} // namespace mc::ecs

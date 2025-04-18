@@ -88,4 +88,4 @@ private:
         return storage;
     }
 };
-}
+} // namespace mc::ecs

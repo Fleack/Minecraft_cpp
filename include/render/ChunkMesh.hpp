@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <glad/gl.h>
 #include <glm/glm.hpp>
+
+#include <vector>
 
 namespace mc::render
 {
@@ -48,7 +49,10 @@ public:
      */
     void draw() const;
 
-    [[nodiscard]] glm::ivec3 getChunkPosition() const { return m_chunkPosition; }
+    [[nodiscard]] glm::ivec3 getChunkPosition() const
+    {
+        return m_chunkPosition;
+    }
 
 private:
     GLuint m_vao = 0; ///< Vertex array object.
@@ -56,4 +60,4 @@ private:
     std::size_t m_vertexCount = 0; ///< Number of vertices in the mesh.
     glm::ivec3 m_chunkPosition; ///< Position of the chunk in the world.
 };
-}
+} // namespace mc::render

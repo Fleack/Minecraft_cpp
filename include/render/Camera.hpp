@@ -34,4 +34,4 @@ public:
      */
     [[nodiscard]] static glm::mat4 getProjectionMatrix(float fov, float aspect, float near = 0.1f, float far = 1000.0f);
 };
-}
+} // namespace mc::render

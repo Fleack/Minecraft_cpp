@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+
 #include <GLFW/glfw3.h>
 
 namespace mc::core
@@ -71,4 +72,4 @@ private:
 private:
     GLFWwindow* m_window{nullptr}; ///< Pointer to the native GLFW window.
 };
-}
+} // namespace mc::core

@@ -37,4 +37,4 @@ struct IVec3Hasher
         return combined;
     }
 };
-}
+} // namespace mc::utils

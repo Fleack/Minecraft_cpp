@@ -112,4 +112,4 @@ private:
     ComponentStorage m_components; ///< Storage for all components.
     std::vector<std::shared_ptr<ISystem>> m_systems; ///< List of active systems.
 };
-}
+} // namespace mc::ecs

@@ -19,8 +19,7 @@ glm::ivec3 ChunkLoadingSystem::worldPosToChunk(glm::vec3 const& pos) const
     return {
         static_cast<int>(std::floor(pos.x / static_cast<float>(CHUNK_SIZE_X))),
         0,
-        static_cast<int>(std::floor(pos.z / static_cast<float>(CHUNK_SIZE_Z)))
-    };
+        static_cast<int>(std::floor(pos.z / static_cast<float>(CHUNK_SIZE_Z)))};
 }
 
 void ChunkLoadingSystem::update(float /*dt*/)
@@ -33,8 +32,7 @@ void ChunkLoadingSystem::update(float /*dt*/)
 
     if (currentChunk == m_lastCameraChunk) return;
     m_lastCameraChunk = currentChunk;
-    LOG(INFO, "Camera moved to new chunk at position [{}, {}]",
-        currentChunk.x, currentChunk.z);
+    LOG(INFO, "Camera moved to new chunk at position [{}, {}]", currentChunk.x, currentChunk.z);
 
     const float radiusWithPadding = static_cast<float>(m_loadRadius) + 0.5f;
     const float radiusSq = radiusWithPadding * radiusWithPadding;
@@ -50,4 +48,4 @@ void ChunkLoadingSystem::update(float /*dt*/)
         }
     }
 }
-}
+} // namespace mc::ecs

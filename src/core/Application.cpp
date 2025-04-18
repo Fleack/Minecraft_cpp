@@ -147,4 +147,4 @@ void Application::shutdown()
     m_window.reset();
     LOG(INFO, "Shutdown complete");
 }
-}
+} // namespace mc::core

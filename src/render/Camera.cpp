@@ -11,4 +11,4 @@ glm::mat4 Camera::getProjectionMatrix(float fov, float aspect, float near, float
 {
     return glm::perspective(glm::radians(fov), aspect, near, far);
 }
-}
+} // namespace mc::render

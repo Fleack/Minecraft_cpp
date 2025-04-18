@@ -47,12 +47,13 @@ public:
      * @param world Reference to the game world.
      * @param renderRadius Number of chunks to render in each direction from the camera.
      */
-    RenderSystem(Ecs& ecs,
-                 std::shared_ptr<CameraSystem> cameraSystem,
-                 std::unique_ptr<render::IShader> shader,
-                 std::unique_ptr<render::TextureAtlas> atlas,
-                 world::World& world,
-                 uint8_t renderRadius);
+    RenderSystem(
+        Ecs& ecs,
+        std::shared_ptr<CameraSystem> cameraSystem,
+        std::unique_ptr<render::IShader> shader,
+        std::unique_ptr<render::TextureAtlas> atlas,
+        world::World& world,
+        uint8_t renderRadius);
 
     /**
      * @brief Does nothing.
@@ -89,4 +90,4 @@ private:
 
     std::unordered_map<glm::ivec3, Entity, utils::IVec3Hasher> m_chunkToEntity; ///< Maps chunk positions to ECS entities holding their mesh.
 };
-}
+} // namespace mc::ecs

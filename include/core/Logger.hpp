@@ -6,12 +6,11 @@
 #include <spdlog/async.h>
 #include <spdlog/spdlog.h>
 
-#define LOG(level, fmt, ...) \
-    mc::core::Logger::get()->log( \
+#define LOG(level, fmt, ...)                                     \
+    mc::core::Logger::get()->log(                                \
         spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, \
-        to_spdlog_level(LogLevel::level), \
-        std::format(fmt __VA_OPT__(,) __VA_ARGS__) \
-    )
+        to_spdlog_level(LogLevel::level),                        \
+        std::format(fmt __VA_OPT__(, ) __VA_ARGS__))
 
 enum class LogLevel
 {
@@ -66,4 +65,4 @@ public:
 private:
     static std::shared_ptr<spdlog::logger> m_sLogger; ///< Shared logger instance.
 };
-}
+} // namespace mc::core

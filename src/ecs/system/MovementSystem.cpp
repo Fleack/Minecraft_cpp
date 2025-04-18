@@ -22,4 +22,4 @@ void MovementSystem::update(float deltaTime)
         transform.position.x += 0.25f * deltaTime;
     }
 }
-};
+}; // namespace mc::ecs

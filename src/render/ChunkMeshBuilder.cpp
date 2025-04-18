@@ -41,8 +41,7 @@ constexpr glm::vec3 FACE_VERTICES[6][4] = {
     // Right
     {{1, 0, 1}, {1, 0, 0}, {1, 1, 0}, {1, 1, 1}},
     // Left
-    {{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}}
-};
+    {{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}}};
 
 /**
  * @brief Vertex order (indexes in UVS) for each face (6 faces with 6 triangular indexes)
@@ -59,8 +58,7 @@ constexpr glm::vec2 FACE_UVS[6][4] = {
     // Right
     {{0, 1}, {1, 1}, {1, 0}, {0, 0}},
     // Left
-    {{1, 1}, {0, 1}, {0, 0}, {1, 0}}
-};
+    {{1, 1}, {0, 1}, {0, 0}, {1, 0}}};
 
 /**
  * @brief Determines if a block face is visible.
@@ -77,23 +75,21 @@ constexpr glm::vec2 FACE_UVS[6][4] = {
 bool is_face_visible(world::Chunk const& chunk, int x, int y, int z)
 {
     using namespace world;
-    if (x < 0 || x >= CHUNK_SIZE_X ||
-        y < 0 || y >= CHUNK_SIZE_Y ||
-        z < 0 || z >= CHUNK_SIZE_Z)
+    if (x < 0 || x >= CHUNK_SIZE_X || y < 0 || y >= CHUNK_SIZE_Y || z < 0 || z >= CHUNK_SIZE_Z)
     {
         return true;
     }
     return !chunk.getBlock(x, y, z).isSolid();
 }
-}
+} // namespace
 
 void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, TextureAtlas const& atlas)
 {
-    auto chunkOffset = glm::vec3(
+    auto chunkOffset = glm::vec3{
         chunk.getPosition().x * world::CHUNK_SIZE_X,
         chunk.getPosition().y * world::CHUNK_SIZE_Y,
-        chunk.getPosition().z * world::CHUNK_SIZE_Z
-    );
+        chunk.getPosition().z * world::CHUNK_SIZE_Z,
+    };
 
     std::vector<Vertex> vertices;
 
@@ -104,7 +100,7 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, Texture
             for (int z = 0; z < world::CHUNK_SIZE_Z; ++z)
             {
                 const auto block = chunk.getBlock(x, y, z);
-                if (!block.isSolid()) { continue; }
+                if (!block.isSolid()) continue;
 
                 for (int face = 0; face < 6; ++face)
                 {
@@ -112,7 +108,7 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, Texture
                     const int ny = y + static_cast<int>(FACE_NORMALS[face].y);
                     const int nz = z + static_cast<int>(FACE_NORMALS[face].z);
 
-                    if (!is_face_visible(chunk, nx, ny, nz)) { continue; }
+                    if (!is_face_visible(chunk, nx, ny, nz)) continue;
 
                     auto texName = get_texture_name_for_block(block.type, face);
                     auto tileUv = atlas.getUv(texName);
@@ -133,4 +129,4 @@ void ChunkMeshBuilder::build(world::Chunk const& chunk, ChunkMesh& mesh, Texture
 
     mesh.upload(vertices);
 }
-}
+} // namespace mc::render

@@ -22,4 +22,4 @@ public:
      */
     static void build(world::Chunk const& chunk, ChunkMesh& mesh, TextureAtlas const& atlas);
 };
-}
+} // namespace mc::render

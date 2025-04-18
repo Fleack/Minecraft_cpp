@@ -12,8 +12,7 @@ namespace fs = std::filesystem;
 
 namespace mc::render
 {
-TextureAtlas::TextureAtlas(std::size_t tileSize)
-    : m_tileSize(tileSize)
+TextureAtlas::TextureAtlas(std::size_t tileSize) : m_tileSize(tileSize)
 {
     LOG(INFO, "Initializing TextureAtlas with tile size: {}", tileSize);
 }
@@ -101,9 +100,8 @@ std::vector<uint8_t> TextureAtlas::generateAtlasData(std::vector<std::string> co
 
         m_uvMap[fs::path(file).stem().string()] = {
             static_cast<float>(tileX) / m_atlasSize,
-            static_cast<float>(tileY) / m_atlasSize
+            static_cast<float>(tileY) / m_atlasSize,
         };
-
         copyTileToAtlas(data, tileX, tileY, atlasData, atlasPixels, channels);
 
         stbi_image_free(data);
@@ -137,4 +135,4 @@ void TextureAtlas::uploadToGpu(const std::vector<uint8_t>& atlasData)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     LOG(INFO, "Uploaded TextureAtlas to GPU with ID: {}", m_textureId);
 }
-}
+} // namespace mc::render

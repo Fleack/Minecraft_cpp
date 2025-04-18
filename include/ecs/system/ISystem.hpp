@@ -9,4 +9,4 @@ public:
     virtual void render() = 0;
     virtual ~ISystem() = default;
 };
-}
+} // namespace mc::ecs

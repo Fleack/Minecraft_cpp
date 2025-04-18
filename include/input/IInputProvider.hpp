@@ -28,4 +28,4 @@ public:
      */
     virtual glm::dvec2 getCursorPosition() const = 0;
 };
-}
+} // namespace mc::input

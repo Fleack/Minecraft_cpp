@@ -1,6 +1,7 @@
 #include <glad/gl.h>
 
 #include "core/Window.hpp"
+
 #include "core/Logger.hpp"
 
 namespace mc::core
@@ -83,4 +84,4 @@ GLFWwindow* Window::getNativeWindow()
 {
     return m_window;
 }
-}
+} // namespace mc::core
