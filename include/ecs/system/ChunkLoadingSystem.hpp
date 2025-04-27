@@ -1,5 +1,8 @@
 #pragma once
 
+#include <chrono>
+#include <queue>
+
 #include "ecs/system/ISystem.hpp"
 
 #include <glm/glm.hpp>
@@ -14,31 +17,35 @@ namespace mc::ecs
 class Ecs;
 
 /**
- * @brief ECS system responsible for dynamic chunk loading around the player.
+ * @brief ECS system for dynamically loading chunks around the camera.
  *
- * Tracks the player's position via their transform component and ensures
- * that all chunks within a configurable radius are loaded as the player moves.
+ * Tracks the camera position and loads/generates chunks within a configurable radius,
+ * respecting a frame time budget to maintain stable performance.
  */
 class ChunkLoadingSystem final : public ISystem
 {
+private:
+    using clock = std::chrono::steady_clock;
+    using time_point = clock::time_point;
+
 public:
     /**
-     * @brief Constructs the chunk loading system.
+     * @brief Constructs the ChunkLoadingSystem.
      *
-     * @param ecs Reference to the ECS instance.
-     * @param world Reference to the world containing all chunks.
-     * @param radius Load radius (in chunks) around the active entity.
+     * @param ecs Reference to the ECS manager.
+     * @param world Reference to the world managing chunks.
+     * @param radius Radius (in chunks) around the camera to maintain loaded.
      */
     ChunkLoadingSystem(Ecs& ecs, world::World& world, uint8_t radius);
 
     /**
-     * @brief Updates the system (called every frame).
+     * @brief Updates the chunk loading system each frame.
      *
-     * Converts the entity's world position to a chunk-space position,
-     * and if it changed since the last frame, loads all surrounding chunks
-     * within the defined radius.
+     * Recomputes the available time budget based on frame delta time.
+     * If the camera moved, refills the chunk load queue.
+     * Then schedules chunk loading within the available time.
      *
-     * @param dt Delta time (not used currently).
+     * @param dt Delta time in seconds since the last frame.
      */
     void update(float dt) override;
 
@@ -49,17 +56,55 @@ public:
 
 private:
     /**
-     * @brief Converts a world-space position to chunk-space coordinates.
+     * @brief Gets the current chunk-space position of the camera.
      *
-     * @param pos World-space position (e.g., camera or player position).
-     * @return Corresponding chunk-space coordinate.
+     * @return Optional chunk-space position, or std::nullopt if no transform exists.
      */
-    glm::ivec3 worldPosToChunk(const glm::vec3& pos) const;
+    std::optional<glm::ivec3> getCurrentChunk() const;
+
+    /**
+     * @brief Refills the loading queue with chunks around the current camera chunk.
+     *
+     * Only chunks that are not yet loaded or pending are enqueued.
+     *
+     * @param currentChunk Current camera chunk position.
+     */
+    void refillQueue(glm::ivec3 currentChunk);
+
+    /**
+     * @brief Schedules chunk loading operations within the time budget.
+     *
+     * Runs chunk generation immediately on the calling thread and
+     * stops scheduling if the time budget is exceeded.
+     *
+     * @param start Start time point of scheduling batch.
+     * @return Number of chunks launched for loading.
+     */
+    size_t scheduleChunks(time_point const& start);
+
+    /**
+     * @brief Updates the statistics on chunk scheduling performance.
+     *
+     * Calculates the total scheduling time and updates an exponential moving average (EMA)
+     * to monitor performance over time.
+     *
+     * @param launches Number of chunks scheduled during this frame.
+     * @param start Start time point of scheduling batch.
+     */
+    void updateStats(size_t launches, time_point const& start);
 
 private:
     Ecs& m_ecs; ///< Reference to the ECS manager.
     world::World& m_world; ///< Reference to the ECS manager.
+
     uint8_t m_loadRadius; ///< Number of chunks to load around the current chunk.
     glm::ivec3 m_lastCameraChunk{std::numeric_limits<int>::max()}; ///< Tracks last known camera chunk position to avoid redundant loading.
+
+    double m_avgScheduleTime = 0.0005; ///< Exponential moving average (EMA) of chunk scheduling time in seconds.
+    double m_timeBudget = 0.0; ///< Maximum allowed time (in seconds) per frame for scheduling chunk loads.
+    static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation (closer to 1 = faster adaptation).
+    static constexpr float workFraction = 0.3f; ///< Fraction of leftover frame time allocated to chunk loading.
+
+    std::queue<glm::ivec3> m_loadQueue; ///< Queue of chunk positions awaiting generation.
 };
 } // namespace mc::ecs

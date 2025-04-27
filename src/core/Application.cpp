@@ -36,7 +36,7 @@ Application::~Application()
 bool Application::initialize()
 {
     LOG(INFO, "Initialization started");
-    static constexpr uint8_t renderDistance{5};
+    static constexpr uint8_t renderDistance{16};
     if (!initializeWindow())
     {
         LOG(ERROR, "Failed to initialize window");

@@ -29,7 +29,29 @@ RenderSystem::RenderSystem(
     LOG(INFO, "RenderSystem initialized with render radius: {}", renderRadius);
 }
 
-void RenderSystem::update(float /*deltaTime*/) {}
+void RenderSystem::update(float dt)
+{
+    constexpr float targetFrame = 1.0f / 60.0f;
+    float leftover = targetFrame - dt;
+    m_timeBudget = (leftover > 0.0f ? leftover : 0.0f) * workFraction;
+
+    auto opt = getCurrentChunk();
+    if (!opt) return;
+
+    static glm::ivec3 lastChunk{INT_MIN, 0, INT_MIN};
+    if (*opt != lastChunk)
+    {
+        lastChunk = *opt;
+        m_meshQueue = {};
+        m_enqueuedChunks.clear();
+    }
+
+    auto start = clock::now();
+    if (size_t built = processMeshQueue(start))
+    {
+        updateStats(built, start);
+    }
+}
 
 void RenderSystem::render()
 {
@@ -38,70 +60,116 @@ void RenderSystem::render()
 
     glm::mat4 const view = m_cameraSystem->getViewMatrix();
     glm::mat4 const projection = m_cameraSystem->getProjectionMatrix();
-
     glUniform1i(glGetUniformLocation(m_shader->getId(), "u_Texture"), 0);
     glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_View"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_Projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    auto const& cameraTransform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
-    glm::vec3 const cameraPos = cameraTransform.position;
-
-    glm::ivec3 const currentChunkPos = {
-        static_cast<int>(std::floor(cameraPos.x / static_cast<float>(world::CHUNK_SIZE_X))), 0, static_cast<int>(std::floor(cameraPos.z / static_cast<float>(world::CHUNK_SIZE_Z)))};
-
-    drawChunksInRadius(currentChunkPos);
+    if (auto opt = getCurrentChunk())
+    {
+        drawChunksInRadius(*opt);
+    }
 
     m_shader->unbind();
 }
 
+std::optional<glm::ivec3> RenderSystem::getCurrentChunk() const
+{
+    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
+    if (transforms.empty()) return std::nullopt;
+    auto const& t = transforms.begin()->second.position;
+
+    return glm::ivec3{
+        static_cast<int>(std::floor(t.x / static_cast<float>(world::CHUNK_SIZE_X))),
+        0,
+        static_cast<int>(std::floor(t.z / static_cast<float>(world::CHUNK_SIZE_Z)))};
+}
+
 void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 {
-    float const radiusWithPadding = static_cast<float>(m_renderRadius) + 0.5f;
-    float const radiusSq = radiusWithPadding * radiusWithPadding;
+    float const generateRadius = m_renderRadius + 0.5f;
+    float const squaredGenerateRadius = generateRadius * generateRadius;
+
     for (int x = -m_renderRadius; x <= m_renderRadius; ++x)
     {
         for (int z = -m_renderRadius; z <= m_renderRadius; ++z)
         {
-            if (static_cast<float>(x * x + z * z) > radiusSq) continue;
-            glm::ivec3 chunkPos = currentChunkPos + glm::ivec3{x, 0, z};
+            if (static_cast<float>(x * x + z * z) > squaredGenerateRadius) continue;
+            glm::ivec3 pos = currentChunkPos + glm::ivec3{x, 0, z};
 
-            if (!m_chunkToMesh.contains(chunkPos))
+            if (!m_chunkToMesh.contains(pos))
             {
-                auto chunk = m_world.getChunk(chunkPos);
-                if (!chunk)
+                if (m_enqueuedChunks.insert(pos).second)
                 {
-                    LOG(DEBUG, "Chunk at position [{}, {}] not found", chunkPos.x, chunkPos.z);
-                    continue;
+                    m_meshQueue.push(pos);
                 }
-                LOG(INFO, "Creating mesh for chunk at [{}, {}]", chunkPos.x, chunkPos.z);
-                auto mesh = std::make_shared<render::ChunkMesh>(chunkPos);
-                render::ChunkMeshBuilder::build(*chunk, *mesh, *m_atlas.get());
-
-                auto entity = m_ecs.createEntity();
-                m_ecs.addComponent<MeshComponent>(entity, MeshComponent{mesh});
-
-                m_chunkToMesh[chunkPos] = entity;
-            }
-
-            auto it = m_chunkToMesh.find(chunkPos);
-            if (it == m_chunkToMesh.end())
-            {
-                LOG(CRITICAL, "Missing entity for chunk at [{}, {}], seems like a bug", chunkPos.x, chunkPos.z);
                 continue;
             }
 
-            auto meshComp = m_ecs.getComponent<MeshComponent>(it->second);
-            if (!meshComp || !meshComp->mesh)
+            Entity e = m_chunkToMesh[pos];
+            if (auto comp = m_ecs.getComponent<MeshComponent>(e))
             {
-                LOG(WARN, "Missing or invalid mesh for chunk at [{}, {}]", chunkPos.x, chunkPos.z);
-                continue;
+                glm::mat4 model = glm::mat4(1.0f);
+                glUniformMatrix4fv(
+                    glGetUniformLocation(m_shader->getId(), "u_Model"),
+                    1,
+                    GL_FALSE,
+                    glm::value_ptr(model));
+                comp->mesh->draw();
             }
-
-            auto model = glm::mat4(1.0f);
-            glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_Model"), 1, GL_FALSE, glm::value_ptr(model));
-
-            meshComp->mesh->draw();
         }
     }
+}
+
+void RenderSystem::enqueueChunkForMesh(glm::ivec3 const& chunkPos)
+{
+    if (m_enqueuedChunks.insert(chunkPos).second)
+    {
+        m_meshQueue.push(chunkPos);
+    }
+}
+
+size_t RenderSystem::processMeshQueue(time_point const& start)
+{
+    size_t launches = 0;
+    while (!m_meshQueue.empty())
+    {
+        auto now = clock::now();
+        if (std::chrono::duration<double>(now - start).count() >= m_timeBudget)
+            break;
+
+        glm::ivec3 pos = m_meshQueue.front();
+        m_meshQueue.pop();
+
+        if (auto opt = m_world.getChunk(pos))
+        {
+            LOG(DEBUG, "Building mesh for chunk [{}, {}]", pos.x, pos.z);
+            auto mesh = std::make_shared<render::ChunkMesh>(pos);
+            render::ChunkMeshBuilder::build(opt->get(), *mesh, *m_atlas);
+
+            Entity e = m_ecs.createEntity();
+            m_ecs.addComponent<MeshComponent>(e, MeshComponent{mesh});
+            m_chunkToMesh[pos] = e;
+        }
+        else
+        {
+            m_meshQueue.push(pos);
+        }
+        ++launches;
+    }
+    return launches;
+}
+
+void RenderSystem::updateStats(size_t launches, time_point const& start)
+{
+    auto end = clock::now();
+    double total = std::chrono::duration<double>(end - start).count();
+    double avg = total / static_cast<double>(launches);
+
+    m_avgBuildTime = alpha * avg + (1.0 - alpha) * m_avgBuildTime;
+    LOG(DEBUG,
+        "Built {} meshes in {:.3f} ms (EMA {:.3f} ms)",
+        launches,
+        total * 1000.0,
+        m_avgBuildTime * 1000.0);
 }
 } // namespace mc::ecs
