@@ -6,7 +6,7 @@
 
 namespace mc::core
 {
-Window::Window(const std::string& title, int width, int height)
+Window::Window(std::string const& title, int width, int height)
 {
     if (!initGlfw())
     {
@@ -34,7 +34,7 @@ Window::Window(const std::string& title, int width, int height)
         m_window = nullptr;
         return;
     }
-    LOG(INFO, "OpenGL context loaded: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    LOG(INFO, "OpenGL context loaded: {}", reinterpret_cast<char const*>(glGetString(GL_VERSION)));
 
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
@@ -84,4 +84,16 @@ GLFWwindow* Window::getNativeWindow()
 {
     return m_window;
 }
+
+bool Window::isCursorEnabled() const
+{
+    return m_cursorEnabled;
+}
+
+void Window::setCursorEnabled(bool enabled)
+{
+    m_cursorEnabled = enabled;
+    glfwSetInputMode(m_window, GLFW_CURSOR, enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
 } // namespace mc::core

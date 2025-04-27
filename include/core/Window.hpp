@@ -54,6 +54,10 @@ public:
      */
     GLFWwindow* getNativeWindow();
 
+    bool isCursorEnabled() const;
+
+    void setCursorEnabled(bool enabled);
+
 private:
     /**
      * @brief Initializes GLFW and sets OpenGL context hints.
@@ -71,5 +75,6 @@ private:
 
 private:
     GLFWwindow* m_window{nullptr}; ///< Pointer to the native GLFW window.
+    bool m_cursorEnabled{false};
 };
 } // namespace mc::core

@@ -100,7 +100,7 @@ private:
      *
      * @param deltaTime Time since the last frame in seconds.
      */
-    void update(float deltaTime);
+    void update(float deltaTime) const;
 
     /**
      * @brief Renders the current frame.
@@ -117,9 +117,9 @@ private:
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
     std::shared_ptr<concurrencpp::manual_executor> m_mainExecutor;
 
-    std::unique_ptr<Window> m_window; ///< Window context.
     std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.
     std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
+    std::shared_ptr<Window> m_window; ///< Window context.
     std::shared_ptr<input::IInputProvider> m_inputProvider; ///< Input abstraction layer.
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
     std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.

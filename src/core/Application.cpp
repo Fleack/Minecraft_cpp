@@ -56,7 +56,7 @@ bool Application::initialize()
 
 bool Application::initializeWindow()
 {
-    m_window = std::make_unique<Window>("MinecraftX", 1920, 1080);
+    m_window = std::make_shared<Window>("MinecraftX", 1920, 1080);
     LOG(INFO, "Window initialized");
     return m_window->isOpen();
 }
@@ -79,7 +79,7 @@ void Application::initializeCamera()
     m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
     m_ecs->addComponent<ecs::TransformComponent>(cameraEntity, ecs::TransformComponent{});
 
-    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1920.0f / 1080.0f, m_inputProvider);
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1920.0f / 1080.0f, m_inputProvider, m_window);
     m_ecs->addSystem(m_cameraSystem);
     LOG(INFO, "Camera system initialized");
 }
@@ -125,12 +125,26 @@ void Application::run()
     LOG(INFO, "Exiting run loop");
 }
 
-void Application::update(float deltaTime)
+void Application::update(float deltaTime) const
 {
     auto const pending = m_mainExecutor->size();
     if (pending > 0)
     {
         m_mainExecutor->loop(pending);
+    }
+
+    static bool wasPressed = false;
+    if (m_inputProvider->isKeyPressed(GLFW_KEY_ESCAPE))
+    {
+        if (!wasPressed)
+        {
+            wasPressed = true;
+            m_window->setCursorEnabled(!m_window->isCursorEnabled());
+        }
+    }
+    else
+    {
+        wasPressed = false;
     }
     m_ecs->update(deltaTime);
 }

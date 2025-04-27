@@ -6,6 +6,10 @@
 
 #include "glm/mat4x4.hpp"
 
+namespace mc::core
+{
+class Window;
+}
 namespace mc::ecs
 {
 /**
@@ -25,7 +29,7 @@ public:
      * @param aspectRatio Initial screen aspect ratio (width / height).
      * @param inputProvider Shared input provider for handling movement and mouse.
      */
-    explicit CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider);
+    explicit CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider, std::shared_ptr<core::Window> window);
 
     /**
      * @brief Updates the camera based on input and applies movement.
@@ -34,7 +38,7 @@ public:
      *
      * @param dt Delta time since the last frame.
      */
-    void update(float deltaTime) override;
+    void update(float dt) override;
 
     /**
      * @brief Computes the view and projection matrices from the current camera state.
@@ -59,6 +63,7 @@ private:
 private:
     Ecs& m_ecs; ///< Reference to the ECS manager.
     std::shared_ptr<input::IInputProvider> m_input; ///< Input abstraction for key/mouse.
+    std::shared_ptr<core::Window> m_window;
 
     glm::mat4 m_viewMatrix{}; ///< Cached view matrix.
     glm::mat4 m_projectionMatrix{}; ///< Cached projection matrix.

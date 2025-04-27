@@ -1,18 +1,18 @@
 #include "ecs/system/CameraSystem.hpp"
 #include "core/Logger.hpp"
+#include "core/Window.hpp"
 #include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/TransformComponent.hpp"
 #include "render/Camera.hpp"
 
 #include <algorithm>
 
 #include <GLFW/glfw3.h>
 
-#include "ecs/component/TransformComponent.hpp"
-
 namespace mc::ecs
 {
-CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider)
-    : m_ecs(ecs), m_input(std::move(inputProvider)), m_aspectRatio(aspectRatio)
+CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider, std::shared_ptr<core::Window> window)
+    : m_ecs(ecs), m_input(inputProvider), m_window{window}, m_aspectRatio(aspectRatio)
 {
     LOG(INFO, "CameraSystem initialized with aspect ratio: {}", aspectRatio);
 }
@@ -41,7 +41,7 @@ void CameraSystem::render()
         return;
     }
 
-    const auto& cam = cams.begin()->second;
+    auto const& cam = cams.begin()->second;
 
     m_viewMatrix = render::Camera::getViewMatrix(cam.position, cam.front, cam.up);
     m_projectionMatrix = render::Camera::getProjectionMatrix(cam.fov, m_aspectRatio);
@@ -49,6 +49,12 @@ void CameraSystem::render()
 
 void CameraSystem::handleInput(float dt)
 {
+    if (m_window->isCursorEnabled())
+    {
+        m_firstMouseInput = true;
+        return;
+    }
+
     auto& cams = m_ecs.getAllComponents<CameraComponent>();
     if (cams.empty())
     {
@@ -107,12 +113,12 @@ void CameraSystem::handleInput(float dt)
     cam.front = glm::normalize(front);
 }
 
-const glm::mat4& CameraSystem::getViewMatrix() const
+glm::mat4 const& CameraSystem::getViewMatrix() const
 {
     return m_viewMatrix;
 }
 
-const glm::mat4& CameraSystem::getProjectionMatrix() const
+glm::mat4 const& CameraSystem::getProjectionMatrix() const
 {
     return m_projectionMatrix;
 }
