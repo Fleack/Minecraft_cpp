@@ -30,11 +30,7 @@ struct IVec3Hasher
         // Combine the hashes using bitwise operations:
         //  - XOR to blend hash bits
         //  - shifts to spread entropy and reduce overlap
-        std::size_t combined = h1;
-        combined ^= (h2 << 1);
-        combined ^= (h3 << 1) >> 1;
-
-        return combined;
+        return h1 ^ (h2 << 1) ^ (h3 << 2);
     }
 };
 } // namespace mc::utils

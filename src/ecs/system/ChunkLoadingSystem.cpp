@@ -44,7 +44,7 @@ void ChunkLoadingSystem::update(float /*dt*/)
 
             glm::ivec3 chunkPos = currentChunk + glm::ivec3{x, 0, z};
             LOG(DEBUG, "Loading chunk at position [{}, {}]", chunkPos.x, chunkPos.z);
-            m_world.loadChunk(chunkPos);
+            m_world.loadChunk(chunkPos).run();
         }
     }
 }

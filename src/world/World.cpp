@@ -4,39 +4,22 @@
 
 namespace mc::world
 {
-World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor) : m_chunkExecutor{chunkExecutor} {}
+World::World(
+    std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor,
+    std::shared_ptr<concurrencpp::manual_executor> mainExec)
+    : m_chunkExecutor{chunkExecutor}, m_mainExecutor{mainExec}
+{}
 
-concurrencpp::result<void> World::loadChunk(const glm::ivec3& chunkPos)
+concurrencpp::lazy_result<void> World::loadChunk(glm::ivec3 chunkPos)
 {
-    if (isChunkLoaded(chunkPos) || isChunkPending(chunkPos))
+    if (m_chunks.contains(chunkPos) || m_pendingChunks.contains(chunkPos))
     {
-        return concurrencpp::make_ready_result<void>();
+        co_return;
     }
 
-    LOG(INFO, "Loading new chunk at [{} , {}]", chunkPos.x, chunkPos.z);
-    m_pendingChunks.emplace(chunkPos, std::make_unique<Chunk>(chunkPos));
-    auto generationResult = m_generator.generate(*m_pendingChunks[chunkPos], m_chunkExecutor).run();
-
-    concurrencpp::result_promise<void> promise;
-    auto finalResult = promise.get_result();
-
-    m_chunkExecutor->post([this, chunkPos, genResult = std::move(generationResult), promise = std::move(promise)]() mutable {
-        try
-        {
-            genResult.get();
-            m_chunks[chunkPos] = std::move(m_pendingChunks[chunkPos]);
-            m_pendingChunks.erase(chunkPos);
-            LOG(INFO, "Chunk generation succeeded at [{}, {}]", chunkPos.x, chunkPos.z);
-            promise.set_result();
-        }
-        catch (const std::exception& e)
-        {
-            LOG(ERROR, "Chunk generation failed at [{}, {}]: {}", chunkPos.x, chunkPos.z, e.what());
-            promise.set_exception(std::current_exception());
-        }
-    });
-
-    return finalResult;
+    enqueueChunk(chunkPos);
+    auto chunk = co_await generateChunkAsync(chunkPos);
+    co_await commitChunkAsync(chunkPos, std::move(chunk));
 }
 
 std::optional<std::reference_wrapper<Chunk>> World::getChunk(glm::ivec3 const& chunkPos)
@@ -47,6 +30,31 @@ std::optional<std::reference_wrapper<Chunk>> World::getChunk(glm::ivec3 const& c
         return std::ref(*it->second);
     }
     return std::nullopt;
+}
+
+void World::enqueueChunk(glm::ivec3 chunkPos)
+{
+    LOG(INFO, "Enqueue chunk at [{}, {}] for generation", chunkPos.x, chunkPos.z);
+    m_pendingChunks.insert(chunkPos);
+}
+
+concurrencpp::lazy_result<std::unique_ptr<Chunk>> World::generateChunkAsync(glm::ivec3 chunkPos) const
+{
+    co_await concurrencpp::resume_on(m_chunkExecutor);
+
+    auto chunk = std::make_unique<Chunk>(chunkPos);
+    co_await m_generator.generate(*chunk, m_chunkExecutor);
+
+    co_return chunk;
+}
+
+concurrencpp::lazy_result<void> World::commitChunkAsync(glm::ivec3 chunkPos, std::unique_ptr<Chunk> chunkPtr)
+{
+    co_await concurrencpp::resume_on(m_mainExecutor);
+
+    LOG(INFO, "Committing chunk [{}, {}] into final map", chunkPos.x, chunkPos.z);
+    m_chunks[chunkPos] = std::move(chunkPtr);
+    m_pendingChunks.erase(chunkPos);
 }
 
 bool World::isChunkLoaded(glm::ivec3 const& pos) const

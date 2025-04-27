@@ -22,7 +22,8 @@ namespace mc::core
 {
 Application::Application(concurrencpp::runtime_options&& options)
     : m_runtime{std::move(options)},
-      m_chunkExecutor{m_runtime.thread_pool_executor()}
+      m_chunkExecutor{m_runtime.thread_pool_executor()},
+      m_mainExecutor{m_runtime.make_manual_executor()}
 {
     LOG(INFO, "Application created");
 }
@@ -74,7 +75,7 @@ void Application::initializeInput()
 
 void Application::initializeCamera()
 {
-    const auto cameraEntity = m_ecs->createEntity();
+    auto const cameraEntity = m_ecs->createEntity();
     m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
     m_ecs->addComponent<ecs::TransformComponent>(cameraEntity, ecs::TransformComponent{});
 
@@ -85,7 +86,7 @@ void Application::initializeCamera()
 
 void Application::initializeWorld(uint8_t renderDistance)
 {
-    m_world = std::make_unique<world::World>(m_chunkExecutor);
+    m_world = std::make_unique<world::World>(m_chunkExecutor, m_mainExecutor);
 
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
     m_ecs->addSystem(m_chunkLoadingSystem);
@@ -112,8 +113,8 @@ void Application::run()
 
     while (m_window->isOpen())
     {
-        const double currentTime = glfwGetTime();
-        const float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
+        double const currentTime = glfwGetTime();
+        float const deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
         m_lastFrameTime = currentTime;
 
         m_window->pollEvents();
@@ -126,6 +127,11 @@ void Application::run()
 
 void Application::update(float deltaTime)
 {
+    auto const pending = m_mainExecutor->size();
+    if (pending > 0)
+    {
+        m_mainExecutor->loop(pending);
+    }
     m_ecs->update(deltaTime);
 }
 

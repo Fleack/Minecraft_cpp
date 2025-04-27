@@ -88,6 +88,6 @@ private:
 
     uint8_t m_renderRadius; ///< Radius (in chunks) for rendering around the camera.
 
-    std::unordered_map<glm::ivec3, Entity, utils::IVec3Hasher> m_chunkToEntity; ///< Maps chunk positions to ECS entities holding their mesh.
+    std::unordered_map<glm::ivec3, Entity, utils::IVec3Hasher> m_chunkToMesh; ///< Maps chunk positions to ECS entities holding their mesh.
 };
 } // namespace mc::ecs

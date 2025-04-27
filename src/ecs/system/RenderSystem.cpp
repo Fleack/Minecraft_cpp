@@ -36,19 +36,18 @@ void RenderSystem::render()
     m_shader->bind();
     m_atlas->bind();
 
-    const glm::mat4 view = m_cameraSystem->getViewMatrix();
-    const glm::mat4 projection = m_cameraSystem->getProjectionMatrix();
+    glm::mat4 const view = m_cameraSystem->getViewMatrix();
+    glm::mat4 const projection = m_cameraSystem->getProjectionMatrix();
 
     glUniform1i(glGetUniformLocation(m_shader->getId(), "u_Texture"), 0);
     glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_View"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(m_shader->getId(), "u_Projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    const auto& cameraTransform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
-    const glm::vec3 cameraPos = cameraTransform.position;
+    auto const& cameraTransform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
+    glm::vec3 const cameraPos = cameraTransform.position;
 
-    const glm::ivec3 currentChunkPos = {
-        static_cast<int>(std::floor(cameraPos.x / static_cast<float>(world::CHUNK_SIZE_X))), 0,
-        static_cast<int>(std::floor(cameraPos.z / static_cast<float>(world::CHUNK_SIZE_Z)))};
+    glm::ivec3 const currentChunkPos = {
+        static_cast<int>(std::floor(cameraPos.x / static_cast<float>(world::CHUNK_SIZE_X))), 0, static_cast<int>(std::floor(cameraPos.z / static_cast<float>(world::CHUNK_SIZE_Z)))};
 
     drawChunksInRadius(currentChunkPos);
 
@@ -57,8 +56,8 @@ void RenderSystem::render()
 
 void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 {
-    const float radiusWithPadding = static_cast<float>(m_renderRadius) + 0.5f;
-    const float radiusSq = radiusWithPadding * radiusWithPadding;
+    float const radiusWithPadding = static_cast<float>(m_renderRadius) + 0.5f;
+    float const radiusSq = radiusWithPadding * radiusWithPadding;
     for (int x = -m_renderRadius; x <= m_renderRadius; ++x)
     {
         for (int z = -m_renderRadius; z <= m_renderRadius; ++z)
@@ -66,7 +65,7 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
             if (static_cast<float>(x * x + z * z) > radiusSq) continue;
             glm::ivec3 chunkPos = currentChunkPos + glm::ivec3{x, 0, z};
 
-            if (!m_chunkToEntity.contains(chunkPos))
+            if (!m_chunkToMesh.contains(chunkPos))
             {
                 auto chunk = m_world.getChunk(chunkPos);
                 if (!chunk)
@@ -81,10 +80,16 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
                 auto entity = m_ecs.createEntity();
                 m_ecs.addComponent<MeshComponent>(entity, MeshComponent{mesh});
 
-                m_chunkToEntity[chunkPos] = entity;
+                m_chunkToMesh[chunkPos] = entity;
             }
 
-            auto it = m_chunkToEntity.find(chunkPos);
+            auto it = m_chunkToMesh.find(chunkPos);
+            if (it == m_chunkToMesh.end())
+            {
+                LOG(CRITICAL, "Missing entity for chunk at [{}, {}], seems like a bug", chunkPos.x, chunkPos.z);
+                continue;
+            }
+
             auto meshComp = m_ecs.getComponent<MeshComponent>(it->second);
             if (!meshComp || !meshComp->mesh)
             {

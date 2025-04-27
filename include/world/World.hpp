@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <glm/glm.hpp>
 
@@ -22,7 +23,9 @@ class Chunk;
 class World
 {
 public:
-    explicit World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor);
+    World(
+        std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor,
+        std::shared_ptr<concurrencpp::manual_executor> mainExec);
 
     /**
      * @brief Loads and generates a chunk at the given chunk-space position.
@@ -34,7 +37,7 @@ public:
      *
      * @return A result which is available after chunk generated and loaded
      */
-    concurrencpp::result<void> loadChunk(glm::ivec3 const& chunkPos);
+    concurrencpp::lazy_result<void> loadChunk(glm::ivec3 chunkPos);
 
     /**
      * @brief Retrieves a loaded chunk by its position.
@@ -71,9 +74,17 @@ public:
     }
 
 private:
+    void enqueueChunk(glm::ivec3 chunkPos);
+    concurrencpp::lazy_result<std::unique_ptr<Chunk>> generateChunkAsync(glm::ivec3 chunkPos) const;
+    concurrencpp::lazy_result<void> commitChunkAsync(glm::ivec3 chunkPos, std::unique_ptr<Chunk> chunkPtr);
+
+private:
     std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_chunks; ///< Map of loaded chunks.
-    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_pendingChunks; ///< Map of chunks pending generation
-    std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
+    std::unordered_set<glm::ivec3, utils::IVec3Hasher> m_pendingChunks; ///< Map of chunks pending generation
+
+    std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor; ///< Thread pool of executors to generate chunks
+    std::shared_ptr<concurrencpp::manual_executor> m_mainExecutor; ///< Executor for main thread
+
     ChunkGenerator m_generator; ///< Procedural terrain generator.
 };
 } // namespace mc::world
