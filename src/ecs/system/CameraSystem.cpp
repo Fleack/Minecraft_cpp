@@ -58,16 +58,22 @@ void CameraSystem::handleInput(float dt)
     auto& cams = m_ecs.getAllComponents<CameraComponent>();
     if (cams.empty())
     {
-        LOG(WARN, "No camera component found for input handling");
+        LOG(CRITICAL, "No camera component found for input handling");
         return;
     }
-
     CameraComponent& cam = cams.begin()->second;
 
-    float velocity = cam.speed * dt;
+    double scroll = m_input->getScrollDelta();
+    if (scroll != 0.0)
+    {
+        constexpr float speedStep = 1.0f;
+        cam.speed = std::clamp(cam.speed + static_cast<float>(scroll) * speedStep, 0.1f, 1000.0f);
+        LOG(DEBUG, "Camera speed changed to {}", cam.speed);
+    }
 
-    if (m_input->isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-        velocity *= 2.5f;
+    float velocity = cam.speed * dt;
+    // if (m_input->isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+    //    velocity *= 2.5f;
     if (m_input->isKeyPressed(GLFW_KEY_W))
         cam.position += cam.front * velocity;
     if (m_input->isKeyPressed(GLFW_KEY_S))

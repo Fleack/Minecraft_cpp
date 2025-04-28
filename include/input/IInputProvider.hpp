@@ -27,5 +27,12 @@ public:
      * @return 2D vector representing the cursor position.
      */
     virtual glm::dvec2 getCursorPosition() const = 0;
+
+    /**
+     * @brief Gets delta of mouse wheel scroll
+     *
+     * @return A float representing delta between last and current position of mouse wheel
+     */
+    virtual float getScrollDelta() const = 0;
 };
 } // namespace mc::input

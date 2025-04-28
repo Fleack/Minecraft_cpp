@@ -22,6 +22,12 @@ public:
     explicit GlfwInputProvider(GLFWwindow& window)
         : m_window(window)
     {
+        glfwSetWindowUserPointer(&m_window, this);
+        glfwSetScrollCallback(&m_window, [](GLFWwindow* w, double /*xoffset*/, double yoffset) {
+            auto* self = static_cast<GlfwInputProvider*>(glfwGetWindowUserPointer(w));
+            std::lock_guard lock(self->m_mutex);
+            self->m_scrollY += yoffset;
+        });
     }
 
     /**
@@ -47,7 +53,23 @@ public:
         return {x, y};
     }
 
+    /**
+     * @brief Gets delta of mouse wheel scroll
+     *
+     * @return A float representing delta between last and current position of mouse wheel
+     */
+    float getScrollDelta() const override
+    {
+        std::lock_guard lock(m_mutex);
+        double v = m_scrollY;
+        m_scrollY = 0.0;
+        return v;
+    }
+
 private:
     GLFWwindow& m_window; ///< Reference to the GLFW window used for input queries.
+
+    mutable double m_scrollY = 0.0;
+    mutable std::mutex m_mutex;
 };
 } // namespace mc::input
