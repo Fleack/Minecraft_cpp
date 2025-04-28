@@ -80,7 +80,7 @@ void ChunkLoadingSystem::refillQueue(glm::ivec3 currentChunk)
 
     for (auto const& pos : candidates)
     {
-        LOG(DEBUG, "Queue chunk at [{}, {}]", pos.x, pos.z);
+        // LOG(DEBUG, "Queue chunk at [{}, {}]", pos.x, pos.z);
         m_loadQueue.push(pos);
     }
 }

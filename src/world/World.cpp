@@ -34,7 +34,7 @@ std::optional<std::reference_wrapper<Chunk>> World::getChunk(glm::ivec3 const& c
 
 void World::enqueueChunk(glm::ivec3 chunkPos)
 {
-    LOG(INFO, "Enqueue chunk at [{}, {}] for generation", chunkPos.x, chunkPos.z);
+    // LOG(INFO, "Enqueue chunk at [{}, {}] for generation", chunkPos.x, chunkPos.z);
     m_pendingChunks.insert(chunkPos);
 }
 
@@ -52,7 +52,7 @@ concurrencpp::lazy_result<void> World::commitChunkAsync(glm::ivec3 chunkPos, std
 {
     co_await concurrencpp::resume_on(m_mainExecutor);
 
-    LOG(INFO, "Committing chunk [{}, {}] into final map", chunkPos.x, chunkPos.z);
+    // LOG(INFO, "Committing chunk [{}, {}] into final map", chunkPos.x, chunkPos.z);
     m_chunks[chunkPos] = std::move(chunkPtr);
     m_pendingChunks.erase(chunkPos);
 }

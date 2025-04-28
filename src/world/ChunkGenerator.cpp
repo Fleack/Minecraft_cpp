@@ -16,7 +16,7 @@ ChunkGenerator::ChunkGenerator()
 
 concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shared_ptr<concurrencpp::executor> executor) const
 {
-    LOG(DEBUG, "Generating chunk [{}, {}] on thread={}", chunk.getPosition().x, chunk.getPosition().z, std::this_thread::get_id());
+    // LOG(DEBUG, "Generating chunk [{}, {}] on thread={}", chunk.getPosition().x, chunk.getPosition().z, std::this_thread::get_id());
     co_await concurrencpp::resume_on(executor);
     const glm::ivec3 origin = chunk.getPosition() * glm::ivec3(CHUNK_SIZE_X, 1, CHUNK_SIZE_Z);
 
@@ -57,6 +57,6 @@ concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shar
         }
     }
 
-    LOG(DEBUG, "Generated new chunk at [{}, {}] on thread={}", chunk.getPosition().x, chunk.getPosition().z, std::this_thread::get_id());
+    // LOG(DEBUG, "Generated new chunk at [{}, {}] on thread={}", chunk.getPosition().x, chunk.getPosition().z, std::this_thread::get_id());
 }
 } // namespace mc::world

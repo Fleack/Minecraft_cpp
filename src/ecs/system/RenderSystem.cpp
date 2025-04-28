@@ -135,7 +135,7 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
 
     for (auto const& pos : candidates)
     {
-        LOG(DEBUG, "Enqueue mesh for chunk [{}, {}]", pos.x, pos.z);
+        // LOG(DEBUG, "Enqueue mesh for chunk [{}, {}]", pos.x, pos.z);
         m_meshQueue.push(pos);
     }
 }
@@ -162,7 +162,7 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
 
         if (auto opt = m_world.getChunk(pos))
         {
-            LOG(DEBUG, "Building mesh for chunk [{}, {}]", pos.x, pos.z);
+            // LOG(DEBUG, "Building mesh for chunk [{}, {}]", pos.x, pos.z);
             auto mesh = std::make_shared<render::ChunkMesh>(pos);
             render::ChunkMeshBuilder::build(opt->get(), *mesh, *m_atlas);
 
@@ -186,10 +186,12 @@ void RenderSystem::updateStats(size_t launches, time_point const& start)
     double avg = total / static_cast<double>(launches);
 
     m_avgBuildTime = alpha * avg + (1.0 - alpha) * m_avgBuildTime;
+    /*
     LOG(DEBUG,
         "Built {} meshes in {:.3f} ms (EMA {:.3f} ms)",
         launches,
         total * 1000.0,
         m_avgBuildTime * 1000.0);
+    */
 }
 } // namespace mc::ecs
