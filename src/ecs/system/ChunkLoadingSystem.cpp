@@ -54,6 +54,8 @@ void ChunkLoadingSystem::refillQueue(glm::ivec3 currentChunk)
     float generateRadius = static_cast<float>(m_loadRadius) + 0.5f;
     float squaredGenerateRadius = generateRadius * generateRadius;
 
+    std::vector<glm::ivec3> candidates;
+    candidates.reserve((2 * m_loadRadius + 1) * (2 * m_loadRadius + 1));
     for (int x = -m_loadRadius; x <= m_loadRadius; ++x)
     {
         for (int z = -m_loadRadius; z <= m_loadRadius; ++z)
@@ -61,12 +63,25 @@ void ChunkLoadingSystem::refillQueue(glm::ivec3 currentChunk)
             if (static_cast<float>(x * x + z * z) > squaredGenerateRadius)
                 continue;
             glm::ivec3 pos = currentChunk + glm::ivec3{x, 0, z};
-            LOG(DEBUG, "Queue chunk at [{}, {}]", pos.x, pos.z);
             if (!m_world.isChunkLoaded(pos) && !m_world.isChunkPending(pos))
             {
-                m_loadQueue.push(pos);
+                candidates.push_back(pos);
             }
         }
+    }
+
+    std::sort(candidates.begin(), candidates.end(), [&](glm::ivec3 const& a, glm::ivec3 const& b) {
+        int dxA = a.x - currentChunk.x;
+        int dzA = a.z - currentChunk.z;
+        int dxB = b.x - currentChunk.x;
+        int dzB = b.z - currentChunk.z;
+        return (dxA * dxA + dzA * dzA) < (dxB * dxB + dzB * dzB);
+    });
+
+    for (auto const& pos : candidates)
+    {
+        LOG(DEBUG, "Queue chunk at [{}, {}]", pos.x, pos.z);
+        m_loadQueue.push(pos);
     }
 }
 

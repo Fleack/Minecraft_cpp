@@ -42,7 +42,7 @@ public:
      * @brief Updates the chunk loading system each frame.
      *
      * Recomputes the available time budget based on frame delta time.
-     * If the camera moved, refills the chunk load queue.
+     * If the camera moves, refills the chunk load queue.
      * Then schedules chunk loading within the available time.
      *
      * @param dt Delta time in seconds since the last frame.

@@ -89,34 +89,54 @@ void RenderSystem::drawChunksInRadius(glm::ivec3 const& currentChunkPos)
     float const generateRadius = m_renderRadius + 0.5f;
     float const squaredGenerateRadius = generateRadius * generateRadius;
 
+    std::vector<glm::ivec3> candidates;
+    candidates.reserve((2 * m_renderRadius + 1) * (2 * m_renderRadius + 1));
     for (int x = -m_renderRadius; x <= m_renderRadius; ++x)
     {
         for (int z = -m_renderRadius; z <= m_renderRadius; ++z)
         {
-            if (static_cast<float>(x * x + z * z) > squaredGenerateRadius) continue;
+            if (static_cast<float>(x * x + z * z) > squaredGenerateRadius)
+                continue;
+
             glm::ivec3 pos = currentChunkPos + glm::ivec3{x, 0, z};
 
-            if (!m_chunkToMesh.contains(pos))
+            auto it = m_chunkToMesh.find(pos);
+            if (it != m_chunkToMesh.end())
+            {
+                Entity e = it->second;
+                if (auto comp = m_ecs.getComponent<MeshComponent>(e))
+                {
+                    glm::mat4 model = glm::mat4(1.0f);
+                    glUniformMatrix4fv(
+                        glGetUniformLocation(m_shader->getId(), "u_Model"),
+                        1,
+                        GL_FALSE,
+                        glm::value_ptr(model));
+                    comp->mesh->draw();
+                }
+            }
+            else
             {
                 if (m_enqueuedChunks.insert(pos).second)
                 {
-                    m_meshQueue.push(pos);
+                    candidates.push_back(pos);
                 }
-                continue;
-            }
-
-            Entity e = m_chunkToMesh[pos];
-            if (auto comp = m_ecs.getComponent<MeshComponent>(e))
-            {
-                glm::mat4 model = glm::mat4(1.0f);
-                glUniformMatrix4fv(
-                    glGetUniformLocation(m_shader->getId(), "u_Model"),
-                    1,
-                    GL_FALSE,
-                    glm::value_ptr(model));
-                comp->mesh->draw();
             }
         }
+    }
+
+    std::sort(candidates.begin(), candidates.end(), [&](glm::ivec3 const& a, glm::ivec3 const& b) {
+        int dxA = a.x - currentChunkPos.x;
+        int dzA = a.z - currentChunkPos.z;
+        int dxB = b.x - currentChunkPos.x;
+        int dzB = b.z - currentChunkPos.z;
+        return (dxA * dxA + dzA * dzA) < (dxB * dxB + dzB * dzB);
+    });
+
+    for (auto const& pos : candidates)
+    {
+        LOG(DEBUG, "Enqueue mesh for chunk [{}, {}]", pos.x, pos.z);
+        m_meshQueue.push(pos);
     }
 }
 
