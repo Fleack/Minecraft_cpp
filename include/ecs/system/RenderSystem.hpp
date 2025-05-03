@@ -4,15 +4,16 @@
 #include "ecs/system/ISystem.hpp"
 #include "render/ShaderProgram.hpp"
 #include "render/TextureManager.hpp"
-#include "utils/IVer3Hasher.hpp"
+#include "utils/IVec3Hasher.hpp"
+#include "utils/UniqueQueue.hpp"
 
 #include <chrono>
 #include <memory>
-#include <queue>
-#include <unordered_map>
-#include <unordered_set>
 
 #include <Magnum/Math/Vector3.h>
+
+#include "utils/PrioritizedChunk.hpp"
+#include "utils/PriorityUniqueQueue.hpp"
 
 namespace mc::world
 {
@@ -98,9 +99,9 @@ private:
     /**
      * @brief Enqueues a chunk for mesh generation if it is not already enqueued.
      *
-     * @param pos Chunk-space position of the chunk.
+     * @param chunk
      */
-    void enqueueChunkForMesh(Magnum::Math::Vector3<int> const& pos);
+    void enqueueChunkForMesh(utils::PrioritizedChunk const& chunk);
 
     /**
      * @brief Processes the chunk mesh generation queue within the frame's time budget.
@@ -126,7 +127,7 @@ private:
     Ecs& m_ecs; ///< ECS manager reference.
     world::World& m_world; ///< Reference to the world for chunk access.
     render::ShaderProgram m_shaderProgram{}; ///< Shader program used for rendering.
-    std::unique_ptr<mc::render::TextureManager> m_textureManager;
+    std::unique_ptr<render::TextureManager> m_textureManager;
 
     std::shared_ptr<CameraSystem> m_cameraSystem; ///< Provides view and projection matrices.
 
@@ -136,8 +137,7 @@ private:
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation.
     static constexpr float workFraction = 0.7f; ///< Fraction of leftover frame time allowed for mesh building.
 
-    std::queue<Magnum::Math::Vector3<int>> m_meshQueue; ///< Queue of chunk positions awaiting mesh generation.
-    std::unordered_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> m_enqueuedChunks; ///< Set of chunk positions already enqueued to prevent duplicates.
+    utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_meshQueue;
     std::unordered_map<Magnum::Math::Vector3<int>, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
 };
 } // namespace mc::ecs

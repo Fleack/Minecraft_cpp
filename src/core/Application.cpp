@@ -32,7 +32,7 @@ Application::Application(Arguments const& arguments)
 {
     initializeCore();
 
-    constexpr uint8_t renderDistance = 10;
+    constexpr uint8_t renderDistance = 20;
 
     initializeEcs();
     initializeCamera();

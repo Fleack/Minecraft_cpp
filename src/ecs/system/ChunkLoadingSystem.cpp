@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ska_sort.hpp>
 
 namespace mc::ecs
 {
@@ -30,11 +29,11 @@ void ChunkLoadingSystem::update(float dt)
     if (*currentChunk != m_lastCameraChunk)
     {
         m_lastCameraChunk = *currentChunk;
-        refillQueue(*currentChunk);
+        loadChunksInRadius(*currentChunk);
     }
 
     auto start = clock::now();
-    if (size_t launches = scheduleChunks(start))
+    if (size_t launches = processLoadQueue(start))
     {
         updateStats(launches, start);
     }
@@ -52,13 +51,14 @@ std::optional<Magnum::Math::Vector3<int>> ChunkLoadingSystem::getCurrentChunk() 
     return Magnum::Math::Vector3<int>{cx, 0, cz};
 }
 
-void ChunkLoadingSystem::refillQueue(Magnum::Math::Vector3<int> currentChunk)
+void ChunkLoadingSystem::loadChunksInRadius(Magnum::Math::Vector3<int> currentChunk)
 {
-    m_loadQueue = {};
+    m_loadQueue.clear();
     float radius = static_cast<float>(m_loadRadius) + 0.5f;
     float radiusSq = radius * radius;
 
-    std::vector<Magnum::Math::Vector3<int>> candidates;
+    tsl::hopscotch_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> candidates;
+    candidates.reserve((2 * m_loadRadius + 1) * (2 * m_loadRadius + 1));
     for (int x = -m_loadRadius; x <= m_loadRadius; ++x)
     {
         for (int z = -m_loadRadius; z <= m_loadRadius; ++z)
@@ -68,22 +68,30 @@ void ChunkLoadingSystem::refillQueue(Magnum::Math::Vector3<int> currentChunk)
 
             Magnum::Math::Vector3<int> pos = currentChunk + Magnum::Math::Vector3<int>{x, 0, z};
             if (!m_world.isChunkLoaded(pos) && !m_world.isChunkPending(pos))
-                candidates.push_back(pos);
+                candidates.insert(pos);
         }
     }
 
-    ska_sort(candidates.begin(), candidates.end(), [currentChunk](auto const& a) {
-        return sq(a.x() - currentChunk.x()) + sq(a.z() - currentChunk.z());
-    });
-
     for (auto const& pos : candidates)
     {
-        SPAM_LOG(DEBUG, "Enqueue chunk at [{}, {}] for render", pos.x(), pos.z());
-        m_loadQueue.push(pos);
+        auto const current = getCurrentChunk();
+        if (!current) return;
+
+        float dx = pos.x() - current->x();
+        float dz = pos.z() - current->z();
+        float distanceSq = dx * dx + dz * dz;
+
+        enqueueChunkForLoad({pos, distanceSq});
     }
 }
 
-size_t ChunkLoadingSystem::scheduleChunks(time_point const& start)
+void ChunkLoadingSystem::enqueueChunkForLoad(utils::PrioritizedChunk const& chunk)
+{
+    SPAM_LOG(DEBUG, "Enqueue chunk at [{}, {}] for generation", chunk.pos.x(), chunk.pos.z());
+    m_loadQueue.push(chunk);
+}
+
+size_t ChunkLoadingSystem::processLoadQueue(time_point const& start)
 {
     size_t launches = 0;
     while (!m_loadQueue.empty())
@@ -91,10 +99,9 @@ size_t ChunkLoadingSystem::scheduleChunks(time_point const& start)
         if (std::chrono::duration<double>(clock::now() - start).count() >= m_timeBudget)
             break;
 
-        Magnum::Math::Vector3<int> const pos = m_loadQueue.front();
-        m_loadQueue.pop();
+        auto chunk = m_loadQueue.pop();
 
-        m_world.loadChunk(pos).run();
+        m_world.loadChunk(chunk.pos).run();
         ++launches;
     }
     return launches;

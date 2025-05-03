@@ -1,9 +1,11 @@
 #pragma once
 
 #include "ecs/system/ISystem.hpp"
+#include "utils/PrioritizedChunk.hpp"
+#include "utils/PriorityUniqueQueue.hpp"
+#include "utils/UniqueQueue.hpp"
 
 #include <chrono>
-#include <queue>
 
 #include <Magnum/Math/Vector3.h>
 
@@ -69,7 +71,9 @@ private:
      *
      * @param currentChunk Current camera chunk position.
      */
-    void refillQueue(Magnum::Math::Vector3<int> currentChunk);
+    void loadChunksInRadius(Magnum::Math::Vector3<int> currentChunk);
+
+    void enqueueChunkForLoad(utils::PrioritizedChunk const& chunk);
 
     /**
      * @brief Schedules chunk loading operations within the time budget.
@@ -80,7 +84,7 @@ private:
      * @param start Start time point of scheduling batch.
      * @return Number of chunks launched for loading.
      */
-    size_t scheduleChunks(time_point const& start);
+    size_t processLoadQueue(time_point const& start);
 
     /**
      * @brief Updates the statistics on chunk scheduling performance.
@@ -105,6 +109,6 @@ private:
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation (closer to 1 = faster adaptation).
     static constexpr float workFraction = 0.3f; ///< Fraction of leftover frame time allocated to chunk loading.
 
-    std::queue<Magnum::Math::Vector3<int>> m_loadQueue; ///< Queue of chunk positions awaiting generation.
+    utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_loadQueue; ///< Queue of chunk positions awaiting generation.
 };
 } // namespace mc::ecs

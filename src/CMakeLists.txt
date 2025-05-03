@@ -39,6 +39,7 @@ target_link_libraries(voxel_engine
         spdlog::spdlog
         concurrencpp::concurrencpp
         cpptrace::cpptrace
+        tsl::hopscotch_map
 )
 
 target_compile_features(voxel_engine PRIVATE cxx_std_23)

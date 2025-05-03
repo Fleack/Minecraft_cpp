@@ -14,7 +14,6 @@
 
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Matrix4.h>
-#include <ska_sort.hpp>
 
 namespace mc::ecs
 {
@@ -43,8 +42,7 @@ void RenderSystem::update(float dt)
     if (*current != lastChunk)
     {
         lastChunk = *current;
-        m_meshQueue = {};
-        m_enqueuedChunks.clear();
+        m_meshQueue.clear();
     }
 
     auto start = clock::now();
@@ -85,7 +83,7 @@ void RenderSystem::drawChunksInRadius(Magnum::Math::Vector3<int> const& currentC
     float const r = static_cast<float>(m_renderRadius) + 0.5f;
     float const r2 = r * r;
 
-    std::vector<Magnum::Math::Vector3<int>> positions;
+    tsl::hopscotch_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> positions;
     positions.reserve((2 * m_renderRadius + 1) * (2 * m_renderRadius + 1));
 
     for (int dz = -m_renderRadius; dz <= m_renderRadius; ++dz)
@@ -93,13 +91,9 @@ void RenderSystem::drawChunksInRadius(Magnum::Math::Vector3<int> const& currentC
         for (int dx = -m_renderRadius; dx <= m_renderRadius; ++dx)
         {
             if (sq(dx) + sq(dz) > r2) continue;
-            positions.emplace_back(currentChunkPos.x() + dx, 0, currentChunkPos.z() + dz);
+            positions.emplace(currentChunkPos.x() + dx, 0, currentChunkPos.z() + dz);
         }
     }
-
-    ska_sort(positions.begin(), positions.end(), [&currentChunkPos](auto const& a) {
-        return sq(a.x() - currentChunkPos.x()) + sq(a.z() - currentChunkPos.z());
-    });
 
     for (auto const& pos : positions)
     {
@@ -118,18 +112,21 @@ void RenderSystem::drawChunksInRadius(Magnum::Math::Vector3<int> const& currentC
         }
         else
         {
-            enqueueChunkForMesh(pos);
+            auto const current = getCurrentChunk();
+            if (!current) return;
+
+            float dx = pos.x() - current->x();
+            float dz = pos.z() - current->z();
+            float distanceSq = dx * dx + dz * dz;
+
+            enqueueChunkForMesh({pos, distanceSq});
         }
     }
 }
 
-void RenderSystem::enqueueChunkForMesh(Magnum::Math::Vector3<int> const& pos)
+void RenderSystem::enqueueChunkForMesh(utils::PrioritizedChunk const& chunk)
 {
-    if (m_enqueuedChunks.insert(pos).second)
-    {
-        SPAM_LOG(DEBUG, "Enqueue mesh for chunk [{}, {}]", pos.x(), pos.z());
-        m_meshQueue.push(pos);
-    }
+    m_meshQueue.push(chunk);
 }
 
 size_t RenderSystem::processMeshQueue(time_point const& start)
@@ -140,13 +137,11 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
         if (std::chrono::duration<double>(clock::now() - start).count() >= m_timeBudget)
             break;
 
-        auto pos = m_meshQueue.front();
-        m_meshQueue.pop();
-
-        if (auto opt = m_world.getChunk(pos))
+        auto chunk = m_meshQueue.pop();
+        if (auto opt = m_world.getChunk(chunk.pos))
         {
             auto blocksMeshes = render::ChunkMeshBuilder::build(opt->get());
-            auto& vec = m_chunkToMesh[pos];
+            auto& vec = m_chunkToMesh[chunk.pos];
             for (auto& mesh : blocksMeshes)
             {
                 Entity e = m_ecs.createEntity();
@@ -157,7 +152,7 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
         }
         else
         {
-            m_meshQueue.push(pos);
+            enqueueChunkForMesh(chunk);
         }
         ++launches;
     }

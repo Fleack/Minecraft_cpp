@@ -9,7 +9,7 @@
 
 #include <Magnum/Math/Vector3.h>
 
-#include "utils/IVer3Hasher.hpp"
+#include "utils/IVec3Hasher.hpp"
 
 namespace mc::world
 {
