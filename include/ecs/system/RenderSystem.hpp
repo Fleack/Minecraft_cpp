@@ -1,15 +1,17 @@
 #pragma once
 
+#include "ecs/Entity.hpp"
 #include "ecs/system/ISystem.hpp"
+#include "render/ShaderProgram.hpp"
 #include "utils/IVer3Hasher.hpp"
 
 #include <chrono>
 #include <memory>
 #include <queue>
+#include <unordered_map>
 #include <unordered_set>
 
-#include "ecs/Entity.hpp"
-#include "render/TextureAtlas.hpp"
+#include <Magnum/Math/Vector3.h>
 
 namespace mc::world
 {
@@ -23,8 +25,7 @@ class Ecs;
 
 namespace mc::render
 {
-class ChunkMesh;
-class IShader;
+class ShaderProgram;
 } // namespace mc::render
 
 namespace mc::ecs
@@ -50,16 +51,12 @@ public:
      *
      * @param ecs Reference to the ECS manager.
      * @param cameraSystem Shared pointer to the camera system.
-     * @param shader Shader used for rendering chunks.
-     * @param atlas Texture atlas containing block textures.
      * @param world Reference to the world managing chunks.
      * @param renderRadius Radius (in chunks) to render around the camera.
      */
     RenderSystem(
         Ecs& ecs,
         std::shared_ptr<CameraSystem> cameraSystem,
-        std::unique_ptr<render::IShader> shader,
-        std::unique_ptr<render::TextureAtlas> atlas,
         world::World& world,
         uint8_t renderRadius);
 
@@ -86,7 +83,7 @@ private:
      *
      * @return Optional chunk-space position if a transform exists, otherwise std::nullopt.
      */
-    std::optional<glm::ivec3> getCurrentChunk() const;
+    std::optional<Magnum::Math::Vector3<int>> getCurrentChunk() const;
 
     /**
      * @brief Draws all chunks within the configured render radius.
@@ -95,14 +92,14 @@ private:
      *
      * @param currentChunkPos Camera's current chunk-space position.
      */
-    void drawChunksInRadius(glm::ivec3 const& currentChunkPos);
+    void drawChunksInRadius(Magnum::Math::Vector3<int> const& currentChunkPos);
 
     /**
      * @brief Enqueues a chunk for mesh generation if it is not already enqueued.
      *
-     * @param chunkPos Chunk-space position of the chunk.
+     * @param pos Chunk-space position of the chunk.
      */
-    void enqueueChunkForMesh(glm::ivec3 const& chunkPos);
+    void enqueueChunkForMesh(Magnum::Math::Vector3<int> const& pos);
 
     /**
      * @brief Processes the chunk mesh generation queue within the frame's time budget.
@@ -127,20 +124,18 @@ private:
 private:
     Ecs& m_ecs; ///< ECS manager reference.
     world::World& m_world; ///< Reference to the world for chunk access.
+    render::ShaderProgram m_shaderProgram{}; ///< Shader program used for rendering.
 
     std::shared_ptr<CameraSystem> m_cameraSystem; ///< Provides view and projection matrices.
-    std::unique_ptr<render::IShader> m_shader; ///< Shader program used for rendering.
-    std::unique_ptr<render::TextureAtlas> m_atlas; ///< Texture atlas for block textures.
 
     uint8_t m_renderRadius; ///< Radius (in chunks) for rendering around the camera.
-
     double m_avgBuildTime = 0.002; ///< Exponential moving average (EMA) of mesh build time in seconds.
     double m_timeBudget = 0.0; ///< Maximum allowed time (in seconds) per frame for scheduling chunk loads.
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation.
     static constexpr float workFraction = 0.7f; ///< Fraction of leftover frame time allowed for mesh building.
 
-    std::queue<glm::ivec3> m_meshQueue; ///< Queue of chunk positions awaiting mesh generation.
-    std::unordered_set<glm::ivec3, utils::IVec3Hasher> m_enqueuedChunks; ///< Set of chunk positions already enqueued to prevent duplicates.
-    std::unordered_map<glm::ivec3, Entity, utils::IVec3Hasher> m_chunkToMesh; ///< Maps chunk positions to ECS entities holding their mesh.
+    std::queue<Magnum::Math::Vector3<int>> m_meshQueue; ///< Queue of chunk positions awaiting mesh generation.
+    std::unordered_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> m_enqueuedChunks; ///< Set of chunk positions already enqueued to prevent duplicates.
+    std::unordered_map<Magnum::Math::Vector3<int>, Entity, utils::IVec3Hasher> m_chunkToMesh; ///< Maps chunk positions to ECS entities holding their mesh.
 };
 } // namespace mc::ecs

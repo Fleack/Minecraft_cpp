@@ -2,7 +2,8 @@
 
 namespace mc::world
 {
-Chunk::Chunk(glm::ivec3 position)
+
+Chunk::Chunk(Magnum::Math::Vector3<int> const& position)
     : m_position(position)
 {
     m_blocks.resize(CHUNK_SIZE_X);
@@ -16,7 +17,7 @@ Chunk::Chunk(glm::ivec3 position)
     }
 }
 
-glm::ivec3 const& Chunk::getPosition() const
+Magnum::Math::Vector3<int> const& Chunk::getPosition() const
 {
     return m_position;
 }
@@ -30,4 +31,5 @@ void Chunk::setBlock(int x, int y, int z, Block block)
 {
     m_blocks.at(x).at(y).at(z) = block;
 }
+
 } // namespace mc::world

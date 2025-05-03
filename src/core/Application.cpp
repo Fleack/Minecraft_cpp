@@ -1,170 +1,255 @@
-#include <glad/gl.h> // MUST be first!
-
 #include "core/Application.hpp"
 
+#include "core/CrashReporter.hpp"
 #include "core/Logger.hpp"
-#include "core/Window.hpp"
 #include "ecs/Ecs.hpp"
 #include "ecs/component/CameraComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
 #include "ecs/system/ChunkLoadingSystem.hpp"
 #include "ecs/system/RenderSystem.hpp"
-#include "input/GLFWInputProvider.hpp"
-#include "render/Shader.hpp"
-#include "render/TextureAtlas.hpp"
 #include "world/World.hpp"
 
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include <chrono>
+
+#include <Magnum/GL/Buffer.h>
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/GL/Mesh.h>
+#include <Magnum/GL/Renderer.h>
+#include <Magnum/GL/Version.h>
+#include <Magnum/Math/Color.h>
+#include <Magnum/Math/Quaternion.h>
+#include <Magnum/MeshTools/Compile.h>
+#include <Magnum/Primitives/Cube.h>
+#include <Magnum/SceneGraph/Camera.h>
+#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+#include <Magnum/SceneGraph/SceneGraph.h>
+#include <Magnum/Trade/MeshData.h>
 
 namespace mc::core
 {
-Application::Application(concurrencpp::runtime_options&& options)
-    : m_runtime{std::move(options)},
-      m_chunkExecutor{m_runtime.thread_pool_executor()},
-      m_mainExecutor{m_runtime.make_manual_executor()}
-{
-    LOG(INFO, "Application created");
-}
+using namespace Magnum;
+using namespace Magnum::Platform;
 
-Application::~Application()
+Application::Application(Arguments const& arguments)
+    : Sdl2Application{
+          arguments,
+          Configuration{}.setTitle("MinecraftX").setSize({1280, 720}),
+          GLConfiguration{}.setVersion(GL::Version::GL460)},
+      m_chunkExecutor{m_runtime.thread_pool_executor()}, m_mainExecutor{m_runtime.make_manual_executor()}, m_aspectRatio{static_cast<float>(windowSize().x()) / windowSize().y()}
 {
-    shutdown();
-}
+    initializeCore();
 
-bool Application::initialize()
-{
-    LOG(INFO, "Initialization started");
-    static constexpr uint8_t renderDistance{16};
-    if (!initializeWindow())
-    {
-        LOG(ERROR, "Failed to initialize window");
-        return false;
-    }
+    constexpr uint8_t renderDistance = 2;
 
-    initializeInput();
     initializeEcs();
     initializeCamera();
     initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
+    initializeTestCube();
 
-    m_lastFrameTime = glfwGetTime();
-    LOG(INFO, "Initialization completed");
-    return true;
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
+    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::setClearColor(Color4{0.5f, 0.7f, 1.0f, 1.0f});
+    setSwapInterval(1);
+    redraw();
 }
 
-bool Application::initializeWindow()
+void Application::initializeCore() const
 {
-    m_window = std::make_shared<Window>("MinecraftX", 1920, 1080);
-    LOG(INFO, "Window initialized");
-    return m_window->isOpen();
+    Logger::init();
+    CrashReporter::init();
+    LOG(INFO, "Core systems initialized");
 }
 
 void Application::initializeEcs()
 {
     m_ecs = std::make_unique<ecs::Ecs>();
-    LOG(INFO, "Entity component system initialized");
-}
-
-void Application::initializeInput()
-{
-    m_inputProvider = std::make_shared<input::GlfwInputProvider>(*m_window->getNativeWindow());
-    LOG(INFO, "Input provider initialized with native GLFW window");
 }
 
 void Application::initializeCamera()
 {
-    auto const cameraEntity = m_ecs->createEntity();
-    m_ecs->addComponent<ecs::CameraComponent>(cameraEntity, ecs::CameraComponent{});
-    m_ecs->addComponent<ecs::TransformComponent>(cameraEntity, ecs::TransformComponent{});
-
-    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, 1920.0f / 1080.0f, m_inputProvider, m_window);
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio);
     m_ecs->addSystem(m_cameraSystem);
-    LOG(INFO, "Camera system initialized");
 }
 
 void Application::initializeWorld(uint8_t renderDistance)
 {
     m_world = std::make_unique<world::World>(m_chunkExecutor, m_mainExecutor);
-
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
     m_ecs->addSystem(m_chunkLoadingSystem);
-    LOG(INFO, "World initialized with render distance: {}", renderDistance);
 }
 
-void Application::initializeRenderSystems(uint8_t renderDistance)
+void Application::initializeRenderSystems(uint8_t)
 {
-    auto atlas = std::make_unique<render::TextureAtlas>(32);
-    auto shader = std::make_unique<render::Shader>("shaders/voxel.vert", "shaders/voxel.frag");
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, std::move(shader), std::move(atlas), *m_world, renderDistance);
-    m_ecs->addSystem(m_renderSystem);
-    LOG(INFO, "Render systems initialized");
+    // m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, renderDistance);
+    // m_ecs->addSystem(m_renderSystem);
 }
 
-void Application::run()
+void Application::initializeTestCube()
 {
-    LOG(INFO, "Application run loop started");
-    if (!initialize())
-    {
-        LOG(ERROR, "Application failed to initialize");
-        return;
-    }
+    using namespace Magnum;
 
-    while (m_window->isOpen())
+    struct Vertex
     {
-        double const currentTime = glfwGetTime();
-        float const deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
-        m_lastFrameTime = currentTime;
+        Vector3 position;
+        Vector3 normal;
+    };
 
-        m_window->pollEvents();
-        update(deltaTime);
-        render();
-        m_window->swapBuffers();
-    }
-    LOG(INFO, "Exiting run loop");
+    std::vector<Vertex> vertices = {
+        // Front face (+Z)
+        {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+
+        // Back face (-Z)
+        {{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+        {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+
+        // Top face (+Y)
+        {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+
+        // Bottom face (-Y)
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
+        {{0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
+        {{-0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
+
+        // Right face (+X)
+        {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+
+        // Left face (-X)
+        {{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
+        {{-0.5f, -0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
+        {{-0.5f, 0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
+        {{-0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
+    };
+
+    std::vector<UnsignedInt> indices = {
+        0, 1, 2, 0, 2, 3, // Front
+        4,
+        5,
+        6,
+        4,
+        6,
+        7, // Back
+        8,
+        9,
+        10,
+        8,
+        10,
+        11, // Top
+        12,
+        13,
+        14,
+        12,
+        14,
+        15, // Bottom
+        16,
+        17,
+        18,
+        16,
+        18,
+        19, // Right
+        20,
+        21,
+        22,
+        20,
+        22,
+        23 // Left
+    };
+
+    GL::Buffer vertexBuffer, indexBuffer;
+    vertexBuffer.setData(Corrade::Containers::arrayView(vertices.data(), vertices.size()));
+    indexBuffer.setData(Corrade::Containers::arrayView(indices.data(), indices.size()));
+
+    typedef GL::Attribute<0, Vector3> PositionAttribute;
+    typedef GL::Attribute<1, Vector3> NormalAttribute;
+
+    m_testMesh = GL::Mesh{};
+    m_testMesh
+        .setCount(indices.size())
+        .setPrimitive(GL::MeshPrimitive::Triangles)
+        .addVertexBuffer(vertexBuffer, 0, PositionAttribute{}, NormalAttribute{})
+        .setIndexBuffer(indexBuffer, 0, GL::MeshIndexType::UnsignedInt);
+
+    m_testShader = std::make_unique<mc::render::ShaderProgram>();
 }
 
-void Application::update(float deltaTime) const
+void Application::drawEvent()
 {
-    auto const pending = m_mainExecutor->size();
-    if (pending > 0)
-    {
+    using clock = std::chrono::steady_clock;
+    static clock::time_point last = clock::now();
+    auto now = clock::now();
+    float deltaTime = std::chrono::duration<float>(now - last).count();
+    last = now;
+
+    if (auto pending = m_mainExecutor->size(); pending > 0)
         m_mainExecutor->loop(pending);
-    }
 
-    static bool wasPressed = false;
-    if (m_inputProvider->isKeyPressed(GLFW_KEY_ESCAPE))
-    {
-        if (!wasPressed)
-        {
-            wasPressed = true;
-            m_window->setCursorEnabled(!m_window->isCursorEnabled());
-        }
-    }
-    else
-    {
-        wasPressed = false;
-    }
     m_ecs->update(deltaTime);
+    m_ecs->render();
+
+    GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
+
+    m_testShader->setModelMatrix(Matrix4::translation(Vector3::zAxis(-3.0f)))
+        .setViewMatrix(m_cameraSystem->getViewMatrix())
+        .setProjectionMatrix(m_cameraSystem->getProjectionMatrix());
+    m_testShader->draw(m_testMesh);
+
+    swapBuffers();
+    redraw();
 }
 
-void Application::render()
+void Application::viewportEvent(ViewportEvent& event)
 {
-    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_aspectRatio = static_cast<float>(event.windowSize().x()) / event.windowSize().y();
+    m_cameraSystem->setAspectRatio(m_aspectRatio);
+    GL::defaultFramebuffer.setViewport({{}, event.framebufferSize()});
+}
 
-    m_ecs->render();
+void Application::keyPressEvent(KeyEvent& event)
+{
+    m_cameraSystem->handleKey(event.key(), true);
+    event.setAccepted();
+}
+
+void Application::keyReleaseEvent(KeyEvent& event)
+{
+    m_cameraSystem->handleKey(event.key(), false);
+    event.setAccepted();
+}
+
+void Application::pointerMoveEvent(PointerMoveEvent& event)
+{
+    m_cameraSystem->handleMouse(event.relativePosition());
+    event.setAccepted();
+}
+
+void Application::scrollEvent(ScrollEvent& event)
+{
+    m_cameraSystem->handleScroll(event.offset().y());
+    event.setAccepted();
 }
 
 void Application::shutdown()
 {
-    LOG(INFO, "Shutting down application");
     m_renderSystem.reset();
     m_cameraSystem.reset();
+    m_chunkLoadingSystem.reset();
     m_world.reset();
     m_ecs.reset();
-    m_window.reset();
-    LOG(INFO, "Shutdown complete");
 }
+
 } // namespace mc::core

@@ -1,0 +1,31 @@
+#pragma once
+
+#include <Magnum/GL/Attribute.h>
+#include <Magnum/Math/Vector2.h>
+#include <Magnum/Math/Vector3.h>
+
+namespace mc::render
+{
+
+struct Vertex
+{
+    Magnum::Math::Vector3<Magnum::Float> position;
+    Magnum::Math::Vector3<Magnum::Float> normal;
+    Magnum::Math::Vector2<Magnum::Float> uv;
+};
+
+namespace attribute
+{
+enum : Magnum::UnsignedInt
+{
+    POSITION = 0,
+    NORMAL = 1,
+    UV = 2
+};
+
+constexpr Magnum::GL::Attribute<POSITION, Magnum::Vector3> POSITION_ATTRIBUTE;
+constexpr Magnum::GL::Attribute<NORMAL, Magnum::Vector3> NORMAL_ATTRIBUTE;
+constexpr Magnum::GL::Attribute<UV, Magnum::Vector2> UV_ATTRIBUTE;
+} // namespace attribute
+
+} // namespace mc::render

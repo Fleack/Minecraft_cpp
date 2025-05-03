@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <Magnum/Math/Vector3.h>
 
 namespace mc::ecs
 {
@@ -10,6 +10,6 @@ namespace mc::ecs
  */
 struct TransformComponent
 {
-    glm::vec3 position{0.0f}; ///< World-space position of the entity.
+    Magnum::Math::Vector3<float> position{0.0f}; ///< World-space position of the entity.
 };
 } // namespace mc::ecs

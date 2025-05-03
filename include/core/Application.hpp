@@ -1,80 +1,58 @@
 #pragma once
 
+#include "ecs/Ecs.hpp"
+#include "world/World.hpp"
+
 #include <memory>
+
+#include <Magnum/GL/Mesh.h>
+#include <Magnum/Platform/Sdl2Application.h>
+#include <Magnum/SceneGraph/Camera.h>
+#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+#include <Magnum/SceneGraph/Object.h>
+#include <Magnum/SceneGraph/Scene.h>
+#include <Magnum/SceneGraph/SceneGraph.h>
 
 #include <concurrencpp/concurrencpp.h>
 
-namespace mc::render
-{
-class TextureAtlas;
-}
-
-namespace mc::input
-{
-class IInputProvider;
-}
-
-namespace mc::world
-{
-class World;
-}
+#include "render/ShaderProgram.hpp"
 
 namespace mc::ecs
 {
+class CameraSystem;
 class ChunkLoadingSystem;
 class RenderSystem;
-class CameraSystem;
-class Ecs;
-class ISystem;
 } // namespace mc::ecs
 
 namespace mc::core
 {
-class Window;
-
 /**
  * @brief Main application class for running the voxel game.
  *
  * Handles initialization, main loop, ECS setup, input, camera, rendering,
  * world management, and shutdown procedures.
  */
-class Application
+class Application final : public Magnum::Platform::Sdl2Application
 {
 public:
-    Application(concurrencpp::runtime_options&& options);
-    ~Application();
-
-    /**
-     * @brief Runs the main game loop.
-     *
-     * Handles per-frame update and rendering.
-     */
-    void run();
+    explicit Application(Arguments const& arguments);
 
 private:
-    /**
-     * @brief Performs all necessary initialization steps.
-     *
-     * @return True if initialization succeeded, false otherwise.
-     */
-    bool initialize();
+    void drawEvent() override;
+    void viewportEvent(ViewportEvent& event) override;
+    void keyPressEvent(KeyEvent& event) override;
+    void keyReleaseEvent(KeyEvent& event) override;
+    void pointerMoveEvent(PointerMoveEvent& event) override;
+    void scrollEvent(ScrollEvent& event) override;
 
-    /**
-     * @brief Initializes the main application window.
-     *
-     * @return True if the window was created successfully.
-     */
-    bool initializeWindow();
+    void initializeCore() const;
+
+    void initializeTestCube();
 
     /**
      * @brief Initializes the ECS (Entity-Component-System) core.
      */
     void initializeEcs();
-
-    /**
-     * @brief Initializes input handling and maps it to the ECS.
-     */
-    void initializeInput();
 
     /**
      * @brief Sets up the camera system and default camera entity.
@@ -96,18 +74,6 @@ private:
     void initializeRenderSystems(uint8_t renderDistance);
 
     /**
-     * @brief Updates game logic and ECS systems.
-     *
-     * @param deltaTime Time since the last frame in seconds.
-     */
-    void update(float deltaTime) const;
-
-    /**
-     * @brief Renders the current frame.
-     */
-    void render();
-
-    /**
      * @brief Cleans up and shuts down the application.
      */
     void shutdown();
@@ -119,12 +85,16 @@ private:
 
     std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.
     std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
-    std::shared_ptr<Window> m_window; ///< Window context.
-    std::shared_ptr<input::IInputProvider> m_inputProvider; ///< Input abstraction layer.
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
     std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.
     std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem; ///< Dynamically loads chunks.
 
-    double m_lastFrameTime = 0.0; ///< Time of the previous frame (for delta time calculation).
+    float m_aspectRatio = 1920.0f / 1080.0f;
+
+    bool m_cursorEnabled = false;
+
+    // TODO Delete
+    Magnum::GL::Mesh m_testMesh{};
+    std::unique_ptr<render::ShaderProgram> m_testShader{};
 };
 } // namespace mc::core

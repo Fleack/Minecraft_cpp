@@ -7,10 +7,6 @@ find_package(Catch2 REQUIRED)
 target_link_libraries(UnitTests
     PRIVATE
         voxel_engine
-        glfw
-        glm::glm
-        glad::glad
-        stb::stb
         fastnoise-lite::fastnoise-lite
         imgui::imgui
         spdlog::spdlog

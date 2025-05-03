@@ -6,15 +6,23 @@ add_library(voxel_engine STATIC ${SRC_FILES})
 target_include_directories(voxel_engine
         PUBLIC
         ${CMAKE_SOURCE_DIR}/include
+        ${SDL2_INCLUDE_DIRS}
+        ${PROJECT_SOURCE_DIR}/externals/magnum/src
+        ${PROJECT_SOURCE_DIR}/externals/corrade/src
 )
 
 target_link_libraries(voxel_engine
         PUBLIC
+        Magnum::Magnum
+        Magnum::GL
+        Magnum::Shaders
+        Magnum::Sdl2Application
+        Magnum::SceneGraph
+        Magnum::Primitives       # <- for Primitives::cubeSolid()
+        Magnum::MeshTools        # <- for MeshTools::compile()
+        Magnum::Trade
+        Corrade::Main
         dbghelp
-        glfw
-        glm::glm
-        glad::glad
-        stb::stb
         fastnoise-lite::fastnoise-lite
         imgui::imgui
         spdlog::spdlog

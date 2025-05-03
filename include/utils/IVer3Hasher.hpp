@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include <glm/vec3.hpp>
+#include <Magnum/Math/Vector3.h>
 
 namespace mc::utils
 {
@@ -20,12 +20,12 @@ struct IVec3Hasher
      *
      * @return Hash value.
      */
-    std::size_t operator()(glm::ivec3 const& v) const
+    std::size_t operator()(Magnum::Math::Vector3<int> const& v) const
     {
         // Hash each component individually
-        std::size_t h1 = std::hash<int>()(v.x);
-        std::size_t h2 = std::hash<int>()(v.y);
-        std::size_t h3 = std::hash<int>()(v.z);
+        std::size_t h1 = std::hash<int>()(v.x());
+        std::size_t h2 = std::hash<int>()(v.y());
+        std::size_t h3 = std::hash<int>()(v.z());
 
         // Combine the hashes using bitwise operations:
         //  - XOR to blend hash bits

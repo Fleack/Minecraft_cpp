@@ -1,25 +1,26 @@
 #pragma once
 
-#include "render/ChunkMesh.hpp"
 #include "world/Chunk.hpp"
+
+#include <Magnum/GL/Buffer.h>
 
 namespace mc::render
 {
-class TextureAtlas;
 
+/**
+ * @brief Generates a mesh for a single chunk using visible block faces.
+ */
 class ChunkMeshBuilder
 {
 public:
     /**
-     * @brief Builds the mesh data for a voxel chunk.
+     * @brief Builds a mesh from the given chunk.
      *
-     * Generates a triangle mesh based on visible block faces in the chunk,
-     * applying proper face geometry, normals, and texture UVs from the atlas.
-     *
-     * @param chunk The chunk to build the mesh for.
-     * @param mesh The target mesh to upload the generated vertex data to.
-     * @param atlas The texture atlas for UV lookups.
+     * @param chunk Reference to the voxel chunk.
+     * @param mesh Output a mesh object.
+     * @param uvTileSize Size of a single texture tile in UV space (e.g., 1/atlasSize).
      */
-    static void build(world::Chunk const& chunk, ChunkMesh& mesh, TextureAtlas const& atlas);
+    static void build(world::Chunk const& chunk, Magnum::GL::Mesh& mesh, float uvTileSize);
 };
+
 } // namespace mc::render

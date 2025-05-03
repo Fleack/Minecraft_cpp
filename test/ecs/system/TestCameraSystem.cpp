@@ -10,7 +10,7 @@
 
 using namespace mc::ecs;
 
-class MockInputProvider final : public mc::input::IInputProvider
+class MockInputProvider final : public mc::input::InputManager
 {
 public:
     bool wPressed = false;

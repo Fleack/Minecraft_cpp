@@ -1,76 +1,53 @@
 #pragma once
 
 #include "ecs/Ecs.hpp"
-#include "ecs/system/ISystem.hpp"
-#include "input/IInputProvider.hpp"
 
-#include "glm/mat4x4.hpp"
+#include <memory>
+#include <set>
 
-namespace mc::core
-{
-class Window;
-}
+#include <Magnum/Math/Matrix4.h>
+#include <Magnum/Platform/Sdl2Application.h>
+#include <Magnum/SceneGraph/Camera.h>
+#include <Magnum/SceneGraph/MatrixTransformation3D.h>
+#include <Magnum/SceneGraph/Object.h>
+#include <Magnum/SceneGraph/Scene.h>
+
 namespace mc::ecs
 {
-/**
- * @brief ECS system for controlling and updating the camera.
- *
- * Handles user input (keyboard + mouse) to move and rotate the camera,
- * updates transform components accordingly, and computes view/projection matrices
- * for use in rendering.
- */
+
+using Scene3D = Magnum::SceneGraph::Scene<Magnum::SceneGraph::MatrixTransformation3D>;
+using Object3D = Magnum::SceneGraph::Object<Magnum::SceneGraph::MatrixTransformation3D>;
+using Camera3D = Magnum::SceneGraph::Camera3D;
+
 class CameraSystem final : public ISystem
 {
 public:
-    /**
-     * @brief Constructs the camera system.
-     *
-     * @param ecs Reference to the ECS registry.
-     * @param aspectRatio Initial screen aspect ratio (width / height).
-     * @param inputProvider Shared input provider for handling movement and mouse.
-     */
-    explicit CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider, std::shared_ptr<core::Window> window);
+    CameraSystem(Ecs& ecs, float aspectRatio);
 
-    /**
-     * @brief Updates the camera based on input and applies movement.
-     *
-     * Also synchronizes the camera's world position with its associated transform component.
-     *
-     * @param dt Delta time since the last frame.
-     */
     void update(float dt) override;
-
-    /**
-     * @brief Computes the view and projection matrices from the current camera state.
-     *
-     * Should be called once per frame before rendering.
-     */
     void render() override;
 
-    [[nodiscard]] glm::mat4 const& getViewMatrix() const;
-    [[nodiscard]] glm::mat4 const& getProjectionMatrix() const;
+    void handleMouse(Magnum::Math::Vector2<float> const& delta);
+    void handleScroll(float yOffset);
+    void handleKey(Magnum::Platform::Sdl2Application::Key key, bool pressed);
+
+    Magnum::Math::Matrix4<float> const& getViewMatrix() const;
+    Magnum::Math::Matrix4<float> const& getProjectionMatrix() const;
+
+    void setAspectRatio(float ar);
 
 private:
-    /**
-     * @brief Handles WASD movement and mouse-based camera rotation.
-     *
-     * Updates the camera component's position and orientation accordingly.
-     *
-     * @param dt Time step used to scale movement speed.
-     */
-    void handleInput(float dt);
+    Ecs& m_ecs;
+    float m_aspectRatio;
 
-private:
-    Ecs& m_ecs; ///< Reference to the ECS manager.
-    std::shared_ptr<input::IInputProvider> m_input; ///< Input abstraction for key/mouse.
-    std::shared_ptr<core::Window> m_window;
+    Scene3D m_scene;
+    std::unique_ptr<Object3D> m_cameraObject;
+    std::unique_ptr<Camera3D> m_camera;
 
-    glm::mat4 m_viewMatrix{}; ///< Cached view matrix.
-    glm::mat4 m_projectionMatrix{}; ///< Cached projection matrix.
+    std::set<Magnum::Platform::Sdl2Application::Key> m_keysPressed;
 
-    bool m_firstMouseInput = true; ///< Tracks whether the first mouse frame has been handled.
-    float m_aspectRatio = 16.0f / 9.0f; ///< Aspect ratio used for projection matrix.
-    float m_lastX = 640.0f; ///< Last known mouse X position.
-    float m_lastY = 360.0f; ///< Last known mouse Y position.
+    Magnum::Math::Matrix4<float> m_view;
+    Magnum::Math::Matrix4<float> m_proj;
 };
+
 } // namespace mc::ecs

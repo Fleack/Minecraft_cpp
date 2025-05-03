@@ -1,131 +1,107 @@
 #include "ecs/system/CameraSystem.hpp"
-#include "core/Logger.hpp"
-#include "core/Window.hpp"
+
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/Math/Functions.h>
+#include <Magnum/Math/Quaternion.h>
+#include <Magnum/Math/Vector3.h>
+
 #include "ecs/component/CameraComponent.hpp"
-#include "ecs/component/TransformComponent.hpp"
-#include "render/Camera.hpp"
 
-#include <algorithm>
-
-#include <GLFW/glfw3.h>
+using namespace Magnum;
+using namespace Magnum::SceneGraph;
+using namespace Magnum::Math::Literals;
 
 namespace mc::ecs
 {
-CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, std::shared_ptr<input::IInputProvider> inputProvider, std::shared_ptr<core::Window> window)
-    : m_ecs(ecs), m_input(inputProvider), m_window{window}, m_aspectRatio(aspectRatio)
+
+CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
+    : m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
-    LOG(INFO, "CameraSystem initialized with aspect ratio: {}", aspectRatio);
+    m_cameraObject = std::make_unique<Object3D>(&m_scene);
+
+    m_cameraObject->translate(Vector3{0.0f, 2.0f, 5.0f});
+    m_cameraObject->rotateY(Deg{-90.0f});
+
+    m_camera = std::make_unique<Camera3D>(*m_cameraObject);
+    m_camera->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+        .setProjectionMatrix(
+            Matrix4::perspectiveProjection(
+                Deg{70.0f}, m_aspectRatio, 0.1f, 1000.0f))
+        .setViewport(GL::defaultFramebuffer.viewport().size());
+
+    auto e = m_ecs.createEntity();
+    m_ecs.addComponent<CameraComponent>(e, CameraComponent{});
 }
 
 void CameraSystem::update(float dt)
 {
-    handleInput(dt);
+    auto& cams = m_ecs.getAllComponents<CameraComponent>();
+    if (cams.empty()) return;
+    auto& cam = cams.begin()->second;
 
-    auto& cameras = m_ecs.getAllComponents<CameraComponent>();
-    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
+    float velocity = cam.speed * dt;
 
-    if (!cameras.empty() && !transforms.empty())
-    {
-        auto& camera = cameras.begin()->second;
-        auto& transform = transforms.begin()->second;
-        transform.position = camera.position;
-    }
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::W)) m_cameraObject->translateLocal({0.0f, 0.0f, -velocity});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::S)) m_cameraObject->translateLocal({0.0f, 0.0f, +velocity});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::A)) m_cameraObject->translateLocal({-velocity, 0.0f, 0.0f});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::D)) m_cameraObject->translateLocal({+velocity, 0.0f, 0.0f});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::Space)) m_cameraObject->translateLocal({0.0f, +velocity, 0.0f});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::LeftCtrl)) m_cameraObject->translateLocal({0.0f, -velocity, 0.0f});
 }
 
 void CameraSystem::render()
 {
-    auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty())
-    {
-        LOG(WARN, "No camera components found during render");
-        return;
-    }
-
-    auto const& cam = cams.begin()->second;
-
-    m_viewMatrix = render::Camera::getViewMatrix(cam.position, cam.front, cam.up);
-    m_projectionMatrix = render::Camera::getProjectionMatrix(cam.fov, m_aspectRatio);
+    m_view = m_camera->cameraMatrix();
+    m_proj = m_camera->projectionMatrix();
 }
 
-void CameraSystem::handleInput(float dt)
+void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
 {
-    if (m_window->isCursorEnabled())
-    {
-        m_firstMouseInput = true;
-        return;
-    }
+    auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
 
-    auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty())
-    {
-        LOG(CRITICAL, "No camera component found for input handling");
-        return;
-    }
-    CameraComponent& cam = cams.begin()->second;
+    float xoff = -delta.x() * cam.sensitivity;
+    float yoff = -delta.y() * cam.sensitivity;
 
-    double scroll = m_input->getScrollDelta();
-    if (scroll != 0.0)
-    {
-        constexpr float speedStep = 1.0f;
-        cam.speed = std::clamp(cam.speed + static_cast<float>(scroll) * speedStep, 0.1f, 1000.0f);
-        LOG(DEBUG, "Camera speed changed to {}", cam.speed);
-    }
+    cam.yaw += Deg{xoff};
+    cam.pitch = Math::clamp(Deg{cam.pitch + Deg{yoff}}, Deg{-89.0f}, Deg{89.0f});
 
-    float velocity = cam.speed * dt;
-    // if (m_input->isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-    //    velocity *= 2.5f;
-    if (m_input->isKeyPressed(GLFW_KEY_W))
-        cam.position += cam.front * velocity;
-    if (m_input->isKeyPressed(GLFW_KEY_S))
-        cam.position -= cam.front * velocity;
-    if (m_input->isKeyPressed(GLFW_KEY_A))
-        cam.position -= glm::normalize(glm::cross(cam.front, cam.up)) * velocity;
-    if (m_input->isKeyPressed(GLFW_KEY_D))
-        cam.position += glm::normalize(glm::cross(cam.front, cam.up)) * velocity;
-    if (m_input->isKeyPressed(GLFW_KEY_SPACE))
-        cam.position += cam.up * velocity;
-    if (m_input->isKeyPressed(GLFW_KEY_LEFT_CONTROL))
-        cam.position -= cam.up * velocity;
+    auto qYaw = Magnum::Math::Quaternion<Float>::rotation(cam.yaw, Vector3::yAxis());
+    auto qPitch = Magnum::Math::Quaternion<Float>::rotation(cam.pitch, Vector3::xAxis());
+    auto q = qYaw * qPitch;
 
-    glm::dvec2 cursor = m_input->getCursorPosition();
-    double xpos = cursor.x;
-    double ypos = cursor.y;
+    Vector3 pos = m_cameraObject->transformation().translation();
 
-    if (m_firstMouseInput)
-    {
-        m_lastX = static_cast<float>(xpos);
-        m_lastY = static_cast<float>(ypos);
-        m_firstMouseInput = false;
-    }
-
-    float xoffset = static_cast<float>(xpos) - m_lastX;
-    float yoffset = m_lastY - static_cast<float>(ypos); // reversed
-
-    m_lastX = static_cast<float>(xpos);
-    m_lastY = static_cast<float>(ypos);
-
-    xoffset *= cam.sensitivity;
-    yoffset *= cam.sensitivity;
-
-    cam.yaw += xoffset;
-    cam.pitch += yoffset;
-
-    cam.pitch = std::clamp(cam.pitch, -89.0f, 89.0f);
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(cam.yaw)) * cos(glm::radians(cam.pitch));
-    front.y = sin(glm::radians(cam.pitch));
-    front.z = sin(glm::radians(cam.yaw)) * cos(glm::radians(cam.pitch));
-    cam.front = glm::normalize(front);
+    auto rot3 = q.toMatrix();
+    Matrix4 matrix = Matrix4::from(rot3, pos);
+    m_cameraObject->setTransformation(matrix);
 }
 
-glm::mat4 const& CameraSystem::getViewMatrix() const
+void CameraSystem::handleScroll(float yOffset)
 {
-    return m_viewMatrix;
+    auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
+    cam.speed = Math::clamp(cam.speed + yOffset, 1.0f, 100.0f);
 }
 
-glm::mat4 const& CameraSystem::getProjectionMatrix() const
+void CameraSystem::handleKey(Platform::Sdl2Application::Key key, bool pressed)
 {
-    return m_projectionMatrix;
+    if (pressed)
+        m_keysPressed.insert(key);
+    else
+        m_keysPressed.erase(key);
 }
+
+Magnum::Math::Matrix4<float> const& CameraSystem::getViewMatrix() const
+{
+    return m_view;
+}
+Magnum::Math::Matrix4<float> const& CameraSystem::getProjectionMatrix() const
+{
+    return m_proj;
+}
+
+void CameraSystem::setAspectRatio(float ar)
+{
+    m_aspectRatio = ar;
+}
+
 } // namespace mc::ecs

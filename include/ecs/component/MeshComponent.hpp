@@ -2,10 +2,7 @@
 
 #include <memory>
 
-namespace mc::render
-{
-class ChunkMesh;
-}
+#include <Magnum/GL/Mesh.h>
 
 namespace mc::ecs
 {
@@ -16,6 +13,6 @@ namespace mc::ecs
  */
 struct MeshComponent
 {
-    std::shared_ptr<render::ChunkMesh> mesh; ///< Shared pointer to the chunk mesh.
+    std::shared_ptr<Magnum::GL::Mesh> mesh; ///< Shared pointer to the chunk mesh.
 };
 } // namespace mc::ecs

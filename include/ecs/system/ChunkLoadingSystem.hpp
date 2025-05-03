@@ -1,11 +1,11 @@
 #pragma once
 
+#include "ecs/system/ISystem.hpp"
+
 #include <chrono>
 #include <queue>
 
-#include "ecs/system/ISystem.hpp"
-
-#include <glm/glm.hpp>
+#include <Magnum/Math/Vector3.h>
 
 namespace mc::world
 {
@@ -60,7 +60,7 @@ private:
      *
      * @return Optional chunk-space position, or std::nullopt if no transform exists.
      */
-    std::optional<glm::ivec3> getCurrentChunk() const;
+    std::optional<Magnum::Math::Vector3<int>> getCurrentChunk() const;
 
     /**
      * @brief Refills the loading queue with chunks around the current camera chunk.
@@ -69,7 +69,7 @@ private:
      *
      * @param currentChunk Current camera chunk position.
      */
-    void refillQueue(glm::ivec3 currentChunk);
+    void refillQueue(Magnum::Math::Vector3<int> currentChunk);
 
     /**
      * @brief Schedules chunk loading operations within the time budget.
@@ -98,13 +98,13 @@ private:
     world::World& m_world; ///< Reference to the ECS manager.
 
     uint8_t m_loadRadius; ///< Number of chunks to load around the current chunk.
-    glm::ivec3 m_lastCameraChunk{std::numeric_limits<int>::max()}; ///< Tracks last known camera chunk position to avoid redundant loading.
+    Magnum::Math::Vector3<int> m_lastCameraChunk{std::numeric_limits<int>::max()}; ///< Tracks last known camera chunk position to avoid redundant loading.
 
     double m_avgScheduleTime = 0.0005; ///< Exponential moving average (EMA) of chunk scheduling time in seconds.
     double m_timeBudget = 0.0; ///< Maximum allowed time (in seconds) per frame for scheduling chunk loads.
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation (closer to 1 = faster adaptation).
     static constexpr float workFraction = 0.3f; ///< Fraction of leftover frame time allocated to chunk loading.
 
-    std::queue<glm::ivec3> m_loadQueue; ///< Queue of chunk positions awaiting generation.
+    std::queue<Magnum::Math::Vector3<int>> m_loadQueue; ///< Queue of chunk positions awaiting generation.
 };
 } // namespace mc::ecs

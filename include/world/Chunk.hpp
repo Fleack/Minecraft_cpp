@@ -4,10 +4,11 @@
 
 #include <vector>
 
-#include <glm/glm.hpp>
+#include <Magnum/Math/Vector3.h>
 
 namespace mc::world
 {
+
 constexpr int CHUNK_SIZE_X = 16;
 constexpr int CHUNK_SIZE_Y = 256;
 constexpr int CHUNK_SIZE_Z = 16;
@@ -33,14 +34,14 @@ public:
      *
      * @param position Chunk position in chunk-space (not world-space).
      */
-    explicit Chunk(glm::ivec3 position);
+    explicit Chunk(Magnum::Math::Vector3<int> const& position);
 
     /**
      * @brief Returns the chunk's position in chunk-space.
      *
      * @return Reference to the internal chunk position vector.
      */
-    [[nodiscard]] glm::ivec3 const& getPosition() const;
+    [[nodiscard]] Magnum::Math::Vector3<int> const& getPosition() const;
 
     /**
      * @brief Retrieves a block at the specified local chunk coordinates.
@@ -64,7 +65,8 @@ public:
     void setBlock(int x, int y, int z, Block block);
 
 private:
-    glm::ivec3 m_position; ///< Chunk position in chunk-space (not world-space).
+    Magnum::Math::Vector3<int> m_position; ///< Chunk position in chunk-space (not world-space).
     block_volume m_blocks; ///< 3D grid of blocks within the chunk.
 };
+
 } // namespace mc::world
