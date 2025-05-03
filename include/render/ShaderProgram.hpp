@@ -2,8 +2,6 @@
 
 #include <Magnum/GL/AbstractShaderProgram.h>
 #include <Magnum/GL/Texture.h>
-#include <Magnum/Math/Matrix4.h>
-#include <Magnum/Shaders/GenericGL.h>
 
 namespace mc::render
 {

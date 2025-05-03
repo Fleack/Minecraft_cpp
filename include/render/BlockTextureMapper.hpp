@@ -12,6 +12,7 @@ namespace mc::render
  * Maps a BlockType to its corresponding texture name used for rendering.
  *
  * @param type The type of the block.
+ * @param face TODO
  * @return Texture name as a string. Returns "error" for unknown types.
  */
 inline std::string get_texture_name_for_block(world::BlockType type, uint8_t face)

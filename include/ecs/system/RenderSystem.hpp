@@ -3,6 +3,7 @@
 #include "ecs/Entity.hpp"
 #include "ecs/system/ISystem.hpp"
 #include "render/ShaderProgram.hpp"
+#include "render/TextureManager.hpp"
 #include "utils/IVer3Hasher.hpp"
 
 #include <chrono>
@@ -125,6 +126,7 @@ private:
     Ecs& m_ecs; ///< ECS manager reference.
     world::World& m_world; ///< Reference to the world for chunk access.
     render::ShaderProgram m_shaderProgram{}; ///< Shader program used for rendering.
+    std::unique_ptr<mc::render::TextureManager> m_textureManager;
 
     std::shared_ptr<CameraSystem> m_cameraSystem; ///< Provides view and projection matrices.
 
@@ -136,6 +138,6 @@ private:
 
     std::queue<Magnum::Math::Vector3<int>> m_meshQueue; ///< Queue of chunk positions awaiting mesh generation.
     std::unordered_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> m_enqueuedChunks; ///< Set of chunk positions already enqueued to prevent duplicates.
-    std::unordered_map<Magnum::Math::Vector3<int>, Entity, utils::IVec3Hasher> m_chunkToMesh; ///< Maps chunk positions to ECS entities holding their mesh.
+    std::unordered_map<Magnum::Math::Vector3<int>, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
 };
 } // namespace mc::ecs

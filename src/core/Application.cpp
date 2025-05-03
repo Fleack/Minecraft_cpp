@@ -3,7 +3,6 @@
 #include "core/CrashReporter.hpp"
 #include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
-#include "ecs/component/CameraComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
 #include "ecs/system/ChunkLoadingSystem.hpp"
@@ -18,13 +17,6 @@
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/GL/Version.h>
 #include <Magnum/Math/Color.h>
-#include <Magnum/Math/Quaternion.h>
-#include <Magnum/MeshTools/Compile.h>
-#include <Magnum/Primitives/Cube.h>
-#include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
-#include <Magnum/SceneGraph/SceneGraph.h>
-#include <Magnum/Trade/MeshData.h>
 
 namespace mc::core
 {
@@ -40,13 +32,13 @@ Application::Application(Arguments const& arguments)
 {
     initializeCore();
 
-    constexpr uint8_t renderDistance = 2;
+    constexpr uint8_t renderDistance = 10;
 
     initializeEcs();
     initializeCamera();
     initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
-    initializeTestCube();
+    // initializeTestCube();
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -82,109 +74,10 @@ void Application::initializeWorld(uint8_t renderDistance)
     m_ecs->addSystem(m_chunkLoadingSystem);
 }
 
-void Application::initializeRenderSystems(uint8_t)
+void Application::initializeRenderSystems(uint8_t renderDistance)
 {
-    // m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, renderDistance);
-    // m_ecs->addSystem(m_renderSystem);
-}
-
-void Application::initializeTestCube()
-{
-    using namespace Magnum;
-
-    struct Vertex
-    {
-        Vector3 position;
-        Vector3 normal;
-    };
-
-    std::vector<Vertex> vertices = {
-        // Front face (+Z)
-        {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-
-        // Back face (-Z)
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
-
-        // Top face (+Y)
-        {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-
-        // Bottom face (-Y)
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
-        {{0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
-        {{-0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
-
-        // Right face (+X)
-        {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-
-        // Left face (-X)
-        {{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
-        {{-0.5f, -0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
-        {{-0.5f, 0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
-    };
-
-    std::vector<UnsignedInt> indices = {
-        0, 1, 2, 0, 2, 3, // Front
-        4,
-        5,
-        6,
-        4,
-        6,
-        7, // Back
-        8,
-        9,
-        10,
-        8,
-        10,
-        11, // Top
-        12,
-        13,
-        14,
-        12,
-        14,
-        15, // Bottom
-        16,
-        17,
-        18,
-        16,
-        18,
-        19, // Right
-        20,
-        21,
-        22,
-        20,
-        22,
-        23 // Left
-    };
-
-    GL::Buffer vertexBuffer, indexBuffer;
-    vertexBuffer.setData(Corrade::Containers::arrayView(vertices.data(), vertices.size()));
-    indexBuffer.setData(Corrade::Containers::arrayView(indices.data(), indices.size()));
-
-    typedef GL::Attribute<0, Vector3> PositionAttribute;
-    typedef GL::Attribute<1, Vector3> NormalAttribute;
-
-    m_testMesh = GL::Mesh{};
-    m_testMesh
-        .setCount(indices.size())
-        .setPrimitive(GL::MeshPrimitive::Triangles)
-        .addVertexBuffer(vertexBuffer, 0, PositionAttribute{}, NormalAttribute{})
-        .setIndexBuffer(indexBuffer, 0, GL::MeshIndexType::UnsignedInt);
-
-    m_testShader = std::make_unique<mc::render::ShaderProgram>();
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, renderDistance);
+    m_ecs->addSystem(m_renderSystem);
 }
 
 void Application::drawEvent()
@@ -198,15 +91,19 @@ void Application::drawEvent()
     if (auto pending = m_mainExecutor->size(); pending > 0)
         m_mainExecutor->loop(pending);
 
-    m_ecs->update(deltaTime);
-    m_ecs->render();
+    GL::defaultFramebuffer.clear(
+        GL::FramebufferClear::Color |
+        GL::FramebufferClear::Depth);
 
-    GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
-
-    m_testShader->setModelMatrix(Matrix4::translation(Vector3::zAxis(-3.0f)))
-        .setViewMatrix(m_cameraSystem->getViewMatrix())
-        .setProjectionMatrix(m_cameraSystem->getProjectionMatrix());
-    m_testShader->draw(m_testMesh);
+    try
+    {
+        m_ecs->update(deltaTime);
+        m_ecs->render();
+    }
+    catch (std::exception const& e)
+    {
+        LOG(CRITICAL, "Uncaught exception: {}", e.what());
+    }
 
     swapBuffers();
     redraw();

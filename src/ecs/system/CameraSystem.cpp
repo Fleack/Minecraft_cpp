@@ -5,7 +5,9 @@
 #include <Magnum/Math/Quaternion.h>
 #include <Magnum/Math/Vector3.h>
 
+#include "core/Logger.hpp"
 #include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/TransformComponent.hpp"
 
 using namespace Magnum;
 using namespace Magnum::SceneGraph;
@@ -19,7 +21,7 @@ CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
 {
     m_cameraObject = std::make_unique<Object3D>(&m_scene);
 
-    m_cameraObject->translate(Vector3{0.0f, 2.0f, 5.0f});
+    m_cameraObject->translate(Vector3{0.0f, 100.0f, 0.0f});
     m_cameraObject->rotateY(Deg{-90.0f});
 
     m_camera = std::make_unique<Camera3D>(*m_cameraObject);
@@ -31,6 +33,9 @@ CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
 
     auto e = m_ecs.createEntity();
     m_ecs.addComponent<CameraComponent>(e, CameraComponent{});
+    m_ecs.addComponent<TransformComponent>(e, TransformComponent{});
+
+    LOG(INFO, "CameraSystem initialized");
 }
 
 void CameraSystem::update(float dt)
@@ -45,8 +50,10 @@ void CameraSystem::update(float dt)
     if (m_keysPressed.contains(Platform::Sdl2Application::Key::S)) m_cameraObject->translateLocal({0.0f, 0.0f, +velocity});
     if (m_keysPressed.contains(Platform::Sdl2Application::Key::A)) m_cameraObject->translateLocal({-velocity, 0.0f, 0.0f});
     if (m_keysPressed.contains(Platform::Sdl2Application::Key::D)) m_cameraObject->translateLocal({+velocity, 0.0f, 0.0f});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::Space)) m_cameraObject->translateLocal({0.0f, +velocity, 0.0f});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::LeftCtrl)) m_cameraObject->translateLocal({0.0f, -velocity, 0.0f});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::Space)) m_cameraObject->translate({0.0f, +velocity, 0.0f});
+    if (m_keysPressed.contains(Platform::Sdl2Application::Key::LeftCtrl)) m_cameraObject->translate({0.0f, -velocity, 0.0f});
+
+    m_ecs.getAllComponents<TransformComponent>().begin()->second.position = m_cameraObject->transformation().translation();
 }
 
 void CameraSystem::render()

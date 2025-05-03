@@ -6,7 +6,11 @@
 #include <spdlog/async.h>
 #include <spdlog/spdlog.h>
 
-#define LOG(level, fmt, ...) ((void)0)
+#define LOG(level, fmt, ...)                                     \
+    mc::core::Logger::get()->log(                                \
+        spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, \
+        to_spdlog_level(LogLevel::level),                        \
+        std::format(fmt __VA_OPT__(, ) __VA_ARGS__))
 
 // Uncomment to enable logs that might be spammy
 // #define ENABLE_SPAM_LOGS

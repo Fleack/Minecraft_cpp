@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Magnum/Math/Angle.h>
+
 namespace mc::ecs
 {
 /**
@@ -12,7 +14,7 @@ struct CameraComponent
 {
     float speed{10.0f};
     float sensitivity{0.05f};
-    float fov{70.0f};
+    float fov{90.0f};
 
     Magnum::Math::Deg<float> yaw{-90.0f};
     Magnum::Math::Deg<float> pitch{0.0f};

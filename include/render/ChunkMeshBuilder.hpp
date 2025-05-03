@@ -1,9 +1,13 @@
 #pragma once
 
+#include <vector>
+
 #include "world/Chunk.hpp"
 
-#include <Magnum/GL/Buffer.h>
-
+namespace mc::ecs
+{
+struct MeshComponent;
+}
 namespace mc::render
 {
 
@@ -17,10 +21,8 @@ public:
      * @brief Builds a mesh from the given chunk.
      *
      * @param chunk Reference to the voxel chunk.
-     * @param mesh Output a mesh object.
-     * @param uvTileSize Size of a single texture tile in UV space (e.g., 1/atlasSize).
      */
-    static void build(world::Chunk const& chunk, Magnum::GL::Mesh& mesh, float uvTileSize);
+    static std::vector<ecs::MeshComponent> build(world::Chunk const& chunk);
 };
 
 } // namespace mc::render

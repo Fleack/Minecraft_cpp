@@ -53,7 +53,7 @@ concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shar
             for (int y = 0; y < CHUNK_SIZE_Y; ++y)
             {
                 using enum BlockType;
-                BlockType type = AIR;
+                auto type = AIR;
 
                 if (y == height)
                     type = GRASS;

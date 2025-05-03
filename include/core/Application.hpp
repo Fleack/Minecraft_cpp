@@ -5,17 +5,9 @@
 
 #include <memory>
 
-#include <Magnum/GL/Mesh.h>
 #include <Magnum/Platform/Sdl2Application.h>
-#include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
-#include <Magnum/SceneGraph/Object.h>
-#include <Magnum/SceneGraph/Scene.h>
-#include <Magnum/SceneGraph/SceneGraph.h>
 
 #include <concurrencpp/concurrencpp.h>
-
-#include "render/ShaderProgram.hpp"
 
 namespace mc::ecs
 {
@@ -46,8 +38,6 @@ private:
     void scrollEvent(ScrollEvent& event) override;
 
     void initializeCore() const;
-
-    void initializeTestCube();
 
     /**
      * @brief Initializes the ECS (Entity-Component-System) core.
@@ -92,9 +82,5 @@ private:
     float m_aspectRatio = 1920.0f / 1080.0f;
 
     bool m_cursorEnabled = false;
-
-    // TODO Delete
-    Magnum::GL::Mesh m_testMesh{};
-    std::unique_ptr<render::ShaderProgram> m_testShader{};
 };
 } // namespace mc::core

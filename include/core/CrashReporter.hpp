@@ -31,9 +31,9 @@ public:
     }
 
 private:
-    static void handleSignal(int)
+    static void handleSignal(int signal)
     {
-        LOG(CRITICAL, "Caught fatal signal {}. Dumping stack trace...",);
+        LOG(CRITICAL, "Caught fatal signal {}. Dumping stack trace...", signal);
         logStacktrace();
         std::abort();
     }

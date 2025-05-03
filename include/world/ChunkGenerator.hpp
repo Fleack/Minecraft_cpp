@@ -36,6 +36,7 @@ public:
      * then fills block columns depending on the height.
      *
      * @param chunk A result which is available
+     * @param executor TODO
      */
     concurrencpp::lazy_result<void> generate(Chunk& chunk, std::shared_ptr<concurrencpp::executor> executor) const;
 
