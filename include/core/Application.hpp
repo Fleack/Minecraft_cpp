@@ -81,6 +81,6 @@ private:
 
     float m_aspectRatio = 1920.0f / 1080.0f;
 
-    bool m_cursorEnabled = false;
+    bool m_paused{false};
 };
 } // namespace mc::core

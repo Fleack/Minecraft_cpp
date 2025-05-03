@@ -38,8 +38,8 @@ Application::Application(Arguments const& arguments)
     initializeCamera();
     initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
-    // initializeTestCube();
 
+    setCursor(Cursor::Hidden);
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
@@ -95,15 +95,8 @@ void Application::drawEvent()
         GL::FramebufferClear::Color |
         GL::FramebufferClear::Depth);
 
-    try
-    {
-        m_ecs->update(deltaTime);
-        m_ecs->render();
-    }
-    catch (std::exception const& e)
-    {
-        LOG(CRITICAL, "Uncaught exception: {}", e.what());
-    }
+    m_ecs->update(deltaTime);
+    m_ecs->render();
 
     swapBuffers();
     redraw();
@@ -118,25 +111,53 @@ void Application::viewportEvent(ViewportEvent& event)
 
 void Application::keyPressEvent(KeyEvent& event)
 {
-    m_cameraSystem->handleKey(event.key(), true);
+    if (event.key() == Key::Esc)
+    {
+        m_paused = !m_paused;
+        if (m_paused)
+        {
+            setCursor(Cursor::Arrow);
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+        }
+        else
+        {
+            setCursor(Cursor::Hidden);
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        }
+    }
+
+    if (!m_paused)
+    {
+        m_cameraSystem->handleKey(event.key(), true);
+    }
     event.setAccepted();
 }
 
 void Application::keyReleaseEvent(KeyEvent& event)
 {
-    m_cameraSystem->handleKey(event.key(), false);
+    if (!m_paused)
+    {
+        m_cameraSystem->handleKey(event.key(), false);
+    }
     event.setAccepted();
 }
 
 void Application::pointerMoveEvent(PointerMoveEvent& event)
 {
-    m_cameraSystem->handleMouse(event.relativePosition());
+    if (!m_paused)
+    {
+        m_cameraSystem->handleMouse(event.relativePosition());
+    }
+
     event.setAccepted();
 }
 
 void Application::scrollEvent(ScrollEvent& event)
 {
-    m_cameraSystem->handleScroll(event.offset().y());
+    if (!m_paused)
+    {
+        m_cameraSystem->handleScroll(event.offset().y());
+    }
     event.setAccepted();
 }
 

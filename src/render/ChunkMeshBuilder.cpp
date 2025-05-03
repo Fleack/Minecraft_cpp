@@ -1,7 +1,5 @@
 #include "render/ChunkMeshBuilder.hpp"
 
-#include <iostream>
-
 #include "ecs/component/MeshComponent.hpp"
 #include "render/BlockTextureMapper.hpp"
 #include "render/Vertex.hpp"
@@ -107,10 +105,6 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(world::Chunk const& chun
                     if (!is_face_visible(chunk, nx, ny, nz)) continue;
 
                     auto textureName = get_texture_name_for_block(block.type, face);
-                    if (textureName == "grass_side")
-                    {
-                        std::cout << "grass_side" << std::endl;
-                    }
                     for (int i : {0, 1, 2, 0, 2, 3})
                     {
                         Vertex v;
