@@ -17,7 +17,8 @@ class MinecraftConan(ConanFile):
         "fastnoise-lite/1.1.1@local",
         "glad/2.0.8@local",
         "concurrencpp/0.1.7",
-        "cpptrace/0.8.3"
+        "cpptrace/0.8.3",
+        "fastnoise2/0.10.0-alpha"
     ]
     default_options = {
         "glfw/*:shared": False,

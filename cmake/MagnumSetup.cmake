@@ -1,0 +1,9 @@
+set(CORRADE_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(MAGNUM_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(MAGNUM_WITH_STBIMAGEIMPORTER ON CACHE BOOL "" FORCE)
+set(MAGNUM_WITH_SDL2APPLICATION ON CACHE BOOL "" FORCE)
+
+add_subdirectory(extern/corrade EXCLUDE_FROM_ALL)
+add_subdirectory(extern/magnum EXCLUDE_FROM_ALL)
+add_subdirectory(extern/magnum-extras EXCLUDE_FROM_ALL)
+add_subdirectory(extern/magnum-plugins EXCLUDE_FROM_ALL)
