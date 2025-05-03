@@ -14,6 +14,7 @@
 
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Matrix4.h>
+#include <ska_sort.hpp>
 
 namespace mc::ecs
 {
@@ -96,10 +97,8 @@ void RenderSystem::drawChunksInRadius(Magnum::Math::Vector3<int> const& currentC
         }
     }
 
-    std::ranges::sort(positions, [&](auto const& a, auto const& b) {
-        int da = sq(a.x() - currentChunkPos.x()) + sq(a.z() - currentChunkPos.z());
-        int db = sq(b.x() - currentChunkPos.x()) + sq(b.z() - currentChunkPos.z());
-        return da < db;
+    ska_sort(positions.begin(), positions.end(), [&currentChunkPos](auto const& a) {
+        return sq(a.x() - currentChunkPos.x()) + sq(a.z() - currentChunkPos.z());
     });
 
     for (auto const& pos : positions)

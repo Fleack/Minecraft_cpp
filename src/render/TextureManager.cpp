@@ -41,14 +41,14 @@ TextureManager::TextureManager(std::string const& texturesDir)
         auto image = importer->image2D(0);
         CORRADE_INTERNAL_ASSERT(image);
 
-        GL::Texture2D tex;
-        tex.setStorage(1, GL::TextureFormat::RGBA8, image->size())
+        GL::Texture2D texture;
+        texture.setStorage(1, GL::TextureFormat::RGBA8, image->size())
             .setSubImage(0, {}, *image)
             .setMinificationFilter(GL::SamplerFilter::Nearest)
             .setMagnificationFilter(GL::SamplerFilter::Nearest)
             .setWrapping(GL::SamplerWrapping::ClampToEdge);
 
-        m_textures.emplace(std::move(name), std::move(tex));
+        m_textures.emplace(std::move(name), std::move(texture));
     }
 }
 

@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ska_sort.hpp>
 
 namespace mc::ecs
 {
@@ -71,10 +72,8 @@ void ChunkLoadingSystem::refillQueue(Magnum::Math::Vector3<int> currentChunk)
         }
     }
 
-    std::ranges::sort(candidates, [&](auto const& a, auto const& b) {
-        auto const da = a - currentChunk;
-        auto const db = b - currentChunk;
-        return da.x() * da.x() + da.z() * da.z() < db.x() * db.x() + db.z() * db.z();
+    ska_sort(candidates.begin(), candidates.end(), [currentChunk](auto const& a) {
+        return sq(a.x() - currentChunk.x()) + sq(a.z() - currentChunk.z());
     });
 
     for (auto const& pos : candidates)

@@ -8,7 +8,6 @@ target_compile_options(voxel_engine PRIVATE
         -Wextra
         -Wpedantic
         -Werror
-        #-Woverloaded-virtual
         -Wnull-dereference
         -Wimplicit-fallthrough
 )
