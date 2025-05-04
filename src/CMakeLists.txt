@@ -24,6 +24,7 @@ target_include_directories(voxel_engine
 target_link_libraries(voxel_engine
         PUBLIC
         # Magnum
+        Corrade::Main
         Magnum::Magnum
         Magnum::GL
         Magnum::Shaders
@@ -32,7 +33,6 @@ target_link_libraries(voxel_engine
         Magnum::MeshTools
         Magnum::Trade
         MagnumPlugins::StbImageImporter
-        Corrade::Main
         # Rest of libs
         dbghelp
         fastnoise-lite::fastnoise-lite

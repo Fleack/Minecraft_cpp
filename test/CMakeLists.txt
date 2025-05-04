@@ -8,7 +8,6 @@ target_link_libraries(UnitTests
     PRIVATE
         voxel_engine
         fastnoise-lite::fastnoise-lite
-        imgui::imgui
         spdlog::spdlog
         Catch2::Catch2WithMain
         concurrencpp::concurrencpp
