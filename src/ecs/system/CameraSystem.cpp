@@ -25,7 +25,7 @@ CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, uint8_t renderDistance)
     m_cameraObject->rotateY(Deg{-90.0f});
 
     constexpr float chunkSize = 16.0f;
-    float renderDistanceInWorldUnits = renderDistance * chunkSize;
+    float renderDistanceInWorldUnits = 2 * renderDistance * chunkSize;
 
     m_camera = std::make_unique<Camera3D>(*m_cameraObject);
     m_camera->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)

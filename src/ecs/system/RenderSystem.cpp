@@ -54,10 +54,23 @@ void RenderSystem::update(float dt)
 
 void RenderSystem::render(float)
 {
+    auto& playerPosition = m_ecs.getAllComponents<TransformComponent>().begin()->second.position;
+    constexpr float chunkSize = 16.0f;
+    float renderDistanceInWorldUnits = 2 * m_renderRadius * chunkSize;
+
     m_shaderProgram
+        // Basic render
         .setViewMatrix(m_cameraSystem->getViewMatrix())
         .setProjectionMatrix(m_cameraSystem->getProjectionMatrix())
-        .setModelMatrix(Magnum::Matrix4{});
+        .setModelMatrix(Magnum::Matrix4{})
+        // Lightning
+        .setLightDirection({-1.0f, -0.3f, -1.0f})
+        .setLightColor({1.0f, 1.0f, 0.9f})
+        .setAmbientColor({0.7f, 0.7f, 0.8f})
+        // Fog
+        .setCameraPosition(playerPosition)
+        .setFogColor({0.6f, 0.8f, 1.0f})
+        .setFogDistance(renderDistanceInWorldUnits);
 
     if (auto currentChunk = getCurrentChunk())
     {
