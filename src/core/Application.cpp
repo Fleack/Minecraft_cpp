@@ -18,14 +18,7 @@
 #include <Magnum/GL/Version.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Math/Vector2.h>
-#include <Magnum/Ui/Anchor.h>
 #include <Magnum/Ui/Application.h>
-#include <Magnum/Ui/Label.h>
-#include <Magnum/Ui/SnapLayouter.h>
-#include <Magnum/Ui/Style.h>
-#include <Magnum/Ui/UserInterfaceGL.h>
-
-#include "ecs/component/TransformComponent.hpp"
 
 namespace mc::core
 {
@@ -36,53 +29,19 @@ Application::Application(Arguments const& arguments)
     : Sdl2Application{
           arguments,
           Configuration{}.setTitle("MinecraftX").setSize({1280, 720}),
-          GLConfiguration{}.setVersion(GL::Version::GL460)},
-      m_ui{windowSize(), Magnum::Ui::McssDarkStyle{}}, m_fpsLabel{Corrade::NoCreate, m_ui}, m_coordsLabel{Corrade::NoCreate, m_ui}, m_chunkLabel{Corrade::NoCreate, m_ui}, m_chunksCountLabel{Corrade::NoCreate, m_ui}, m_chunkExecutor{m_runtime.thread_pool_executor()}, m_mainExecutor{m_runtime.make_manual_executor()}, m_aspectRatio{static_cast<float>(windowSize().x()) / windowSize().y()}
+          GLConfiguration{}.setVersion(GL::Version::GL460)}
+    , m_chunkExecutor{m_runtime.thread_pool_executor()}
+    , m_mainExecutor{m_runtime.make_manual_executor()}
+    , m_aspectRatio{static_cast<float>(windowSize().x()) / windowSize().y()}
 {
     constexpr uint8_t renderDistance = 10;
 
     initializeCore();
     initializeEcs();
-    initializeCamera();
+    initializeCamera(renderDistance);
     initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
-
-    // FPS
-    {
-        auto fpsAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 0.0f},
-            {100.0f, 20.0f});
-        m_fpsLabel = Magnum::Ui::Label{fpsAnchor, "FPS: 0"};
-    }
-    // Coords
-    {
-        auto coordsAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            /* offset */ {0.0f, 20.0f},
-            /* size   */ {200.0f, 20.0f});
-        m_coordsLabel = Magnum::Ui::Label{coordsAnchor, "Coords: 0, 0, 0"};
-    }
-    // CurrentChunk
-    {
-        auto chunkAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            /* offset */ {0.0f, 40.0f},
-            /* size   */ {200.0f, 20.0f});
-        m_chunkLabel = Magnum::Ui::Label{chunkAnchor, "Chunk: 0,0"};
-    }
-    // Chunks amount
-    {
-        auto countAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            /* offset */ {0.0f, 60.0f},
-            /* size   */ {200.0f, 20.0f});
-        m_chunksCountLabel = Magnum::Ui::Label{countAnchor, "Chunks: 0"};
-    }
+    initializeUiSystem();
 
     setCursor(Cursor::Hidden);
     SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -107,9 +66,9 @@ void Application::initializeEcs()
     m_ecs = std::make_unique<ecs::Ecs>();
 }
 
-void Application::initializeCamera()
+void Application::initializeCamera(uint8_t renderDistance)
 {
-    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio);
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio, renderDistance);
     m_ecs->addSystem(m_cameraSystem);
 }
 
@@ -124,6 +83,12 @@ void Application::initializeRenderSystems(uint8_t renderDistance)
 {
     m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, renderDistance);
     m_ecs->addSystem(m_renderSystem);
+}
+
+void Application::initializeUiSystem()
+{
+    m_uiSystem = std::make_shared<ecs::UISystem>(*m_ecs, *m_world, windowSize());
+    m_ecs->addSystem(m_uiSystem);
 }
 
 void Application::drawEvent()
@@ -145,45 +110,7 @@ void Application::drawEvent()
     {
         m_ecs->update(deltaTime);
     }
-    m_ecs->render();
-
-    auto& component = m_ecs->getAllComponents<mc::ecs::TransformComponent>().begin()->second;
-    // FPS
-    {
-        float const fps = 1.0f / deltaTime;
-        m_fpsLabel.setText(
-            Corrade::Utility::format("FPS: {}", std::lround(fps)));
-    }
-    // Coords
-    {
-        auto const& pos = component.position;
-        m_coordsLabel.setText(
-            Corrade::Utility::format(
-                "Coords: {:.2f}, {:.2f}, {:.2f}",
-                pos.x(),
-                pos.y(),
-                pos.z()));
-    }
-    // Current chunk
-    {
-        auto const& pos = component.position;
-        constexpr float chunkSize = 16.0f;
-        int cx = std::floor(pos.x() / chunkSize);
-        int cz = std::floor(pos.z() / chunkSize);
-        m_chunkLabel.setText(
-            Corrade::Utility::format("Chunk: {},{}", cx, cz));
-    }
-    // Chunks amount
-    {
-        std::size_t total = m_world->getChunks().size();
-        m_chunksCountLabel.setText(
-            Corrade::Utility::format("Chunks: {}", total));
-    }
-
-    GL::Renderer::enable(GL::Renderer::Feature::Blending);
-    GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::One, Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-    m_ui.draw();
-    GL::Renderer::disable(GL::Renderer::Feature::Blending);
+    m_ecs->render(deltaTime);
 
     swapBuffers();
     redraw();
@@ -193,8 +120,8 @@ void Application::viewportEvent(ViewportEvent& event)
 {
     m_aspectRatio = static_cast<float>(event.windowSize().x()) / event.windowSize().y();
     m_cameraSystem->setAspectRatio(m_aspectRatio);
+    m_uiSystem->setWindowSize(event.windowSize());
     GL::defaultFramebuffer.setViewport({{}, event.framebufferSize()});
-    m_ui.setSize(event.windowSize());
 }
 
 void Application::keyPressEvent(KeyEvent& event)
@@ -226,7 +153,7 @@ void Application::pointerMoveEvent(Magnum::Platform::Sdl2Application::PointerMov
 {
     if (m_paused)
     {
-        m_ui.pointerMoveEvent(event);
+        m_uiSystem->pointerMoveEvent(event);
     }
     else
     {
@@ -237,12 +164,12 @@ void Application::pointerMoveEvent(Magnum::Platform::Sdl2Application::PointerMov
 
 void Application::pointerPressEvent(Magnum::Platform::Sdl2Application::PointerEvent& event)
 {
-    if (m_paused && m_ui.pointerPressEvent(event)) return;
+    if (m_paused && m_uiSystem->pointerPressEvent(event)) return;
 }
 
 void Application::pointerReleaseEvent(Magnum::Platform::Sdl2Application::PointerEvent& event)
 {
-    if (m_paused && m_ui.pointerReleaseEvent(event)) return;
+    if (m_paused && m_uiSystem->pointerReleaseEvent(event)) return;
 }
 
 void Application::scrollEvent(ScrollEvent& event)

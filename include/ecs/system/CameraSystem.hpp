@@ -22,10 +22,10 @@ using Camera3D = Magnum::SceneGraph::Camera3D;
 class CameraSystem final : public ISystem
 {
 public:
-    CameraSystem(Ecs& ecs, float aspectRatio);
+    CameraSystem(Ecs& ecs, float aspectRatio, uint8_t renderDistance);
 
     void update(float dt) override;
-    void render() override;
+    void render(float) override;
 
     void handleMouse(Magnum::Math::Vector2<float> const& delta);
     void handleScroll(float yOffset);

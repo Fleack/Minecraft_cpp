@@ -99,11 +99,11 @@ public:
     /**
      * @brief Calls render for all systems
      */
-    void render()
+    void render(float dt)
     {
         for (auto& sys : m_systems)
         {
-            sys->render();
+            sys->render(dt);
         }
     }
 

@@ -52,7 +52,7 @@ void RenderSystem::update(float dt)
     }
 }
 
-void RenderSystem::render()
+void RenderSystem::render(float)
 {
     m_shaderProgram
         .setViewMatrix(m_cameraSystem->getViewMatrix())

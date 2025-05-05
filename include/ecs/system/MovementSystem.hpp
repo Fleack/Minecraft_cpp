@@ -34,7 +34,7 @@ public:
     /**
      * @brief Does nothing.
      */
-    void render() override {};
+    void render(float) override {};
 
 private:
     Ecs& m_ecs; ///< Reference to the ECS manager.

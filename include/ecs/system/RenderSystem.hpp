@@ -5,15 +5,14 @@
 #include "render/ShaderProgram.hpp"
 #include "render/TextureManager.hpp"
 #include "utils/IVec3Hasher.hpp"
+#include "utils/PrioritizedChunk.hpp"
+#include "utils/PriorityUniqueQueue.hpp"
 #include "utils/UniqueQueue.hpp"
 
 #include <chrono>
 #include <memory>
 
 #include <Magnum/Math/Vector3.h>
-
-#include "utils/PrioritizedChunk.hpp"
-#include "utils/PriorityUniqueQueue.hpp"
 
 namespace mc::world
 {
@@ -77,7 +76,7 @@ public:
      * Binds the shader and texture atlas, sets view and projection matrices,
      * and draws all chunk meshes within the render radius.
      */
-    void render() override;
+    void render(float) override;
 
 private:
     /**

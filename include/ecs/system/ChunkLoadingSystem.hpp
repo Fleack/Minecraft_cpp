@@ -54,7 +54,7 @@ public:
     /**
      * @brief Does nothing.
      */
-    void render() override {}
+    void render(float) override {}
 
 private:
     /**

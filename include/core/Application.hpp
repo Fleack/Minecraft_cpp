@@ -1,13 +1,12 @@
 #pragma once
 
 #include "ecs/Ecs.hpp"
+#include "ecs/system/UISystem.hpp"
 #include "world/World.hpp"
 
 #include <memory>
 
 #include <Magnum/Platform/Sdl2Application.h>
-#include <Magnum/Ui/Label.h>
-#include <Magnum/Ui/UserInterfaceGL.h>
 #include <concurrencpp/concurrencpp.h>
 
 namespace mc::ecs
@@ -50,7 +49,7 @@ private:
     /**
      * @brief Sets up the camera system and default camera entity.
      */
-    void initializeCamera();
+    void initializeCamera(uint8_t renderDistance);
 
     /**
      * @brief Initializes the world and loads the initial chunks.
@@ -66,19 +65,14 @@ private:
      */
     void initializeRenderSystems(uint8_t renderDistance);
 
+    void initializeUiSystem();
+
     /**
      * @brief Cleans up and shuts down the application.
      */
     void shutdown();
 
 private:
-    // TODO Extract to another class
-    Magnum::Ui::UserInterfaceGL m_ui;
-    Magnum::Ui::Label m_fpsLabel;
-    Magnum::Ui::Label m_coordsLabel;
-    Magnum::Ui::Label m_chunkLabel;
-    Magnum::Ui::Label m_chunksCountLabel;
-
     concurrencpp::runtime m_runtime;
 
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
@@ -86,6 +80,7 @@ private:
 
     std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.
     std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
+    std::shared_ptr<ecs::UISystem> m_uiSystem; ///< Handles UI rendering.
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
     std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.
     std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem; ///< Dynamically loads chunks.

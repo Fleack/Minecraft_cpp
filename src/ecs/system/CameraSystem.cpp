@@ -1,13 +1,13 @@
 #include "ecs/system/CameraSystem.hpp"
 
+#include "core/Logger.hpp"
+#include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/TransformComponent.hpp"
+
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/Math/Functions.h>
 #include <Magnum/Math/Quaternion.h>
 #include <Magnum/Math/Vector3.h>
-
-#include "core/Logger.hpp"
-#include "ecs/component/CameraComponent.hpp"
-#include "ecs/component/TransformComponent.hpp"
 
 using namespace Magnum;
 using namespace Magnum::SceneGraph;
@@ -16,7 +16,7 @@ using namespace Magnum::Math::Literals;
 namespace mc::ecs
 {
 
-CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
+CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, uint8_t renderDistance)
     : m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
     m_cameraObject = std::make_unique<Object3D>(&m_scene);
@@ -24,11 +24,14 @@ CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
     m_cameraObject->translate(Vector3{0.0f, 100.0f, 0.0f});
     m_cameraObject->rotateY(Deg{-90.0f});
 
+    constexpr float chunkSize = 16.0f;
+    float renderDistanceInWorldUnits = renderDistance * chunkSize;
+
     m_camera = std::make_unique<Camera3D>(*m_cameraObject);
     m_camera->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
         .setProjectionMatrix(
             Matrix4::perspectiveProjection(
-                Deg{70.0f}, m_aspectRatio, 0.1f, 1000.0f))
+                Deg{70.0f}, m_aspectRatio, 0.1f, renderDistanceInWorldUnits))
         .setViewport(GL::defaultFramebuffer.viewport().size());
 
     auto e = m_ecs.createEntity();
@@ -56,7 +59,7 @@ void CameraSystem::update(float dt)
     m_ecs.getAllComponents<TransformComponent>().begin()->second.position = m_cameraObject->transformation().translation();
 }
 
-void CameraSystem::render()
+void CameraSystem::render(float)
 {
     m_view = m_camera->cameraMatrix();
     m_proj = m_camera->projectionMatrix();
@@ -86,7 +89,7 @@ void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
 void CameraSystem::handleScroll(float yOffset)
 {
     auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
-    cam.speed = Math::clamp(cam.speed + yOffset, 1.0f, 100.0f);
+    cam.speed = Math::clamp(cam.speed + yOffset * 5, 1.0f, 100.0f);
 }
 
 void CameraSystem::handleKey(Platform::Sdl2Application::Key key, bool pressed)
