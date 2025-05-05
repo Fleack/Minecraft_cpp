@@ -2,7 +2,7 @@
 
 #include "world/Block.hpp"
 
-#include <vector>
+#include <array>
 
 #include <Magnum/Math/Vector3.h>
 
@@ -27,7 +27,7 @@ public:
      *
      * Represents a 3D array [x][y][z] of Block elements.
      */
-    using block_volume = std::vector<std::vector<std::vector<Block>>>;
+    using block_volume = std::array<std::array<std::array<Block, CHUNK_SIZE_Z>, CHUNK_SIZE_Y>, CHUNK_SIZE_X>;
 
     /**
      * @brief Constructs a chunk at the specified world chunk position.

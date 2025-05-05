@@ -1,21 +1,13 @@
 #include "world/Chunk.hpp"
 
+#include <array>
+
 namespace mc::world
 {
 
 Chunk::Chunk(Magnum::Math::Vector3<int> const& position)
     : m_position(position)
-{
-    m_blocks.resize(CHUNK_SIZE_X);
-    for (auto& column : m_blocks)
-    {
-        column.resize(CHUNK_SIZE_Y);
-        for (auto& row : column)
-        {
-            row.resize(CHUNK_SIZE_Z);
-        }
-    }
-}
+{}
 
 Magnum::Math::Vector3<int> const& Chunk::getPosition() const
 {
