@@ -4,6 +4,9 @@ AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 AllowAllArgumentsOnNextLine: true
 BinPackArguments: false
+BreakConstructorInitializers: BeforeComma
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 4
 BinPackParameters: OnePerLine
 BreakBeforeBraces: Custom
 BraceWrapping:
@@ -32,14 +35,22 @@ AlwaysBreakTemplateDeclarations: Yes
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: WithoutElse
 ColumnLimit: 0
-IncludeCategories:
-  - Regex: '^<.*'
-    Priority: 1
-  - Regex: '^".*'
-    Priority: 2
-  - Regex: '.*'
-    Priority: 3
+IncludeBlocks: Regroup
+MaxEmptyLinesToKeep: 1
 IncludeIsMainRegex: '([-_](test|unittest))?$'
+IncludeCategories:
+  - Regex: '^"[^"]+"'
+    Priority: 2
+
+  - Regex: '^<[^/]+>$'
+    Priority: 3
+
+  - Regex: '^<.*>$'
+    Priority: 4
+
+SortIncludes: CaseSensitive
+AllowAllParametersOfDeclarationOnNextLine: true
+BreakFunctionDefinitionParameters: false
 IndentCaseBlocks: true
 IndentWidth: 4
 InsertNewlineAtEOF: true
@@ -53,4 +64,3 @@ SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 TabWidth: 4
-SortIncludes: CaseSensitive

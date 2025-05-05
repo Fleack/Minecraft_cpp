@@ -6,7 +6,6 @@
 
 #include <Corrade/Utility/Format.h>
 #include <Magnum/GL/Renderer.h>
-#include <Magnum/Math/Color.h>
 #include <Magnum/Math/Functions.h>
 #include <Magnum/Platform/Sdl2Application.h>
 #include <Magnum/Text/Alignment.h>
@@ -105,7 +104,7 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
 
 void UISystem::render(float deltaTime)
 {
-    auto const& transfrom = m_ecs.getAllComponents<TransformComponent>().begin()->second;
+    auto const& transform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
     auto const& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
     // FPS
     {
@@ -115,7 +114,7 @@ void UISystem::render(float deltaTime)
     }
     // Coords
     {
-        auto const& pos = transfrom.position;
+        auto const& pos = transform.position;
         m_coordsLabel.setText(
             Corrade::Utility::format(
                 "Coords: {:.2f}, {:.2f}, {:.2f}",
@@ -125,7 +124,7 @@ void UISystem::render(float deltaTime)
     }
     // Current chunk
     {
-        auto const& pos = transfrom.position;
+        auto const& pos = transform.position;
         constexpr float chunkSize = 16.0f;
         int cx = std::floor(pos.x() / chunkSize);
         int cz = std::floor(pos.z() / chunkSize);
@@ -141,9 +140,9 @@ void UISystem::render(float deltaTime)
     // Camera view
     {
         Magnum::Vector3 front{
-            Magnum::Math::cos(cam.pitch) * Magnum::Math::cos(cam.yaw),
-            Magnum::Math::sin(cam.pitch),
-            Magnum::Math::cos(cam.pitch) * Magnum::Math::sin(cam.yaw)};
+            Magnum::Math::cos(Magnum::Rad{cam.pitch}) * Magnum::Math::cos(Magnum::Rad{cam.yaw}),
+            Magnum::Math::sin(Magnum::Rad{cam.pitch}),
+            Magnum::Math::cos(Magnum::Rad{cam.pitch}) * Magnum::Math::sin(Magnum::Rad{cam.yaw})};
 
         m_viewLabel.setText(
             Corrade::Utility::format(
