@@ -148,7 +148,7 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
                 m_ecs.addComponent<MeshComponent>(e, mesh);
                 vec.push_back(e);
             }
-            SPAM_LOG(DEBUG, "Built {} sub-meshes for chunk [{}, {}]", blocksMeshes.size(), pos.x(), pos.z());
+            SPAM_LOG(DEBUG, "Built {} sub-meshes for chunk [{}, {}]", blocksMeshes.size(), chunk.pos.x(), chunk.pos.z());
         }
         else
         {

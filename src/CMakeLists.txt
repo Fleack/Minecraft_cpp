@@ -32,6 +32,9 @@ target_link_libraries(voxel_engine
         Magnum::SceneGraph
         Magnum::MeshTools
         Magnum::Trade
+        Magnum::AnyImageImporter
+        MagnumExtras::Ui
+        MagnumPlugins::StbTrueTypeFont
         MagnumPlugins::StbImageImporter
         # Rest of libs
         dbghelp

@@ -7,11 +7,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 message(STATUS "Project Minecraft, build type: ${CMAKE_BUILD_TYPE}")
 
+list(APPEND CMAKE_MODULE_PATH
+        "${PROJECT_SOURCE_DIR}/extern/magnum-extras/modules"
+)
 include(cmake/ConanSetup.cmake)
 include(cmake/MagnumSetup.cmake)
 include(cmake/Dependencies.cmake)
+include(cmake/InstallAssets.cmake)
 
 add_subdirectory(src)
 # add_subdirectory(test)
-
-include(cmake/InstallAssets.cmake)

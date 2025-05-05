@@ -6,7 +6,8 @@
 #include <memory>
 
 #include <Magnum/Platform/Sdl2Application.h>
-
+#include <Magnum/Ui/Label.h>
+#include <Magnum/Ui/UserInterfaceGL.h>
 #include <concurrencpp/concurrencpp.h>
 
 namespace mc::ecs
@@ -35,6 +36,8 @@ private:
     void keyPressEvent(KeyEvent& event) override;
     void keyReleaseEvent(KeyEvent& event) override;
     void pointerMoveEvent(PointerMoveEvent& event) override;
+    void pointerPressEvent(PointerEvent& event) override;
+    void pointerReleaseEvent(PointerEvent& event) override;
     void scrollEvent(ScrollEvent& event) override;
 
     void initializeCore() const;
@@ -69,7 +72,15 @@ private:
     void shutdown();
 
 private:
+    // TODO Extract to another class
+    Magnum::Ui::UserInterfaceGL m_ui;
+    Magnum::Ui::Label m_fpsLabel;
+    Magnum::Ui::Label m_coordsLabel;
+    Magnum::Ui::Label m_chunkLabel;
+    Magnum::Ui::Label m_chunksCountLabel;
+
     concurrencpp::runtime m_runtime;
+
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
     std::shared_ptr<concurrencpp::manual_executor> m_mainExecutor;
 
