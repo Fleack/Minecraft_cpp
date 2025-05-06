@@ -49,6 +49,7 @@ IncludeCategories:
     Priority: 4
 
 SortIncludes: CaseSensitive
+ReflowComments: false
 AllowAllParametersOfDeclarationOnNextLine: true
 BreakFunctionDefinitionParameters: false
 IndentCaseBlocks: true
