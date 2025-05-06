@@ -107,7 +107,7 @@ private:
     double m_avgScheduleTime = 0.0005; ///< Exponential moving average (EMA) of chunk scheduling time in seconds.
     double m_timeBudget = 0.0; ///< Maximum allowed time (in seconds) per frame for scheduling chunk loads.
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation (closer to 1 = faster adaptation).
-    static constexpr float workFraction = 0.3f; ///< Fraction of leftover frame time allocated to chunk loading.
+    static constexpr float workFraction = 0.0001f; ///< Fraction of leftover frame time allocated to chunk loading.
 
     utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_loadQueue; ///< Queue of chunk positions awaiting generation.
 };
