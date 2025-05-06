@@ -26,6 +26,7 @@ ShaderProgram::ShaderProgram()
     bindAttributeLocation(0, "a_Position");
     bindAttributeLocation(1, "a_Normal");
     bindAttributeLocation(2, "a_UV");
+    bindAttributeLocation(3, "a_AO");
 
     bindFragmentDataLocation(0, "FragColor");
 

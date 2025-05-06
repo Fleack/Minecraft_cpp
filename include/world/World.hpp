@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utils/IVec3Hasher.hpp"
 #include "world/ChunkGenerator.hpp"
 
 #include <memory>
@@ -8,8 +9,6 @@
 #include <unordered_set>
 
 #include <Magnum/Math/Vector3.h>
-
-#include "utils/IVec3Hasher.hpp"
 
 namespace mc::world
 {
@@ -44,7 +43,7 @@ public:
      * @param chunkPos Position of the chunk in chunk-space.
      * @return Optional reference to the chunk if loaded.
      */
-    [[nodiscard]] std::optional<std::reference_wrapper<Chunk>> getChunk(Magnum::Math::Vector3<int> const& chunkPos);
+    [[nodiscard]] std::optional<std::reference_wrapper<Chunk>> getChunk(Magnum::Math::Vector3<int> const& chunkPos) const;
 
     /**
      * @brief Checks whether a chunk is currently loaded.

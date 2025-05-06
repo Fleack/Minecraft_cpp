@@ -1,6 +1,7 @@
 in vec2 v_UV;
 in vec3 v_Normal;
 in vec3 v_FragPos;
+in float v_AO;
 
 uniform sampler2D u_Texture;
 
@@ -28,13 +29,14 @@ void main()
 
     // Specular (Blinn-Phong)
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 8.0);
     vec3 specular = spec * vec3(0.1);
 
     // Lightning
+    float aoStrength = 0.5;
     vec3 baseColor = texture(u_Texture, v_UV).rgb;
-    vec3 ambient = u_AmbientColor * baseColor;
-    vec3 diffuse = diff * u_LightColor * baseColor;
+    vec3 ambient = u_AmbientColor * baseColor * mix(1.0, v_AO, aoStrength);
+    vec3 diffuse = diff * u_LightColor * baseColor * mix(1.0, v_AO, aoStrength);
 
     // Fog
     float dist = length(v_FragPos - u_CameraPos);

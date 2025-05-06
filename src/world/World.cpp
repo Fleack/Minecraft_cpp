@@ -1,4 +1,5 @@
 #include "world/World.hpp"
+
 #include "core/Logger.hpp"
 
 namespace mc::world
@@ -21,7 +22,7 @@ concurrencpp::lazy_result<void> World::loadChunk(Magnum::Math::Vector3<int> chun
     co_await commitChunkAsync(chunkPos, std::move(chunk));
 }
 
-std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Math::Vector3<int> const& chunkPos)
+std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Math::Vector3<int> const& chunkPos) const
 {
     auto it = m_chunks.find(chunkPos);
     if (it != m_chunks.end())

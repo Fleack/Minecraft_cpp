@@ -153,7 +153,7 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
         auto chunk = m_meshQueue.pop();
         if (auto opt = m_world.getChunk(chunk.pos))
         {
-            auto blocksMeshes = render::ChunkMeshBuilder::build(opt->get());
+            auto blocksMeshes = render::ChunkMeshBuilder::build(opt->get(), m_world);
             auto& vec = m_chunkToMesh[chunk.pos];
             for (auto& mesh : blocksMeshes)
             {

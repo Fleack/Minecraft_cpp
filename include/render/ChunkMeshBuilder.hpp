@@ -1,13 +1,19 @@
 #pragma once
 
+#include "world/Chunk.hpp"
+
 #include <vector>
 
-#include "world/Chunk.hpp"
+namespace mc::world
+{
+class World;
+}
 
 namespace mc::ecs
 {
 struct MeshComponent;
 }
+
 namespace mc::render
 {
 
@@ -22,7 +28,7 @@ public:
      *
      * @param chunk Reference to the voxel chunk.
      */
-    static std::vector<ecs::MeshComponent> build(world::Chunk const& chunk);
+    static std::vector<ecs::MeshComponent> build(world::Chunk const& chunk, world::World const& world);
 };
 
 } // namespace mc::render

@@ -3,12 +3,14 @@
 #include "ecs/component/MeshComponent.hpp"
 #include "render/BlockTextureMapper.hpp"
 #include "render/Vertex.hpp"
+#include "world/World.hpp"
 
 #include <memory>
 #include <unordered_map>
 
 #include <Magnum/GL/Buffer.h>
 #include <Magnum/GL/Mesh.h>
+#include <Magnum/Math/Functions.h>
 #include <Magnum/Math/Vector2.h>
 #include <Magnum/Math/Vector3.h>
 
@@ -70,66 +72,188 @@ constexpr Math::Vector2<Float> FACE_UVS[6][4] = {
     {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}},
 };
 
-bool is_face_visible(world::Chunk const& chunk, int x, int y, int z)
+constexpr std::tuple<Magnum::Math::Vector3<int>, Magnum::Math::Vector3<int>, Magnum::Math::Vector3<int>> AO_OFFSETS[6][4] = {
+    // FRONT (+Z)
+    {
+        {{0, -1, 0}, {-1, 0, 0}, {-1, -1, 1}}, // Bottom Left
+        {{0, -1, 0}, {1, 0, 0}, {1, -1, 1}}, // Bottom Right
+        {{0, 1, 0}, {1, 0, 0}, {1, 1, 1}}, // Top Right
+        {{0, 1, 0}, {-1, 0, 0}, {-1, 1, 1}}, // Top Left
+    },
+    // BACK (-Z)
+    {
+        {{0, -1, 0}, {1, 0, 0}, {1, -1, -1}},
+        {{0, -1, 0}, {-1, 0, 0}, {-1, -1, -1}},
+        {{0, 1, 0}, {-1, 0, 0}, {-1, 1, -1}},
+        {{0, 1, 0}, {1, 0, 0}, {1, 1, -1}},
+    },
+    // TOP (+Y)
+    {
+        {{0, 0, 1}, {-1, 0, 0}, {-1, 0, 1}},
+        {{0, 0, 1}, {1, 0, 0}, {1, 0, 1}},
+        {{0, 0, -1}, {1, 0, 0}, {1, 0, -1}},
+        {{0, 0, -1}, {-1, 0, 0}, {-1, 0, -1}},
+    },
+    // BOTTOM (-Y)
+    {
+        {{0, 0, -1}, {-1, 0, 0}, {-1, 0, -1}},
+        {{0, 0, -1}, {1, 0, 0}, {1, 0, -1}},
+        {{0, 0, 1}, {1, 0, 0}, {1, 0, 1}},
+        {{0, 0, 1}, {-1, 0, 0}, {-1, 0, 1}},
+    },
+    // RIGHT (+X)
+    {
+        {{0, -1, 0}, {0, 0, 1}, {1, -1, 1}},
+        {{0, -1, 0}, {0, 0, -1}, {1, -1, -1}},
+        {{0, 1, 0}, {0, 0, -1}, {1, 1, -1}},
+        {{0, 1, 0}, {0, 0, 1}, {1, 1, 1}},
+    },
+    // LEFT (-X)
+    {
+        {{0, -1, 0}, {0, 0, -1}, {-1, -1, -1}},
+        {{0, -1, 0}, {0, 0, 1}, {-1, -1, 1}},
+        {{0, 1, 0}, {0, 0, 1}, {-1, 1, 1}},
+        {{0, 1, 0}, {0, 0, -1}, {-1, 1, -1}},
+    },
+};
+
+bool get_block_solid(world::World const& world, Magnum::Math::Vector3<Int> const& pos)
 {
     using namespace world;
-    if (x < 0 || x >= CHUNK_SIZE_X || y < 0 || y >= CHUNK_SIZE_Y || z < 0 || z >= CHUNK_SIZE_Z)
-        return true;
-    return not chunk.getBlock(x, y, z).isSolid();
+
+    Magnum::Math::Vector3<Int> chunkPos{
+        static_cast<int>(std::floor(pos.x() / static_cast<float>(CHUNK_SIZE_X))),
+        static_cast<int>(std::floor(pos.y() / static_cast<float>(CHUNK_SIZE_Y))),
+        static_cast<int>(std::floor(pos.z() / static_cast<float>(CHUNK_SIZE_Z)))};
+
+    Magnum::Math::Vector3<Int> localPos{
+        (pos.x() % CHUNK_SIZE_X + CHUNK_SIZE_X) % CHUNK_SIZE_X,
+        (pos.y() % CHUNK_SIZE_Y + CHUNK_SIZE_Y) % CHUNK_SIZE_Y,
+        (pos.z() % CHUNK_SIZE_Z + CHUNK_SIZE_Z) % CHUNK_SIZE_Z};
+
+    if (auto chunkOpt = world.getChunk(chunkPos))
+    {
+        auto& chunk = chunkOpt->get();
+        return chunk.getBlock(localPos.x(), localPos.y(), localPos.z()).isSolid();
+    }
+
+    return false;
 }
 
 } // namespace
 
-std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(world::Chunk const& chunk)
+std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(world::Chunk const& chunk, world::World const& world)
 {
     using namespace world;
-    std::unordered_map<std::string, std::vector<Vertex>> byTexture;
+    using namespace Magnum;
+    using namespace Magnum::Math;
 
-    auto const chunkOffset = Magnum::Math::Vector3<Int>{
-        chunk.getPosition().x() * CHUNK_SIZE_X,
-        chunk.getPosition().y() * CHUNK_SIZE_Y,
-        chunk.getPosition().z() * CHUNK_SIZE_Z};
+    std::unordered_map<std::string, std::vector<Vertex>> byTexture;
+    Vector3i const chunkOffset = chunk.getPosition() * Vector3i{CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
 
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
         for (int y = 0; y < CHUNK_SIZE_Y; ++y)
             for (int z = 0; z < CHUNK_SIZE_Z; ++z)
             {
-                auto const block = chunk.getBlock(x, y, z);
+                Block block = chunk.getBlock(x, y, z);
                 if (!block.isSolid()) continue;
+
+                Vector3i const blockLocalPos{x, y, z};
+                Vector3i const blockWorldPos = blockLocalPos + chunkOffset;
+
                 for (uint8_t face = 0; face < 6; ++face)
                 {
-                    auto const nx = x + static_cast<int>(FACE_NORMALS[face].x());
-                    auto const ny = y + static_cast<int>(FACE_NORMALS[face].y());
-                    auto const nz = z + static_cast<int>(FACE_NORMALS[face].z());
+                    Vector3i neighbor = blockLocalPos + FACE_NORMALS[face];
+                    if (neighbor.x() >= 0 && neighbor.y() >= 0 && neighbor.z() >= 0 &&
+                        neighbor.x() < CHUNK_SIZE_X && neighbor.y() < CHUNK_SIZE_Y && neighbor.z() < CHUNK_SIZE_Z &&
+                        chunk.getBlock(neighbor.x(), neighbor.y(), neighbor.z()).isSolid())
+                        continue;
 
-                    if (!is_face_visible(chunk, nx, ny, nz)) continue;
+                    std::string textureName = get_texture_name_for_block(block.type, face);
 
-                    auto textureName = get_texture_name_for_block(block.type, face);
-                    for (int i : {0, 1, 2, 0, 2, 3})
+                    struct AO_Vertex
                     {
                         Vertex v;
-                        v.position = Vector3(x, y, z) + Vector3(FACE_VERTICES[face][i]) + Vector3(chunkOffset);
-                        v.normal = Vector3(FACE_NORMALS[face]);
-                        v.uv = FACE_UVS[face][i % 4];
-                        byTexture[textureName].push_back(v);
+                        float ao;
+                    };
+                    AO_Vertex verts[4];
+
+                    float ao_sum = 0.0f;
+
+                    for (int vi = 0; vi < 4; ++vi)
+                    {
+                        Vector3i offset = FACE_VERTICES[face][vi];
+                        Vector3i vertexWorld = blockWorldPos + offset;
+                        auto [side1Offset, side2Offset, cornerOffset] = AO_OFFSETS[face][vi];
+
+                        Vector3i s1 = vertexWorld + side1Offset;
+                        Vector3i s2 = vertexWorld + side2Offset;
+                        Vector3i c = vertexWorld + cornerOffset;
+
+                        bool b1 = get_block_solid(world, s1);
+                        bool b2 = get_block_solid(world, s2);
+                        bool bc = get_block_solid(world, c);
+
+                        float ao = (b1 && b2) ? 0.0f : 1.0f - (b1 + b2 + bc) * 0.33f;
+
+                        ao_sum += ao;
+
+                        Vertex v;
+                        v.position = Magnum::Vector3{vertexWorld};
+                        v.normal = Magnum::Vector3{FACE_NORMALS[face]};
+                        v.uv = FACE_UVS[face][vi];
+                        v.ao = ao;
+
+                        verts[vi] = AO_Vertex{v, ao};
+                    }
+
+                    float aoAvg = ao_sum / 4.0f;
+                    for (int vi = 0; vi < 4; ++vi)
+                        verts[vi].v.ao = Math::lerp(1.0f, aoAvg, 0.7f);
+
+                    float diag1 = verts[0].ao + verts[2].ao;
+                    float diag2 = verts[1].ao + verts[3].ao;
+
+                    if (diag1 < diag2)
+                    {
+                        byTexture[textureName].push_back(verts[0].v);
+                        byTexture[textureName].push_back(verts[1].v);
+                        byTexture[textureName].push_back(verts[2].v);
+
+                        byTexture[textureName].push_back(verts[0].v);
+                        byTexture[textureName].push_back(verts[2].v);
+                        byTexture[textureName].push_back(verts[3].v);
+                    }
+                    else
+                    {
+                        byTexture[textureName].push_back(verts[1].v);
+                        byTexture[textureName].push_back(verts[2].v);
+                        byTexture[textureName].push_back(verts[3].v);
+
+                        byTexture[textureName].push_back(verts[1].v);
+                        byTexture[textureName].push_back(verts[3].v);
+                        byTexture[textureName].push_back(verts[0].v);
                     }
                 }
             }
 
     std::vector<ecs::MeshComponent> result;
     result.reserve(byTexture.size());
+
     for (auto& [texName, verts] : byTexture)
     {
         auto mesh = std::make_shared<GL::Mesh>();
         GL::Buffer buf;
         buf.setData(Containers::arrayView(verts.data(), verts.size()), GL::BufferUsage::StaticDraw);
+
         mesh->setPrimitive(GL::MeshPrimitive::Triangles)
             .setCount(verts.size())
             .addVertexBuffer(
-                std::move(buf), 0, attribute::POSITION_ATTRIBUTE, attribute::NORMAL_ATTRIBUTE, attribute::UV_ATTRIBUTE);
+                std::move(buf), 0, attribute::POSITION_ATTRIBUTE, attribute::NORMAL_ATTRIBUTE, attribute::UV_ATTRIBUTE, attribute::AO_ATTRIBUTE);
+
         result.push_back({mesh, texName});
     }
+
     return result;
 }
-
 } // namespace mc::render
