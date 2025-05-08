@@ -44,7 +44,7 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
             Magnum::Ui::Snap::TopLeft,
             {0.0f, 0.0f},
             {400.0f, 20.0f});
-        m_fpsLabel = Magnum::Ui::Label{fpsAnchor, "FPS: 0 (AVG_FSP: 0, 99%: 0, 99.9%: 0, AVG_FT: 0 ms)", textProps};
+        m_fpsLabel = Magnum::Ui::Label{fpsAnchor, "FPS: 0 (AVG: 0, 99%: 0, 99.9%: 0, Frametime: 0 ms)", textProps};
     }
     // Coords
     {
@@ -125,7 +125,7 @@ void UISystem::render(float deltaTime)
             float avgFps = 1.0f / avgDeltaTime;
             float fps = 1.0f / deltaTime;
             m_fpsLabel.setText(
-                Corrade::Utility::format("FPS: {} (AVG_FSP: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, AVG_FT: {:.1f} ms)", std::lround(fps), avgFps, fps99, fps999, avgFrameTimeMs));
+                Corrade::Utility::format("FPS: {} (AVG: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, Frametime: {:.1f} ms)", std::lround(fps), avgFps, fps99, fps999, avgFrameTimeMs));
             m_timeSinceLastFpsUpdate = 0.0f;
         }
     }
