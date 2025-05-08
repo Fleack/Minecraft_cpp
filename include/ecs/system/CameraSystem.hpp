@@ -22,7 +22,7 @@ using Camera3D = Magnum::SceneGraph::Camera3D;
 class CameraSystem final : public ISystem
 {
 public:
-    CameraSystem(Ecs& ecs, float aspectRatio, uint8_t renderDistance);
+    CameraSystem(Ecs& ecs, float aspectRatio);
 
     void update(float dt) override;
     void render(float) override;

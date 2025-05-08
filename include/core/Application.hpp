@@ -49,7 +49,7 @@ private:
     /**
      * @brief Sets up the camera system and default camera entity.
      */
-    void initializeCamera(uint8_t renderDistance);
+    void initializeCamera();
 
     /**
      * @brief Initializes the world and loads the initial chunks.

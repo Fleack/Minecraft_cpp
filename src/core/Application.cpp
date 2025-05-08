@@ -39,7 +39,7 @@ Application::Application(Arguments const& arguments)
 
     initializeCore();
     initializeEcs();
-    initializeCamera(renderDistance);
+    initializeCamera();
     initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
     initializeUiSystem();
@@ -67,9 +67,9 @@ void Application::initializeEcs()
     m_ecs = std::make_unique<ecs::Ecs>();
 }
 
-void Application::initializeCamera(uint8_t renderDistance)
+void Application::initializeCamera()
 {
-    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio, renderDistance);
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio);
     m_ecs->addSystem(m_cameraSystem);
 }
 

@@ -16,7 +16,7 @@ using namespace Magnum::Math::Literals;
 namespace mc::ecs
 {
 
-CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, uint8_t renderDistance)
+CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
     : m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
     m_cameraObject = std::make_unique<Object3D>(&m_scene);
@@ -24,14 +24,11 @@ CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio, uint8_t renderDistance)
     m_cameraObject->translate(Vector3{0.0f, 100.0f, 0.0f});
     m_cameraObject->rotateY(Deg{-90.0f});
 
-    constexpr float chunkSize = 16.0f;
-    float renderDistanceInWorldUnits = 2 * renderDistance * chunkSize;
-
     m_camera = std::make_unique<Camera3D>(*m_cameraObject);
     m_camera->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
         .setProjectionMatrix(
             Matrix4::perspectiveProjection(
-                Deg{70.0f}, m_aspectRatio, 0.1f, renderDistanceInWorldUnits))
+                Deg{70.0f}, m_aspectRatio, 0.1f, 1000.0f))
         .setViewport(GL::defaultFramebuffer.viewport().size());
 
     auto e = m_ecs.createEntity();
@@ -89,7 +86,8 @@ void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
 void CameraSystem::handleScroll(float yOffset)
 {
     auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
-    cam.speed = Math::clamp(cam.speed + yOffset * 5, 1.0f, 100.0f);
+    cam.speed *= std::pow(1.1f, yOffset);
+    cam.speed = std::clamp(cam.speed, 1.0f, 300.0f);
 }
 
 void CameraSystem::handleKey(Platform::Sdl2Application::Key key, bool pressed)
