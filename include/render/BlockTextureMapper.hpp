@@ -32,6 +32,7 @@ inline std::string get_texture_name_for_block(world::BlockType type, uint8_t fac
 
 using texture_id = uint16_t;
 static std::unordered_map<std::string, texture_id> const TEXTURE_MAP = {
+    {"ERROR! Incorrect texture ID", 0},
     {"grass_top", 1},
     {"grass_side", 2},
     {"dirt", 3},

@@ -42,13 +42,13 @@ public:
     static std::vector<ecs::MeshComponent> build(world::Chunk const& chunk, world::World const& world);
 
 private:
-    static void collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::unordered_map<texture_id, std::vector<Vertex>>& out);
+    static void collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::vector<std::vector<Vertex>>& out);
 
     static void processBlock(
         CachedChunksMap const& chunks,
         world::Block const& block,
         Magnum::Vector3i const& worldPos,
-        std::unordered_map<texture_id, std::vector<Vertex>>& out);
+        std::vector<std::vector<Vertex>>& out);
 
     static std::array<Vertex, VERTS_PER_FACE> computeFaceVertices(
         CachedChunksMap const& chunks,
@@ -59,7 +59,7 @@ private:
 
     static void appendTriangles(std::vector<Vertex>& out, std::array<Vertex, VERTS_PER_FACE> const& faceVerts);
 
-    static std::vector<ecs::MeshComponent> buildMeshComponents(std::unordered_map<texture_id, std::vector<Vertex>> const& vertsByTex);
+    static std::vector<ecs::MeshComponent> buildMeshComponents(std::vector<std::vector<Vertex>> const& vertsByTex);
 
     static bool isWorldBlockSolid(CachedChunksMap const& chunks, Magnum::Vector3i const& pos);
     static std::optional<world::Block> getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks);

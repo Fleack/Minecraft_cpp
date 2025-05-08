@@ -103,13 +103,13 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(
         }
     }
 
-    std::unordered_map<texture_id, std::vector<Vertex>> vertsByTexture;
+    std::vector<std::vector<Vertex>> vertsByTexture(g_max_texture_id);
     collectVertices(chunk, chunks, vertsByTexture);
 
     return buildMeshComponents(vertsByTexture);
 }
 
-void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::unordered_map<texture_id, std::vector<Vertex>>& out)
+void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::vector<std::vector<Vertex>>& out)
 {
     using namespace world;
     static constexpr Magnum::Vector3i chunkSize{CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
@@ -134,14 +134,21 @@ void ChunkMeshBuilder::processBlock(
     CachedChunksMap const& chunks,
     world::Block const& block,
     Magnum::Vector3i const& worldPos,
-    std::unordered_map<texture_id, std::vector<Vertex>>& out)
+    std::vector<std::vector<Vertex>>& out)
 {
     for (int face = 0; face < FACE_COUNT; ++face)
     {
         if (isWorldBlockSolid(chunks, worldPos + FACE_NORMALS[face]))
             continue;
 
-        auto textureId = get_texture_id_by_name(get_texture_name_for_block(block.type, face));
+        auto textureName = get_texture_name_for_block(block.type, face);
+        auto textureId = get_texture_id_by_name(textureName);
+
+        if (textureId >= out.size())
+        {
+            std::abort();
+        }
+
         auto faceVerts = computeFaceVertices(chunks, worldPos, face);
         adjustAo(faceVerts);
         appendTriangles(out[textureId], faceVerts);
@@ -190,13 +197,16 @@ void ChunkMeshBuilder::appendTriangles(std::vector<Vertex>& out, std::array<Vert
     }
 }
 
-std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::unordered_map<texture_id, std::vector<Vertex>> const& vertsByTex)
+std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::vector<std::vector<Vertex>> const& vertsByTex)
 {
     std::vector<ecs::MeshComponent> result;
     result.reserve(vertsByTex.size());
 
-    for (auto& [tex, verts] : vertsByTex)
+    for (texture_id tex = 0; tex < vertsByTex.size(); ++tex)
     {
+        auto const& verts = vertsByTex[tex];
+        if (verts.empty()) continue;
+
         auto mesh = std::make_shared<Magnum::GL::Mesh>();
         Magnum::GL::Buffer buf;
         buf.setData(
@@ -206,7 +216,12 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::unord
         mesh->setPrimitive(Magnum::GL::MeshPrimitive::Triangles)
             .setCount(verts.size())
             .addVertexBuffer(
-                std::move(buf), 0, attribute::POSITION_ATTRIBUTE, attribute::NORMAL_ATTRIBUTE, attribute::UV_ATTRIBUTE, attribute::AO_ATTRIBUTE);
+                std::move(buf),
+                0,
+                attribute::POSITION_ATTRIBUTE,
+                attribute::NORMAL_ATTRIBUTE,
+                attribute::UV_ATTRIBUTE,
+                attribute::AO_ATTRIBUTE);
 
         result.emplace_back(mesh, tex);
     }
