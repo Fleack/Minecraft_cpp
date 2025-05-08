@@ -147,6 +147,8 @@ void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
 
 void RenderSystem::enqueueChunkForMesh(utils::PrioritizedChunk const& chunk)
 {
+    if (m_meshQueue.contains(chunk) || m_pendingMeshes.contains(chunk.pos)) return;
+    SPAM_LOG(DEBUG, "Enqueue mesh at [{}, {}] for generation", chunk.pos.x(), chunk.pos.z());
     m_meshQueue.push(chunk);
 }
 
@@ -163,17 +165,11 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
 
         if (auto opt = m_world.getChunk(chunk.pos))
         {
-            auto job = ChunkMeshJob{
-                .chunkPos = chunk.pos,
-                .result = m_meshExecutor->submit([=, &world = m_world]() {
-                    return render::ChunkMeshBuilder::buildVertexData(opt->get(), world);
-                })};
+            auto job = m_meshExecutor->submit([=, &world = m_world]() {
+                return render::ChunkMeshBuilder::buildVertexData(opt->get(), world);
+            });
             m_pendingMeshes.emplace(chunk.pos, std::move(job));
             ++launches;
-        }
-        else
-        {
-            enqueueChunkForMesh(chunk);
         }
     }
     return launches;
@@ -187,23 +183,25 @@ void RenderSystem::updateStats(size_t launches, time_point const& start)
 
     // SPAM_LOG(DEBUG, "Built {} meshes in {:.3f} ms (EMA {:.3f} ms)", launches, duration * 1000.0, m_avgBuildTime * 1000.0);
 }
+
 void RenderSystem::integrateFinishedMeshes()
 {
     std::vector<Magnum::Vector3i> toRemove;
 
     for (auto& [pos, job] : m_pendingMeshes)
     {
-        if (!job.result)
+        if (!job)
         {
             toRemove.push_back(pos);
             continue;
         }
 
-        if (job.result.status() != concurrencpp::result_status::value) continue;
+        if (job.status() != concurrencpp::result_status::value) continue;
 
-        auto vertsByTex = job.result.get();
+        auto vertsByTex = job.get();
         auto blocksMeshes = render::ChunkMeshBuilder::buildMeshComponents(vertsByTex);
 
+        SPAM_LOG(DEBUG, "Commiting mesh [{}, {}] into mesh map", pos.x(), pos.z());
         auto& vec = m_chunkToMesh[pos];
         for (auto& mesh : blocksMeshes)
         {

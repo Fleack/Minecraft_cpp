@@ -19,7 +19,7 @@ concurrencpp::lazy_result<void> World::loadChunk(Magnum::Vector3i chunkPos)
     }
     enqueueChunk(chunkPos);
     auto chunk = co_await generateChunkAsync(chunkPos);
-    co_await commitChunkAsync(chunkPos, std::move(chunk));
+    co_await commitChunk(chunkPos, std::move(chunk));
 }
 
 std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Vector3i const& chunkPos) const
@@ -46,7 +46,7 @@ concurrencpp::lazy_result<std::unique_ptr<Chunk>> World::generateChunkAsync(Magn
     co_return chunk;
 }
 
-concurrencpp::lazy_result<void> World::commitChunkAsync(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr)
+concurrencpp::lazy_result<void> World::commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr)
 {
     co_await concurrencpp::resume_on(m_mainExecutor);
     SPAM_LOG(INFO, "Committing chunk [{}, {}] into final map", chunkPos.x(), chunkPos.z());

@@ -48,6 +48,7 @@ class RenderSystem final : public ISystem
 private:
     using clock = std::chrono::steady_clock;
     using time_point = clock::time_point;
+    using chunk_mesh_job = concurrencpp::result<std::vector<std::vector<render::Vertex>>>;
 
 public:
     /**
@@ -129,12 +130,6 @@ private:
     void integrateFinishedMeshes();
 
 private:
-    struct ChunkMeshJob
-    {
-        Magnum::Vector3i chunkPos;
-        concurrencpp::result<std::vector<std::vector<render::Vertex>>> result;
-    };
-
     Ecs& m_ecs; ///< ECS manager reference.
     world::World& m_world; ///< Reference to the world for chunk access.
     render::ShaderProgram m_shaderProgram{}; ///< Shader program used for rendering.
@@ -149,7 +144,7 @@ private:
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation.
     static constexpr float workFraction = 0.99f; ///< Fraction of leftover frame time allowed for mesh building.
 
-    std::unordered_map<Magnum::Vector3i, ChunkMeshJob, utils::IVec3Hasher> m_pendingMeshes;
+    std::unordered_map<Magnum::Vector3i, chunk_mesh_job, utils::IVec3Hasher> m_pendingMeshes;
     utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_meshQueue;
     std::unordered_map<Magnum::Vector3i, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
 };

@@ -90,15 +90,12 @@ std::vector<std::vector<Vertex>> ChunkMeshBuilder::buildVertexData(
     Magnum::Vector3i center = chunk.getPosition();
     for (int dx = -1; dx <= 1; ++dx)
     {
-        for (int dy = -1; dy <= 1; ++dy)
+        for (int dz = -1; dz <= 1; ++dz)
         {
-            for (int dz = -1; dz <= 1; ++dz)
+            Magnum::Vector3i pos = center + Magnum::Vector3i{dx, 0, dz};
+            if (auto opt = world.getChunk(pos))
             {
-                Magnum::Vector3i pos = center + Magnum::Vector3i{dx, dy, dz};
-                if (auto opt = world.getChunk(pos))
-                {
-                    chunks[pos] = &opt->get();
-                }
+                chunks[pos] = &opt->get();
             }
         }
     }
@@ -122,7 +119,7 @@ void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, CachedChunksMa
                 auto block = chunk.getBlock(x, y, z);
                 if (!block.isSolid()) continue;
 
-                Magnum::Vector3i worldBlockPos = {Magnum::Vector3i{x, y, z} + chunkOffset};
+                Magnum::Vector3i worldBlockPos = Magnum::Vector3i{x, y, z} + chunkOffset;
                 processBlock(chunks, block, worldBlockPos, out);
             }
         }
@@ -142,11 +139,6 @@ void ChunkMeshBuilder::processBlock(
 
         auto textureName = get_texture_name_for_block(block.type, face);
         auto textureId = get_texture_id_by_name(textureName);
-
-        if (textureId >= out.size())
-        {
-            std::abort();
-        }
 
         auto faceVerts = computeFaceVertices(chunks, worldPos, face);
         adjustAo(faceVerts);

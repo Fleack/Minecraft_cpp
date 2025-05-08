@@ -75,7 +75,7 @@ private:
     void enqueueChunk(Magnum::Vector3i const& chunkPos);
 
     concurrencpp::lazy_result<std::unique_ptr<Chunk>> generateChunkAsync(Magnum::Vector3i chunkPos) const;
-    concurrencpp::lazy_result<void> commitChunkAsync(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr);
+    concurrencpp::lazy_result<void> commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr);
 
 private:
     std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_chunks;

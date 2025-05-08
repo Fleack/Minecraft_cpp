@@ -21,6 +21,11 @@ public:
         }
     }
 
+    bool contains(T const& val)
+    {
+        return m_set.contains(val);
+    }
+
     T pop()
     {
         while (!m_queue.empty())

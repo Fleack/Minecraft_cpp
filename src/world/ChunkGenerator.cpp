@@ -28,7 +28,7 @@ concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shar
 
     // Compute the world-space origin of this chunk
     Magnum::Vector3i const origin =
-        chunk.getPosition() * Magnum::Vector3i{CHUNK_SIZE_X, 1, CHUNK_SIZE_Z};
+        chunk.getPosition() * Magnum::Vector3i{CHUNK_SIZE_X, 0, CHUNK_SIZE_Z};
 
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
