@@ -38,12 +38,13 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
     textProps.setAlignment(Magnum::Text::Alignment::BottomLeft);
     // FPS
     {
+        m_frameTimes.resize(frameSampleSize);
         auto fpsAnchor = Magnum::Ui::snap(
             m_ui,
             Magnum::Ui::Snap::TopLeft,
             {0.0f, 0.0f},
-            {150.0f, 20.0f});
-        m_fpsLabel = Magnum::Ui::Label{fpsAnchor, "FPS: 0", textProps};
+            {400.0f, 20.0f});
+        m_fpsLabel = Magnum::Ui::Label{fpsAnchor, "FPS: 0 (AVG_FSP: 0, 99%: 0, 99.9%: 0, AVG_FT: 0 ms)", textProps};
     }
     // Coords
     {
@@ -107,11 +108,26 @@ void UISystem::render(float deltaTime)
 {
     auto const& transform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
     auto const& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
+
     // FPS
     {
-        float const fps = 1.0f / deltaTime;
-        m_fpsLabel.setText(
-            Corrade::Utility::format("FPS: {}", std::lround(fps)));
+        m_frameTimes.push_back(deltaTime);
+        if (m_frameTimes.size() > frameSampleSize)
+            m_frameTimes.pop_front();
+
+        m_timeSinceLastFpsUpdate += deltaTime;
+        if (m_timeSinceLastFpsUpdate >= 0.5f)
+        {
+            float fps99 = 1.0f / calculatePercentile(0.99f);
+            float fps999 = 1.0f / calculatePercentile(0.999f);
+            float avgDeltaTime = std::accumulate(m_frameTimes.begin(), m_frameTimes.end(), 0.0f) / m_frameTimes.size();
+            float avgFrameTimeMs = avgDeltaTime * 1000.0f;
+            float avgFps = 1.0f / avgDeltaTime;
+            float fps = 1.0f / deltaTime;
+            m_fpsLabel.setText(
+                Corrade::Utility::format("FPS: {} (AVG_FSP: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, AVG_FT: {:.1f} ms)", std::lround(fps), avgFps, fps99, fps999, avgFrameTimeMs));
+            m_timeSinceLastFpsUpdate = 0.0f;
+        }
     }
     // Coords
     {
@@ -189,5 +205,14 @@ bool UISystem::pointerReleaseEvent(Magnum::Platform::Sdl2Application::PointerEve
 void UISystem::setWindowSize(Magnum::Vector2i windowSize)
 {
     m_ui.setSize(windowSize);
+}
+
+float UISystem::calculatePercentile(float percentile)
+{
+    if (m_frameTimes.empty()) return 0.0f;
+    std::vector<float> sorted(m_frameTimes.begin(), m_frameTimes.end());
+    std::sort(sorted.begin(), sorted.end());
+    std::size_t index = percentile * (sorted.size() - 1);
+    return sorted[index];
 }
 } // namespace mc::ecs

@@ -26,6 +26,9 @@ public:
     void setWindowSize(Magnum::Vector2i windowSize);
 
 private:
+    float calculatePercentile(float percentile);
+
+private:
     ecs::Ecs& m_ecs;
     world::World const& m_world;
 
@@ -37,5 +40,10 @@ private:
     Magnum::Ui::Label m_viewLabel;
     Magnum::Ui::Label m_speedLabel;
     Magnum::Ui::Label m_fovLabel;
+
+    // FPS Relates
+    float m_timeSinceLastFpsUpdate = 0.0f;
+    std::deque<float> m_frameTimes;
+    static constexpr std::size_t frameSampleSize{1000};
 };
 } // namespace mc::ecs
