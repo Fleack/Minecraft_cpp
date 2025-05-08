@@ -142,7 +142,7 @@ private:
     double m_avgBuildTime = 0.002; ///< Exponential moving average (EMA) of mesh build time in seconds.
     double m_timeBudget = 0.0; ///< Maximum allowed time (in seconds) per frame for scheduling chunk loads.
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation.
-    static constexpr float workFraction = 0.99f; ///< Fraction of leftover frame time allowed for mesh building.
+    static constexpr float workFraction = 0.3f; ///< Fraction of leftover frame time allowed for mesh building.
 
     std::unordered_map<Magnum::Vector3i, chunk_mesh_job, utils::IVec3Hasher> m_pendingMeshes;
     utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_meshQueue;

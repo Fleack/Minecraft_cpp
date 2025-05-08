@@ -10,6 +10,6 @@ namespace mc::ecs
  */
 struct TransformComponent
 {
-    Magnum::Math::Vector3<float> position{0.0f}; ///< World-space position of the entity.
+    Magnum::Vector3d position{0.0f}; ///< World-space position of the entity.
 };
 } // namespace mc::ecs

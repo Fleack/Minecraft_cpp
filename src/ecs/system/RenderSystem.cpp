@@ -76,7 +76,7 @@ void RenderSystem::render(float)
         .setLightColor({1.0f, 1.0f, 0.9f})
         .setAmbientColor({0.7f, 0.7f, 0.8f})
         // Fog
-        .setCameraPosition(playerPosition)
+        .setCameraPosition(static_cast<Magnum::Vector3>(playerPosition))
         .setFogColor({0.6f, 0.8f, 1.0f})
         .setFogDistance(renderDistanceInWorldUnits);
 

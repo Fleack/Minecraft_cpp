@@ -53,7 +53,7 @@ void CameraSystem::update(float dt)
     if (m_keysPressed.contains(Platform::Sdl2Application::Key::Space)) m_cameraObject->translate({0.0f, +velocity, 0.0f});
     if (m_keysPressed.contains(Platform::Sdl2Application::Key::LeftCtrl)) m_cameraObject->translate({0.0f, -velocity, 0.0f});
 
-    m_ecs.getAllComponents<TransformComponent>().begin()->second.position = m_cameraObject->transformation().translation();
+    m_ecs.getAllComponents<TransformComponent>().begin()->second.position = static_cast<Math::Vector3<double>>(m_cameraObject->transformation().translation());
 }
 
 void CameraSystem::render(float)
@@ -87,7 +87,7 @@ void CameraSystem::handleScroll(float yOffset)
 {
     auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
     cam.speed *= std::pow(1.1f, yOffset);
-    cam.speed = std::clamp(cam.speed, 1.0f, 300.0f);
+    cam.speed = std::clamp(cam.speed, 1.0f, 1000.0f);
 }
 
 void CameraSystem::handleKey(Platform::Sdl2Application::Key key, bool pressed)
