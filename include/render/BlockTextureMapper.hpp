@@ -31,17 +31,17 @@ inline std::string get_texture_name_for_block(world::BlockType type, uint8_t fac
 }
 
 using texture_id = uint16_t;
+static std::unordered_map<std::string, texture_id> const TEXTURE_MAP = {
+    {"grass_top", 1},
+    {"grass_side", 2},
+    {"dirt", 3},
+    {"stone", 4},
+};
+static texture_id g_max_texture_id = TEXTURE_MAP.size();
 inline texture_id get_texture_id_by_name(std::string const& name)
 {
-    static std::unordered_map<std::string, texture_id> const textureMap = {
-        {"grass_top", 1},
-        {"grass_side", 2},
-        {"dirt", 3},
-        {"stone", 4},
-    };
-
-    auto it = textureMap.find(name);
-    if (it != textureMap.end())
+    auto it = TEXTURE_MAP.find(name);
+    if (it != TEXTURE_MAP.end())
         return it->second;
 
     return 0;
