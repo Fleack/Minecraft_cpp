@@ -34,6 +34,7 @@ TextureManager::TextureManager(std::string const& texturesDir)
         if (!String::endsWith(filename, ".png")) continue;
 
         std::string name = filename.substr(0, filename.size() - 4);
+        texture_id id = get_texture_id_by_name(name);
         std::string fullPath = Path::join(texturesDir, filename);
 
         auto importer = m_importers.instantiate("StbImageImporter");
@@ -48,13 +49,13 @@ TextureManager::TextureManager(std::string const& texturesDir)
             .setMagnificationFilter(GL::SamplerFilter::Nearest)
             .setWrapping(GL::SamplerWrapping::ClampToEdge);
 
-        m_textures.emplace(std::move(name), std::move(texture));
+        m_textures.emplace(id, std::move(texture));
     }
 }
 
-GL::Texture2D& TextureManager::get(std::string_view name)
+GL::Texture2D& TextureManager::get(texture_id id)
 {
-    return m_textures.at(std::string{name});
+    return m_textures.at(id);
 }
 
 } // namespace mc::render

@@ -85,13 +85,13 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(
     world::Chunk const& chunk,
     world::World const& world)
 {
-    std::unordered_map<std::string, std::vector<Vertex>> vertsByTexture;
+    std::unordered_map<texture_id, std::vector<Vertex>> vertsByTexture;
     collectVertices(chunk, world, vertsByTexture);
 
     return buildMeshComponents(vertsByTexture);
 }
 
-void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, world::World const& world, std::unordered_map<std::string, std::vector<Vertex>>& out)
+void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, world::World const& world, std::unordered_map<texture_id, std::vector<Vertex>>& out)
 {
     using namespace world;
 
@@ -116,17 +116,17 @@ void ChunkMeshBuilder::processBlock(
     world::World const& world,
     world::Block const& block,
     Magnum::Vector3i const& worldPos,
-    std::unordered_map<std::string, std::vector<Vertex>>& out)
+    std::unordered_map<texture_id, std::vector<Vertex>>& out)
 {
     for (int face = 0; face < FACE_COUNT; ++face)
     {
         if (isWorldBlockSolid(world, worldPos + FACE_NORMALS[face]))
             continue;
 
-        auto textureName = get_texture_name_for_block(block.type, face);
+        auto textureId = get_texture_id_by_name(get_texture_name_for_block(block.type, face));
         auto faceVerts = computeFaceVertices(world, worldPos, face);
         adjustAo(faceVerts);
-        appendTriangles(out[textureName], faceVerts);
+        appendTriangles(out[textureId], faceVerts);
     }
 }
 
@@ -173,7 +173,7 @@ void ChunkMeshBuilder::appendTriangles(std::vector<Vertex>& out, std::array<Vert
     }
 }
 
-std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::unordered_map<std::string, std::vector<Vertex>> const& vertsByTex)
+std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::unordered_map<texture_id, std::vector<Vertex>> const& vertsByTex)
 {
     std::vector<ecs::MeshComponent> result;
     result.reserve(vertsByTex.size());

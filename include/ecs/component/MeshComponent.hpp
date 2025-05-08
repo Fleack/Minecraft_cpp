@@ -1,5 +1,7 @@
 #pragma once
 
+#include "render/BlockTextureMapper.hpp"
+
 #include <memory>
 
 #include <Magnum/GL/Mesh.h>
@@ -14,6 +16,6 @@ namespace mc::ecs
 struct MeshComponent
 {
     std::shared_ptr<Magnum::GL::Mesh> mesh; ///< Shared pointer to the chunk mesh.
-    std::string textureName;
+    render::texture_id textureId;
 };
 } // namespace mc::ecs

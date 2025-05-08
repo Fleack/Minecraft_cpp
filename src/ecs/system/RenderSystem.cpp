@@ -118,7 +118,7 @@ void RenderSystem::drawChunksInRadius(Magnum::Math::Vector3<int> const& currentC
                 if (auto mc = m_ecs.getComponent<MeshComponent>(e))
                 {
                     m_shaderProgram
-                        .bindTexture(m_textureManager->get(mc->textureName))
+                        .bindTexture(m_textureManager->get(mc->textureId))
                         .draw(*mc->mesh);
                 }
             }

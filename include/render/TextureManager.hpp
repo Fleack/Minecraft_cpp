@@ -1,5 +1,7 @@
 #pragma once
 
+#include "render/BlockTextureMapper.hpp"
+
 #include <map>
 #include <string>
 #include <string_view>
@@ -15,11 +17,11 @@ class TextureManager
 {
 public:
     explicit TextureManager(std::string const& texturesDir);
-    Magnum::GL::Texture2D& get(std::string_view name);
+    Magnum::GL::Texture2D& get(texture_id id);
 
 private:
     Magnum::PluginManager::Manager<Magnum::Trade::AbstractImporter> m_importers;
-    std::map<std::string, Magnum::GL::Texture2D> m_textures;
+    std::map<texture_id, Magnum::GL::Texture2D> m_textures;
 };
 
 } // namespace mc::render
