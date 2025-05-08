@@ -76,6 +76,7 @@ private:
     concurrencpp::runtime m_runtime;
 
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
+    std::shared_ptr<concurrencpp::thread_pool_executor> m_meshExecutor;
     std::shared_ptr<concurrencpp::manual_executor> m_mainExecutor;
 
     std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.

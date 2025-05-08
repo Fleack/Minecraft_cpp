@@ -82,7 +82,7 @@ constexpr std::array<std::array<mc::render::ChunkMeshBuilder::OffsetTuple, mc::r
 namespace mc::render
 {
 
-std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(
+std::vector<std::vector<Vertex>> ChunkMeshBuilder::buildVertexData(
     world::Chunk const& chunk,
     world::World const& world)
 {
@@ -105,8 +105,7 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(
 
     std::vector<std::vector<Vertex>> vertsByTexture(g_max_texture_id);
     collectVertices(chunk, chunks, vertsByTexture);
-
-    return buildMeshComponents(vertsByTexture);
+    return vertsByTexture;
 }
 
 void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::vector<std::vector<Vertex>>& out)

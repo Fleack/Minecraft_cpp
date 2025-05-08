@@ -1,9 +1,11 @@
 #pragma once
 
 #include "ecs/Entity.hpp"
+#include "ecs/component/MeshComponent.hpp"
 #include "ecs/system/ISystem.hpp"
 #include "render/ShaderProgram.hpp"
 #include "render/TextureManager.hpp"
+#include "render/Vertex.hpp"
 #include "utils/IVec3Hasher.hpp"
 #include "utils/PrioritizedChunk.hpp"
 #include "utils/PriorityUniqueQueue.hpp"
@@ -13,6 +15,7 @@
 #include <memory>
 
 #include <Magnum/Math/Vector3.h>
+#include <concurrencpp/executors/thread_pool_executor.h>
 
 namespace mc::world
 {
@@ -57,6 +60,7 @@ public:
      */
     RenderSystem(
         Ecs& ecs,
+        std::shared_ptr<concurrencpp::thread_pool_executor> meshExecutor,
         std::shared_ptr<CameraSystem> cameraSystem,
         world::World& world,
         uint8_t renderRadius);
@@ -122,11 +126,20 @@ private:
      */
     void updateStats(size_t launches, time_point const& start);
 
+    void integrateFinishedMeshes();
+
 private:
+    struct ChunkMeshJob
+    {
+        Magnum::Vector3i chunkPos;
+        concurrencpp::result<std::vector<std::vector<render::Vertex>>> result;
+    };
+
     Ecs& m_ecs; ///< ECS manager reference.
     world::World& m_world; ///< Reference to the world for chunk access.
     render::ShaderProgram m_shaderProgram{}; ///< Shader program used for rendering.
     std::unique_ptr<render::TextureManager> m_textureManager;
+    std::shared_ptr<concurrencpp::thread_pool_executor> m_meshExecutor;
 
     std::shared_ptr<CameraSystem> m_cameraSystem; ///< Provides view and projection matrices.
 
@@ -136,6 +149,7 @@ private:
     static constexpr double alpha = 0.1; ///< Smoothing factor for EMA calculation.
     static constexpr float workFraction = 0.99f; ///< Fraction of leftover frame time allowed for mesh building.
 
+    std::unordered_map<Magnum::Vector3i, ChunkMeshJob, utils::IVec3Hasher> m_pendingMeshes;
     utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_meshQueue;
     std::unordered_map<Magnum::Math::Vector3<int>, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
 };

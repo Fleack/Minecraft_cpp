@@ -21,10 +21,15 @@ namespace mc::ecs
 
 RenderSystem::RenderSystem(
     Ecs& ecs,
+    std::shared_ptr<concurrencpp::thread_pool_executor> meshExecutor,
     std::shared_ptr<CameraSystem> cameraSystem,
     world::World& world,
     uint8_t renderRadius)
-    : m_ecs{ecs}, m_world{world}, m_cameraSystem{std::move(cameraSystem)}, m_renderRadius{renderRadius}
+    : m_ecs{ecs}
+    , m_world{world}
+    , m_meshExecutor{std::move(meshExecutor)}
+    , m_cameraSystem{std::move(cameraSystem)}
+    , m_renderRadius{renderRadius}
 {
     m_textureManager = std::make_unique<mc::render::TextureManager>("assets/textures/blocks");
     LOG(INFO, "RenderSystem initialized with render radius: {}", renderRadius);
@@ -35,6 +40,8 @@ void RenderSystem::update(float dt)
     constexpr float targetFrame = 1.0f / 60.0f;
     float leftover = targetFrame - dt;
     m_timeBudget = std::max(leftover, 0.0f) * workFraction;
+
+    integrateFinishedMeshes();
 
     auto current = getCurrentChunk();
     if (!current) return;
@@ -152,23 +159,22 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
             break;
 
         auto chunk = m_meshQueue.pop();
+        if (m_pendingMeshes.contains(chunk.pos)) continue;
+
         if (auto opt = m_world.getChunk(chunk.pos))
         {
-            auto blocksMeshes = render::ChunkMeshBuilder::build(opt->get(), m_world);
-            auto& vec = m_chunkToMesh[chunk.pos];
-            for (auto& mesh : blocksMeshes)
-            {
-                Entity e = m_ecs.createEntity();
-                m_ecs.addComponent<MeshComponent>(e, mesh);
-                vec.push_back(e);
-            }
-            SPAM_LOG(DEBUG, "Built {} sub-meshes for chunk [{}, {}]", blocksMeshes.size(), chunk.pos.x(), chunk.pos.z());
+            auto job = ChunkMeshJob{
+                .chunkPos = chunk.pos,
+                .result = m_meshExecutor->submit([=, &world = m_world]() {
+                    return render::ChunkMeshBuilder::buildVertexData(opt->get(), world);
+                })};
+            m_pendingMeshes.emplace(chunk.pos, std::move(job));
+            ++launches;
         }
         else
         {
             enqueueChunkForMesh(chunk);
         }
-        ++launches;
     }
     return launches;
 }
@@ -180,5 +186,36 @@ void RenderSystem::updateStats(size_t launches, time_point const& start)
     m_avgBuildTime = alpha * avg + (1.0 - alpha) * m_avgBuildTime;
 
     // SPAM_LOG(DEBUG, "Built {} meshes in {:.3f} ms (EMA {:.3f} ms)", launches, duration * 1000.0, m_avgBuildTime * 1000.0);
+}
+void RenderSystem::integrateFinishedMeshes()
+{
+    std::vector<Magnum::Vector3i> toRemove;
+
+    for (auto& [pos, job] : m_pendingMeshes)
+    {
+        if (!job.result)
+        {
+            toRemove.push_back(pos);
+            continue;
+        }
+
+        if (job.result.status() != concurrencpp::result_status::value) continue;
+
+        auto vertsByTex = job.result.get();
+        auto blocksMeshes = render::ChunkMeshBuilder::buildMeshComponents(vertsByTex);
+
+        auto& vec = m_chunkToMesh[pos];
+        for (auto& mesh : blocksMeshes)
+        {
+            Entity e = m_ecs.createEntity();
+            m_ecs.addComponent<MeshComponent>(e, mesh);
+            vec.push_back(e);
+        }
+    }
+
+    for (auto& pos : toRemove)
+    {
+        m_pendingMeshes.erase(pos);
+    }
 }
 } // namespace mc::ecs

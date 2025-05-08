@@ -39,7 +39,8 @@ public:
      *
      * @param chunk Reference to the voxel chunk.
      */
-    static std::vector<ecs::MeshComponent> build(world::Chunk const& chunk, world::World const& world);
+    static std::vector<std::vector<Vertex>> buildVertexData(world::Chunk const& chunk, world::World const& world);
+    static std::vector<ecs::MeshComponent> buildMeshComponents(std::vector<std::vector<Vertex>> const& vertsByTex);
 
 private:
     static void collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::vector<std::vector<Vertex>>& out);
@@ -58,8 +59,6 @@ private:
     static void adjustAo(std::array<Vertex, VERTS_PER_FACE>& faceVerts);
 
     static void appendTriangles(std::vector<Vertex>& out, std::array<Vertex, VERTS_PER_FACE> const& faceVerts);
-
-    static std::vector<ecs::MeshComponent> buildMeshComponents(std::vector<std::vector<Vertex>> const& vertsByTex);
 
     static bool isWorldBlockSolid(CachedChunksMap const& chunks, Magnum::Vector3i const& pos);
     static std::optional<world::Block> getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks);

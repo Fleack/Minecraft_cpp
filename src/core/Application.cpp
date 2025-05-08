@@ -31,10 +31,11 @@ Application::Application(Arguments const& arguments)
           Configuration{}.setTitle("MinecraftX").setSize({1280, 720}),
           GLConfiguration{}.setVersion(GL::Version::GL460)}
     , m_chunkExecutor{m_runtime.thread_pool_executor()}
+    , m_meshExecutor{m_runtime.thread_pool_executor()}
     , m_mainExecutor{m_runtime.make_manual_executor()}
     , m_aspectRatio{static_cast<float>(windowSize().x()) / windowSize().y()}
 {
-    constexpr uint8_t renderDistance = 10;
+    constexpr uint8_t renderDistance = 16;
 
     initializeCore();
     initializeEcs();
@@ -81,7 +82,7 @@ void Application::initializeWorld(uint8_t renderDistance)
 
 void Application::initializeRenderSystems(uint8_t renderDistance)
 {
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_cameraSystem, *m_world, renderDistance);
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_meshExecutor, m_cameraSystem, *m_world, renderDistance);
     m_ecs->addSystem(m_renderSystem);
 }
 
