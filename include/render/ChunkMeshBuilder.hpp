@@ -1,8 +1,10 @@
 #pragma once
 
 #include "render/BlockTextureMapper.hpp"
+#include "utils/IVec3Hasher.hpp"
 #include "world/Chunk.hpp"
 
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -30,6 +32,7 @@ class ChunkMeshBuilder
 {
 public:
     using OffsetTuple = std::tuple<Magnum::Vector3i, Magnum::Vector3i, Magnum::Vector3i>;
+    using CachedChunksMap = std::unordered_map<Magnum::Vector3i, world::Chunk const*, utils::IVec3Hasher>;
 
     /**
      * @brief Builds a mesh from the given chunk.
@@ -39,16 +42,16 @@ public:
     static std::vector<ecs::MeshComponent> build(world::Chunk const& chunk, world::World const& world);
 
 private:
-    static void collectVertices(world::Chunk const& chunk, world::World const& world, std::unordered_map<texture_id, std::vector<Vertex>>& out);
+    static void collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::unordered_map<texture_id, std::vector<Vertex>>& out);
 
     static void processBlock(
-        world::World const& world,
+        CachedChunksMap const& chunks,
         world::Block const& block,
         Magnum::Vector3i const& worldPos,
         std::unordered_map<texture_id, std::vector<Vertex>>& out);
 
     static std::array<Vertex, VERTS_PER_FACE> computeFaceVertices(
-        world::World const& world,
+        CachedChunksMap const& chunks,
         Magnum::Vector3i const& worldPos,
         int face);
 
@@ -58,8 +61,9 @@ private:
 
     static std::vector<ecs::MeshComponent> buildMeshComponents(std::unordered_map<texture_id, std::vector<Vertex>> const& vertsByTex);
 
-    static bool isWorldBlockSolid(world::World const& world, Magnum::Vector3i const& pos);
-    static float computeAo(world::World const& world, Magnum::Vector3i const& vertexPos, OffsetTuple const& offsets);
+    static bool isWorldBlockSolid(CachedChunksMap const& chunks, Magnum::Vector3i const& pos);
+    static std::optional<world::Block> getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks);
+    static float computeAo(CachedChunksMap const& chunks, Magnum::Vector3i const& vertexPos, OffsetTuple const& offsets);
 };
 
 } // namespace mc::render

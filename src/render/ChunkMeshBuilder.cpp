@@ -85,17 +85,34 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::build(
     world::Chunk const& chunk,
     world::World const& world)
 {
+    CachedChunksMap chunks;
+    Magnum::Vector3i center = chunk.getPosition();
+    for (int dx = -1; dx <= 1; ++dx)
+    {
+        for (int dy = -1; dy <= 1; ++dy)
+        {
+            for (int dz = -1; dz <= 1; ++dz)
+            {
+                Magnum::Vector3i pos = center + Magnum::Vector3i{dx, dy, dz};
+                if (auto opt = world.getChunk(pos))
+                {
+                    chunks[pos] = &opt->get();
+                }
+            }
+        }
+    }
+
     std::unordered_map<texture_id, std::vector<Vertex>> vertsByTexture;
-    collectVertices(chunk, world, vertsByTexture);
+    collectVertices(chunk, chunks, vertsByTexture);
 
     return buildMeshComponents(vertsByTexture);
 }
 
-void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, world::World const& world, std::unordered_map<texture_id, std::vector<Vertex>>& out)
+void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::unordered_map<texture_id, std::vector<Vertex>>& out)
 {
     using namespace world;
-
-    Magnum::Vector3i chunkOffset = chunk.getPosition() * Magnum::Vector3i{CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
+    static constexpr Magnum::Vector3i chunkSize{CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
+    Magnum::Vector3i chunkOffset = chunk.getPosition() * chunkSize;
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
         for (int y = 0; y < CHUNK_SIZE_Y; ++y)
@@ -106,37 +123,37 @@ void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, world::World c
                 if (!block.isSolid()) continue;
 
                 Magnum::Vector3i worldBlockPos = {Magnum::Vector3i{x, y, z} + chunkOffset};
-                processBlock(world, block, worldBlockPos, out);
+                processBlock(chunks, block, worldBlockPos, out);
             }
         }
     }
 }
 
 void ChunkMeshBuilder::processBlock(
-    world::World const& world,
+    CachedChunksMap const& chunks,
     world::Block const& block,
     Magnum::Vector3i const& worldPos,
     std::unordered_map<texture_id, std::vector<Vertex>>& out)
 {
     for (int face = 0; face < FACE_COUNT; ++face)
     {
-        if (isWorldBlockSolid(world, worldPos + FACE_NORMALS[face]))
+        if (isWorldBlockSolid(chunks, worldPos + FACE_NORMALS[face]))
             continue;
 
         auto textureId = get_texture_id_by_name(get_texture_name_for_block(block.type, face));
-        auto faceVerts = computeFaceVertices(world, worldPos, face);
+        auto faceVerts = computeFaceVertices(chunks, worldPos, face);
         adjustAo(faceVerts);
         appendTriangles(out[textureId], faceVerts);
     }
 }
 
-std::array<Vertex, VERTS_PER_FACE> ChunkMeshBuilder::computeFaceVertices(world::World const& world, Magnum::Vector3i const& worldPos, int face)
+std::array<Vertex, VERTS_PER_FACE> ChunkMeshBuilder::computeFaceVertices(CachedChunksMap const& chunks, Magnum::Vector3i const& worldPos, int face)
 {
     std::array<Vertex, VERTS_PER_FACE> verts;
     for (int i = 0; i < VERTS_PER_FACE; ++i)
     {
         Magnum::Vector3i vPos = worldPos + FACE_OFFSETS[face][i];
-        float ao = computeAo(world, vPos, AO_OFFSETS[face][i]);
+        float ao = computeAo(chunks, vPos, AO_OFFSETS[face][i]);
         verts[i] = {
             Magnum::Vector3{vPos},
             Magnum::Vector3{FACE_NORMALS[face]},
@@ -148,10 +165,9 @@ std::array<Vertex, VERTS_PER_FACE> ChunkMeshBuilder::computeFaceVertices(world::
 
 void ChunkMeshBuilder::adjustAo(std::array<Vertex, VERTS_PER_FACE>& faceVerts)
 {
-    float sum = 0.0f;
-    for (auto& v : faceVerts)
-        sum += v.ao;
-    float avgAo = sum / static_cast<float>(VERTS_PER_FACE);
+    float sumAo = std::accumulate(
+        faceVerts.begin(), faceVerts.end(), 0.0f, [](float acc, Vertex const& v) { return acc + v.ao; });
+    float avgAo = sumAo / static_cast<float>(VERTS_PER_FACE);
 
     for (auto& v : faceVerts)
     {
@@ -196,29 +212,44 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::unord
     return result;
 }
 
-bool ChunkMeshBuilder::isWorldBlockSolid(world::World const& world, Magnum::Vector3i const& pos)
+std::optional<world::Block> ChunkMeshBuilder::getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks)
 {
     using namespace world;
+    constexpr int csx = CHUNK_SIZE_X;
+    constexpr int csy = CHUNK_SIZE_Y;
+    constexpr int csz = CHUNK_SIZE_Z;
 
-    int cx = static_cast<int>(std::floor(pos.x() / static_cast<float>(CHUNK_SIZE_X)));
-    int cy = static_cast<int>(std::floor(pos.y() / static_cast<float>(CHUNK_SIZE_Y)));
-    int cz = static_cast<int>(std::floor(pos.z() / static_cast<float>(CHUNK_SIZE_Z)));
-    Magnum::Vector3i chunkCoord{cx, cy, cz};
-    Magnum::Vector3i local{pos.x() - cx * CHUNK_SIZE_X, pos.y() - cy * CHUNK_SIZE_Y, pos.z() - cz * CHUNK_SIZE_Z};
+    Magnum::Vector3i chunkPos{
+        static_cast<int>(std::floor(worldPos.x() / static_cast<float>(csx))),
+        static_cast<int>(std::floor(worldPos.y() / static_cast<float>(csy))),
+        static_cast<int>(std::floor(worldPos.z() / static_cast<float>(csz)))};
 
-    if (auto opt = world.getChunk(chunkCoord))
+    Magnum::Vector3i local{
+        worldPos.x() - chunkPos.x() * csx,
+        worldPos.y() - chunkPos.y() * csy,
+        worldPos.z() - chunkPos.z() * csz};
+
+    auto it = chunks.find(chunkPos);
+    if (it == chunks.end()) return std::nullopt;
+
+    return it->second->getBlock(local.x(), local.y(), local.z());
+}
+
+bool ChunkMeshBuilder::isWorldBlockSolid(CachedChunksMap const& chunks, Magnum::Vector3i const& pos)
+{
+    if (auto block = getBlockAt(pos, chunks))
     {
-        return opt->get().getBlock(local.x(), local.y(), local.z()).isSolid();
+        return block->isSolid();
     }
     return false;
 }
 
-float ChunkMeshBuilder::computeAo(world::World const& world, Magnum::Vector3i const& vertexPos, OffsetTuple const& offsets)
+float ChunkMeshBuilder::computeAo(CachedChunksMap const& chunks, Magnum::Vector3i const& vertexPos, OffsetTuple const& offsets)
 {
     auto [off1, off2, offC] = offsets;
-    bool s1 = isWorldBlockSolid(world, vertexPos + off1);
-    bool s2 = isWorldBlockSolid(world, vertexPos + off2);
-    bool sc = isWorldBlockSolid(world, vertexPos + offC);
+    bool s1 = isWorldBlockSolid(chunks, vertexPos + off1);
+    bool s2 = isWorldBlockSolid(chunks, vertexPos + off2);
+    bool sc = isWorldBlockSolid(chunks, vertexPos + offC);
     return (s1 && s2)
         ? 0.0f
         : 1.0f - (static_cast<float>(s1 + s2 + sc) * 0.33f);

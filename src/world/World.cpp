@@ -24,6 +24,7 @@ concurrencpp::lazy_result<void> World::loadChunk(Magnum::Math::Vector3<int> chun
 
 std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Math::Vector3<int> const& chunkPos) const
 {
+    LOG(DEBUG, "Getting chunk at [{}, {}]", chunkPos.x(), chunkPos.z());
     auto it = m_chunks.find(chunkPos);
     if (it != m_chunks.end())
     {
