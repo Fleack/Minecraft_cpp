@@ -40,7 +40,7 @@ void ChunkLoadingSystem::update(float dt)
     }
 }
 
-std::optional<Magnum::Math::Vector3<int>> ChunkLoadingSystem::getCurrentChunk() const
+std::optional<Magnum::Vector3i> ChunkLoadingSystem::getCurrentChunk() const
 {
     auto& transforms = m_ecs.getAllComponents<TransformComponent>();
     if (transforms.empty()) return std::nullopt;
@@ -49,16 +49,16 @@ std::optional<Magnum::Math::Vector3<int>> ChunkLoadingSystem::getCurrentChunk() 
     int const cx = utils::floor_div(pos.x(), world::CHUNK_SIZE_X);
     int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
-    return Magnum::Math::Vector3<int>{cx, 0, cz};
+    return Magnum::Vector3i{cx, 0, cz};
 }
 
-void ChunkLoadingSystem::loadChunksInRadius(Magnum::Math::Vector3<int> currentChunk)
+void ChunkLoadingSystem::loadChunksInRadius(Magnum::Vector3i currentChunk)
 {
     m_loadQueue.clear();
     float radius = static_cast<float>(m_loadRadius) + 0.5f;
     float radiusSq = radius * radius;
 
-    tsl::hopscotch_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> candidates;
+    tsl::hopscotch_set<Magnum::Vector3i, utils::IVec3Hasher> candidates;
     candidates.reserve((2 * m_loadRadius + 1) * (2 * m_loadRadius + 1));
     for (int x = -m_loadRadius; x <= m_loadRadius; ++x)
     {
@@ -67,7 +67,7 @@ void ChunkLoadingSystem::loadChunksInRadius(Magnum::Math::Vector3<int> currentCh
             if (static_cast<float>(x * x + z * z) > radiusSq)
                 continue;
 
-            Magnum::Math::Vector3<int> pos = currentChunk + Magnum::Math::Vector3<int>{x, 0, z};
+            Magnum::Vector3i pos = currentChunk + Magnum::Vector3i{x, 0, z};
             if (!m_world.isChunkLoaded(pos) && !m_world.isChunkPending(pos))
                 candidates.insert(pos);
         }

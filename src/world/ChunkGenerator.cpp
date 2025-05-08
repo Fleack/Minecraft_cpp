@@ -1,4 +1,5 @@
 #include "world/ChunkGenerator.hpp"
+
 #include "core/Logger.hpp"
 
 #include <algorithm>
@@ -26,8 +27,8 @@ concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shar
     co_await concurrencpp::resume_on(executor);
 
     // Compute the world-space origin of this chunk
-    Magnum::Math::Vector3<int> const origin =
-        chunk.getPosition() * Magnum::Math::Vector3<int>{CHUNK_SIZE_X, 1, CHUNK_SIZE_Z};
+    Magnum::Vector3i const origin =
+        chunk.getPosition() * Magnum::Vector3i{CHUNK_SIZE_X, 1, CHUNK_SIZE_Z};
 
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {

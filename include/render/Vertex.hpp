@@ -10,9 +10,9 @@ namespace mc::render
 
 struct Vertex
 {
-    Magnum::Math::Vector3<Magnum::Float> position;
-    Magnum::Math::Vector3<Magnum::Float> normal;
-    Magnum::Math::Vector2<Magnum::Float> uv;
+    Magnum::Vector3 position;
+    Magnum::Vector3 normal;
+    Magnum::Vector2 uv;
     Magnum::Float ao;
 };
 

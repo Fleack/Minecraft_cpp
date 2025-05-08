@@ -53,7 +53,7 @@ public:
         return m_pressedKeys.contains(key);
     }
 
-    Magnum::Math::Vector2<double> cursorPosition() const
+    Magnum::Vector2 cursorPosition() const
     {
         std::lock_guard lock(m_mutex);
         return m_cursorPos;
@@ -68,7 +68,7 @@ public:
 private:
     mutable std::mutex m_mutex;
     std::unordered_set<Key> m_pressedKeys;
-    Magnum::Math::Vector2<double> m_cursorPos{0.0, 0.0};
+    Magnum::Vector2 m_cursorPos{0.0, 0.0};
     float m_scrollY{0.0f};
 };
 

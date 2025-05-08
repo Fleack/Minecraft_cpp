@@ -62,7 +62,7 @@ private:
      *
      * @return Optional chunk-space position, or std::nullopt if no transform exists.
      */
-    std::optional<Magnum::Math::Vector3<int>> getCurrentChunk() const;
+    std::optional<Magnum::Vector3i> getCurrentChunk() const;
 
     /**
      * @brief Refills the loading queue with chunks around the current camera chunk.
@@ -71,7 +71,7 @@ private:
      *
      * @param currentChunk Current camera chunk position.
      */
-    void loadChunksInRadius(Magnum::Math::Vector3<int> currentChunk);
+    void loadChunksInRadius(Magnum::Vector3i currentChunk);
 
     void enqueueChunkForLoad(utils::PrioritizedChunk const& chunk);
 
@@ -102,7 +102,7 @@ private:
     world::World& m_world; ///< Reference to the ECS manager.
 
     uint8_t m_loadRadius; ///< Number of chunks to load around the current chunk.
-    Magnum::Math::Vector3<int> m_lastCameraChunk{std::numeric_limits<int>::max()}; ///< Tracks last known camera chunk position to avoid redundant loading.
+    Magnum::Vector3i m_lastCameraChunk{std::numeric_limits<int>::max()}; ///< Tracks last known camera chunk position to avoid redundant loading.
 
     double m_avgScheduleTime = 0.0005; ///< Exponential moving average (EMA) of chunk scheduling time in seconds.
     double m_timeBudget = 0.0; ///< Maximum allowed time (in seconds) per frame for scheduling chunk loads.

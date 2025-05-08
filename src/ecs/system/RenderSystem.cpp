@@ -46,7 +46,7 @@ void RenderSystem::update(float dt)
     auto current = getCurrentChunk();
     if (!current) return;
 
-    static Magnum::Math::Vector3<int> lastChunk{0};
+    static Magnum::Vector3i lastChunk{0};
     if (*current != lastChunk)
     {
         lastChunk = *current;
@@ -86,7 +86,7 @@ void RenderSystem::render(float)
     }
 }
 
-std::optional<Magnum::Math::Vector3<int>> RenderSystem::getCurrentChunk() const
+std::optional<Magnum::Vector3i> RenderSystem::getCurrentChunk() const
 {
     auto& transforms = m_ecs.getAllComponents<TransformComponent>();
     if (transforms.empty()) return std::nullopt;
@@ -95,16 +95,16 @@ std::optional<Magnum::Math::Vector3<int>> RenderSystem::getCurrentChunk() const
     int const cx = utils::floor_div(pos.x(), world::CHUNK_SIZE_X);
     int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
-    return Magnum::Math::Vector3<int>{cx, 0, cz};
+    return Magnum::Vector3i{cx, 0, cz};
 }
 
-void RenderSystem::drawChunksInRadius(Magnum::Math::Vector3<int> const& currentChunkPos)
+void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
 {
     constexpr auto sq = [](int x) { return x * x; };
     float const r = static_cast<float>(m_renderRadius) + 0.5f;
     float const r2 = r * r;
 
-    tsl::hopscotch_set<Magnum::Math::Vector3<int>, utils::IVec3Hasher> positions;
+    tsl::hopscotch_set<Magnum::Vector3i, utils::IVec3Hasher> positions;
     positions.reserve((2 * m_renderRadius + 1) * (2 * m_renderRadius + 1));
 
     for (int dz = -m_renderRadius; dz <= m_renderRadius; ++dz)

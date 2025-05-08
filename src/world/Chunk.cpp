@@ -5,11 +5,11 @@
 namespace mc::world
 {
 
-Chunk::Chunk(Magnum::Math::Vector3<int> const& position)
+Chunk::Chunk(Magnum::Vector3i const& position)
     : m_position(position)
 {}
 
-Magnum::Math::Vector3<int> const& Chunk::getPosition() const
+Magnum::Vector3i const& Chunk::getPosition() const
 {
     return m_position;
 }

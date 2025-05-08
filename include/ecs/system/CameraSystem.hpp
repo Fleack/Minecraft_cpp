@@ -27,7 +27,7 @@ public:
     void update(float dt) override;
     void render(float) override;
 
-    void handleMouse(Magnum::Math::Vector2<float> const& delta);
+    void handleMouse(Magnum::Vector2 const& delta);
     void handleScroll(float yOffset);
     void handleKey(Magnum::Platform::Sdl2Application::Key key, bool pressed);
 

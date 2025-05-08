@@ -11,7 +11,7 @@ World::World(
     : m_chunkExecutor{std::move(chunkExecutor)}, m_mainExecutor{std::move(mainExec)}
 {}
 
-concurrencpp::lazy_result<void> World::loadChunk(Magnum::Math::Vector3<int> chunkPos)
+concurrencpp::lazy_result<void> World::loadChunk(Magnum::Vector3i chunkPos)
 {
     if (m_chunks.contains(chunkPos) || m_pendingChunks.contains(chunkPos))
     {
@@ -22,7 +22,7 @@ concurrencpp::lazy_result<void> World::loadChunk(Magnum::Math::Vector3<int> chun
     co_await commitChunkAsync(chunkPos, std::move(chunk));
 }
 
-std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Math::Vector3<int> const& chunkPos) const
+std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Vector3i const& chunkPos) const
 {
     auto it = m_chunks.find(chunkPos);
     if (it != m_chunks.end())
@@ -32,13 +32,13 @@ std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Math::Vecto
     return std::nullopt;
 }
 
-void World::enqueueChunk(Magnum::Math::Vector3<int> const& chunkPos)
+void World::enqueueChunk(Magnum::Vector3i const& chunkPos)
 {
     SPAM_LOG(DEBUG, "Enqueue chunk at [{}, {}] for generation", chunkPos.x(), chunkPos.z());
     m_pendingChunks.insert(chunkPos);
 }
 
-concurrencpp::lazy_result<std::unique_ptr<Chunk>> World::generateChunkAsync(Magnum::Math::Vector3<int> chunkPos) const
+concurrencpp::lazy_result<std::unique_ptr<Chunk>> World::generateChunkAsync(Magnum::Vector3i chunkPos) const
 {
     co_await concurrencpp::resume_on(m_chunkExecutor);
     auto chunk = std::make_unique<Chunk>(chunkPos);
@@ -46,7 +46,7 @@ concurrencpp::lazy_result<std::unique_ptr<Chunk>> World::generateChunkAsync(Magn
     co_return chunk;
 }
 
-concurrencpp::lazy_result<void> World::commitChunkAsync(Magnum::Math::Vector3<int> chunkPos, std::unique_ptr<Chunk> chunkPtr)
+concurrencpp::lazy_result<void> World::commitChunkAsync(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr)
 {
     co_await concurrencpp::resume_on(m_mainExecutor);
     SPAM_LOG(INFO, "Committing chunk [{}, {}] into final map", chunkPos.x(), chunkPos.z());
@@ -54,12 +54,12 @@ concurrencpp::lazy_result<void> World::commitChunkAsync(Magnum::Math::Vector3<in
     m_pendingChunks.erase(chunkPos);
 }
 
-bool World::isChunkLoaded(Magnum::Math::Vector3<int> const& pos) const
+bool World::isChunkLoaded(Magnum::Vector3i const& pos) const
 {
     return m_chunks.contains(pos);
 }
 
-bool World::isChunkPending(Magnum::Math::Vector3<int> const& pos) const
+bool World::isChunkPending(Magnum::Vector3i const& pos) const
 {
     return m_pendingChunks.contains(pos);
 }

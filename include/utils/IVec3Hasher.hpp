@@ -20,7 +20,7 @@ struct IVec3Hasher
      *
      * @return Hash value.
      */
-    std::size_t operator()(Magnum::Math::Vector3<int> const& v) const
+    std::size_t operator()(Magnum::Vector3i const& v) const
     {
         // Hash each component individually
         std::size_t h1 = std::hash<int>()(v.x());

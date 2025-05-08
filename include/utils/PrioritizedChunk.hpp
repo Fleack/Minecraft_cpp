@@ -8,7 +8,7 @@ namespace mc::utils
 {
 struct PrioritizedChunk
 {
-    Magnum::Math::Vector3<int> pos;
+    Magnum::Vector3i pos;
     float distance;
 
     bool operator<(PrioritizedChunk const& other) const

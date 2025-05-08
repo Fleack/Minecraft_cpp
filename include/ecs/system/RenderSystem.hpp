@@ -88,7 +88,7 @@ private:
      *
      * @return Optional chunk-space position if a transform exists, otherwise std::nullopt.
      */
-    std::optional<Magnum::Math::Vector3<int>> getCurrentChunk() const;
+    std::optional<Magnum::Vector3i> getCurrentChunk() const;
 
     /**
      * @brief Draws all chunks within the configured render radius.
@@ -97,7 +97,7 @@ private:
      *
      * @param currentChunkPos Camera's current chunk-space position.
      */
-    void drawChunksInRadius(Magnum::Math::Vector3<int> const& currentChunkPos);
+    void drawChunksInRadius(Magnum::Vector3i const& currentChunkPos);
 
     /**
      * @brief Enqueues a chunk for mesh generation if it is not already enqueued.
@@ -151,6 +151,6 @@ private:
 
     std::unordered_map<Magnum::Vector3i, ChunkMeshJob, utils::IVec3Hasher> m_pendingMeshes;
     utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_meshQueue;
-    std::unordered_map<Magnum::Math::Vector3<int>, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
+    std::unordered_map<Magnum::Vector3i, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
 };
 } // namespace mc::ecs
