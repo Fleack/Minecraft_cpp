@@ -7,6 +7,7 @@
 #include "ecs/system/CameraSystem.hpp"
 #include "render/ChunkMeshBuilder.hpp"
 #include "render/TextureManager.hpp"
+#include "utils/FastDivFloor.hpp"
 #include "world/Chunk.hpp"
 #include "world/World.hpp"
 
@@ -84,8 +85,8 @@ std::optional<Magnum::Math::Vector3<int>> RenderSystem::getCurrentChunk() const
     if (transforms.empty()) return std::nullopt;
 
     auto const& pos = transforms.begin()->second.position;
-    int const cx = static_cast<int>(std::floor(pos.x() / static_cast<float>(world::CHUNK_SIZE_X)));
-    int const cz = static_cast<int>(std::floor(pos.z() / static_cast<float>(world::CHUNK_SIZE_Z)));
+    int const cx = utils::floor_div(pos.x(), world::CHUNK_SIZE_X);
+    int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
     return Magnum::Math::Vector3<int>{cx, 0, cz};
 }

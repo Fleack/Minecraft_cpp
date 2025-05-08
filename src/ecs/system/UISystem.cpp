@@ -3,6 +3,7 @@
 #include "core/Logger.hpp"
 #include "ecs/component/CameraComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
+#include "utils/FastDivFloor.hpp"
 
 #include <Corrade/Utility/Format.h>
 #include <Magnum/GL/Renderer.h>
@@ -125,9 +126,9 @@ void UISystem::render(float deltaTime)
     // Current chunk
     {
         auto const& pos = transform.position;
-        constexpr float chunkSize = 16.0f;
-        int cx = std::floor(pos.x() / chunkSize);
-        int cz = std::floor(pos.z() / chunkSize);
+        constexpr uint8_t chunkSize = 16;
+        int cx = utils::floor_div(pos.x(), chunkSize);
+        int cz = utils::floor_div(pos.z(), chunkSize);
         m_chunkLabel.setText(
             Corrade::Utility::format("Chunk: {},{}", cx, cz));
     }

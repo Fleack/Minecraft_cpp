@@ -3,6 +3,7 @@
 #include "ecs/component/MeshComponent.hpp"
 #include "render/BlockTextureMapper.hpp"
 #include "render/Vertex.hpp"
+#include "utils/FastDivFloor.hpp"
 #include "world/World.hpp"
 
 #include <array>
@@ -215,19 +216,16 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::unord
 std::optional<world::Block> ChunkMeshBuilder::getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks)
 {
     using namespace world;
-    constexpr int csx = CHUNK_SIZE_X;
-    constexpr int csy = CHUNK_SIZE_Y;
-    constexpr int csz = CHUNK_SIZE_Z;
 
     Magnum::Vector3i chunkPos{
-        static_cast<int>(std::floor(worldPos.x() / static_cast<float>(csx))),
-        static_cast<int>(std::floor(worldPos.y() / static_cast<float>(csy))),
-        static_cast<int>(std::floor(worldPos.z() / static_cast<float>(csz)))};
+        utils::floor_div(worldPos.x(), CHUNK_SIZE_X),
+        utils::floor_div(worldPos.y(), CHUNK_SIZE_Y),
+        utils::floor_div(worldPos.z(), CHUNK_SIZE_Z)};
 
     Magnum::Vector3i local{
-        worldPos.x() - chunkPos.x() * csx,
-        worldPos.y() - chunkPos.y() * csy,
-        worldPos.z() - chunkPos.z() * csz};
+        worldPos.x() - chunkPos.x() * CHUNK_SIZE_X,
+        worldPos.y() - chunkPos.y() * CHUNK_SIZE_Y,
+        worldPos.z() - chunkPos.z() * CHUNK_SIZE_Z};
 
     auto it = chunks.find(chunkPos);
     if (it == chunks.end()) return std::nullopt;

@@ -3,6 +3,7 @@
 #include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
+#include "utils/FastDivFloor.hpp"
 #include "world/World.hpp"
 
 #include <algorithm>
@@ -45,8 +46,8 @@ std::optional<Magnum::Math::Vector3<int>> ChunkLoadingSystem::getCurrentChunk() 
     if (transforms.empty()) return std::nullopt;
 
     auto const& pos = transforms.begin()->second.position;
-    int const cx = static_cast<int>(std::floor(pos.x() / static_cast<float>(world::CHUNK_SIZE_X)));
-    int const cz = static_cast<int>(std::floor(pos.z() / static_cast<float>(world::CHUNK_SIZE_Z)));
+    int const cx = utils::floor_div(pos.x(), world::CHUNK_SIZE_X);
+    int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
     return Magnum::Math::Vector3<int>{cx, 0, cz};
 }
@@ -113,11 +114,7 @@ void ChunkLoadingSystem::updateStats(size_t launches, time_point const& start)
     double const avg = duration / static_cast<double>(launches);
     m_avgScheduleTime = alpha * avg + (1.0 - alpha) * m_avgScheduleTime;
 
-    LOG(DEBUG,
-        "Scheduled {} chunks in {:.3f} ms (EMA {:.3f} ms)",
-        launches,
-        duration * 1000.0,
-        m_avgScheduleTime * 1000.0);
+    SPAM_LOG(DEBUG, "Scheduled {} chunks in {:.3f} ms (EMA {:.3f} ms)", launches, duration * 1000.0, m_avgScheduleTime * 1000.0);
 }
 
 } // namespace mc::ecs
