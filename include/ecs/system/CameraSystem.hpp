@@ -31,8 +31,9 @@ public:
     void handleScroll(float yOffset);
     void handleKey(Magnum::Platform::Sdl2Application::Key key, bool pressed);
 
-    Magnum::Math::Matrix4<float> const& getViewMatrix() const;
-    Magnum::Math::Matrix4<float> const& getProjectionMatrix() const;
+    Magnum::Matrix4 const& getViewMatrix() const;
+    Magnum::Matrix4 const& getProjectionMatrix() const;
+    Magnum::Matrix4 const& getRotationMatrix() const;
 
     void setAspectRatio(float ar);
 
@@ -46,8 +47,9 @@ private:
 
     std::set<Magnum::Platform::Sdl2Application::Key> m_keysPressed;
 
-    Magnum::Math::Matrix4<float> m_view;
-    Magnum::Math::Matrix4<float> m_proj;
+    Magnum::Matrix4 m_viewMatrix;
+    Magnum::Matrix4 m_projectionMatrix;
+    Magnum::Matrix4 m_rotationMatrix;
 };
 
 } // namespace mc::ecs

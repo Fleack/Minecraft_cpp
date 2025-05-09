@@ -1,10 +1,11 @@
 #include "ecs/system/MovementSystem.hpp"
 
-#include <ranges>
-
 #include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
 #include "ecs/component/TransformComponent.hpp"
+#include "ecs/component/VelocityComponent.hpp"
+
+#include <ranges>
 
 namespace mc::ecs
 {
@@ -16,10 +17,15 @@ MovementSystem::MovementSystem(Ecs& ecs)
 
 void MovementSystem::update(float deltaTime)
 {
-    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
-    for (auto& transform : transforms | std::views::values)
+    for (auto& [entity, velocity] : m_ecs.getAllComponents<VelocityComponent>())
     {
-        transform.position.x() += 0.25f * deltaTime;
+        auto transform = m_ecs.getComponent<TransformComponent>(entity);
+        if (!transform)
+        {
+            LOG(CRITICAL, "No TransformComponent found for entity: {}", entity);
+            continue;
+        }
+        transform->position += Magnum::Vector3d(velocity.velocity * deltaTime);
     }
 }
 }; // namespace mc::ecs

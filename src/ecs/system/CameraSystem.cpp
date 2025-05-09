@@ -2,6 +2,7 @@
 
 #include "core/Logger.hpp"
 #include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/PlayerComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -31,38 +32,40 @@ CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
                 Deg{70.0f}, m_aspectRatio, 0.1f, 1000.0f))
         .setViewport(GL::defaultFramebuffer.viewport().size());
 
-    auto e = m_ecs.createEntity();
-    m_ecs.addComponent<CameraComponent>(e, CameraComponent{});
-    m_ecs.addComponent<TransformComponent>(e, TransformComponent{});
-
     LOG(INFO, "CameraSystem initialized");
 }
 
-void CameraSystem::update(float dt)
+void CameraSystem::update(float)
 {
-    auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty()) return;
-    auto& cam = cams.begin()->second;
+    auto const& players = m_ecs.getAllComponents<PlayerComponent>();
+    if (players.empty())
+    {
+        LOG(CRITICAL, "No PlayerComponents found");
+        return;
+    }
 
-    float velocity = cam.speed * dt;
+    Entity player = players.begin()->first;
+    auto transform = m_ecs.getComponent<TransformComponent>(player);
+    if (!transform)
+    {
+        LOG(CRITICAL, "No TransformComponent found for entity: {}", player);
+        return;
+    }
 
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::W)) m_cameraObject->translateLocal({0.0f, 0.0f, -velocity});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::S)) m_cameraObject->translateLocal({0.0f, 0.0f, +velocity});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::A)) m_cameraObject->translateLocal({-velocity, 0.0f, 0.0f});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::D)) m_cameraObject->translateLocal({+velocity, 0.0f, 0.0f});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::Space)) m_cameraObject->translate({0.0f, +velocity, 0.0f});
-    if (m_keysPressed.contains(Platform::Sdl2Application::Key::LeftCtrl)) m_cameraObject->translate({0.0f, -velocity, 0.0f});
+    auto playerPos = static_cast<Vector3>(transform->position);
+    m_cameraObject->setTransformation(Matrix4::translation(playerPos + Vector3{0.0f, 1.6f, 0.0f}) * m_rotationMatrix);
 
-    m_ecs.getAllComponents<TransformComponent>().begin()->second.position = static_cast<Math::Vector3<double>>(m_cameraObject->transformation().translation());
+    m_viewMatrix = m_camera->cameraMatrix();
+    m_projectionMatrix = m_camera->projectionMatrix();
 }
 
 void CameraSystem::render(float)
 {
-    m_view = m_camera->cameraMatrix();
-    m_proj = m_camera->projectionMatrix();
+    m_viewMatrix = m_camera->cameraMatrix();
+    m_projectionMatrix = m_camera->projectionMatrix();
 }
 
-void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
+void CameraSystem::handleMouse(Magnum::Vector2 const& delta)
 {
     auto& cams = m_ecs.getAllComponents<CameraComponent>();
     if (cams.empty())
@@ -71,21 +74,17 @@ void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
         return;
     }
 
+    auto& cam = cams.begin()->second;
     float xoff = -delta.x() * cam.sensitivity;
     float yoff = -delta.y() * cam.sensitivity;
 
     cam.yaw += Deg{xoff};
     cam.pitch = Math::clamp(Deg{cam.pitch + Deg{yoff}}, Deg{-89.0f}, Deg{89.0f});
 
-    auto qYaw = Magnum::Math::Quaternion<Float>::rotation(cam.yaw, Vector3::yAxis());
-    auto qPitch = Magnum::Math::Quaternion<Float>::rotation(cam.pitch, Vector3::xAxis());
+    auto qYaw = Quaternion::rotation(cam.yaw, Vector3::yAxis());
+    auto qPitch = Quaternion::rotation(cam.pitch, Vector3::xAxis());
     auto q = qYaw * qPitch;
-
-    Vector3 pos = m_cameraObject->transformation().translation();
-
-    auto rot3 = q.toMatrix();
-    Matrix4 matrix = Matrix4::from(rot3, pos);
-    m_cameraObject->setTransformation(matrix);
+    m_rotationMatrix = Matrix4::from(q.toMatrix(), {});
 }
 
 void CameraSystem::handleScroll(float yOffset)
@@ -110,13 +109,19 @@ void CameraSystem::handleKey(Platform::Sdl2Application::Key key, bool pressed)
         m_keysPressed.erase(key);
 }
 
-Magnum::Math::Matrix4<float> const& CameraSystem::getViewMatrix() const
+Magnum::Matrix4 const& CameraSystem::getViewMatrix() const
 {
-    return m_view;
+    return m_viewMatrix;
 }
-Magnum::Math::Matrix4<float> const& CameraSystem::getProjectionMatrix() const
+
+Magnum::Matrix4 const& CameraSystem::getProjectionMatrix() const
 {
-    return m_proj;
+    return m_projectionMatrix;
+}
+
+Magnum::Matrix4 const& CameraSystem::getRotationMatrix() const
+{
+    return m_rotationMatrix;
 }
 
 void CameraSystem::setAspectRatio(float ar)

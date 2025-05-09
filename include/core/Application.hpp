@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ecs/Ecs.hpp"
+#include "ecs/system/MovementSystem.hpp"
+#include "ecs/system/PlayerInputSystem.hpp"
 #include "ecs/system/UISystem.hpp"
 #include "world/World.hpp"
 
@@ -46,6 +48,8 @@ private:
      */
     void initializeEcs();
 
+    void initializePlayer();
+
     /**
      * @brief Sets up the camera system and default camera entity.
      */
@@ -83,6 +87,8 @@ private:
     std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
     std::shared_ptr<ecs::UISystem> m_uiSystem; ///< Handles UI rendering.
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
+    std::shared_ptr<ecs::PlayerInputSystem> m_playerInputSystem;
+    std::shared_ptr<ecs::MovementSystem> m_movementSystem;
     std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.
     std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem; ///< Dynamically loads chunks.
 

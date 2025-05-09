@@ -56,7 +56,7 @@ public:
      * @return Optional containing the component if present.
      */
     template <typename T>
-    std::optional<T> getComponent(Entity e)
+    T* getComponent(Entity e)
     {
         return m_components.get<T>(e);
     }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include "ecs/Entity.hpp"
 
 #include <unordered_map>
@@ -38,15 +36,15 @@ public:
      * @return std::optional<T> Component if present, otherwise std::nullopt.
      */
     template <typename T>
-    std::optional<T> get(Entity entity)
+    T* get(Entity entity)
     {
         auto& storage = getStorage<T>();
         auto it = storage.find(entity);
         if (it != storage.end())
         {
-            return it->second;
+            return &it->second;
         }
-        return std::nullopt;
+        return nullptr;
     }
 
     /**

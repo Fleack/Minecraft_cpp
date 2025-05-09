@@ -3,8 +3,13 @@
 #include "core/CrashReporter.hpp"
 #include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
+#include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/PlayerComponent.hpp"
+#include "ecs/component/TransformComponent.hpp"
+#include "ecs/component/VelocityComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
 #include "ecs/system/ChunkLoadingSystem.hpp"
+#include "ecs/system/PlayerInputSystem.hpp"
 #include "ecs/system/RenderSystem.hpp"
 #include "world/World.hpp"
 
@@ -12,7 +17,6 @@
 
 #include <Corrade/Containers/StringView.h>
 #include <Corrade/Utility/Format.h>
-#include <Magnum/GL/Buffer.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/GL/Version.h>
@@ -39,6 +43,7 @@ Application::Application(Arguments const& arguments)
 
     initializeCore();
     initializeEcs();
+    initializePlayer();
     initializeCamera();
     initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
@@ -65,6 +70,21 @@ void Application::initializeCore() const
 void Application::initializeEcs()
 {
     m_ecs = std::make_unique<ecs::Ecs>();
+}
+
+void Application::initializePlayer()
+{
+    auto player = m_ecs->createEntity();
+    m_ecs->addComponent<ecs::TransformComponent>(player, {.position = {0.0, 100.0, 0.0}});
+    m_ecs->addComponent<ecs::VelocityComponent>(player, {});
+    m_ecs->addComponent<ecs::PlayerComponent>(player, {});
+    m_ecs->addComponent<ecs::CameraComponent>(player, {});
+
+    m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);
+    m_movementSystem = std::make_shared<ecs::MovementSystem>(*m_ecs);
+
+    m_ecs->addSystem(m_playerInputSystem);
+    m_ecs->addSystem(m_movementSystem);
 }
 
 void Application::initializeCamera()
@@ -137,6 +157,7 @@ void Application::keyPressEvent(KeyEvent& event)
     if (!m_paused)
     {
         m_cameraSystem->handleKey(event.key(), true);
+        m_playerInputSystem->handleKey(event.key(), true);
     }
     event.setAccepted();
 }
@@ -146,6 +167,7 @@ void Application::keyReleaseEvent(KeyEvent& event)
     if (!m_paused)
     {
         m_cameraSystem->handleKey(event.key(), false);
+        m_playerInputSystem->handleKey(event.key(), false);
     }
     event.setAccepted();
 }
