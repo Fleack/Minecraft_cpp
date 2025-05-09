@@ -64,7 +64,12 @@ void CameraSystem::render(float)
 
 void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
 {
-    auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
+    auto& cams = m_ecs.getAllComponents<CameraComponent>();
+    if (cams.empty())
+    {
+        LOG(CRITICAL, "No CameraComponents found!");
+        return;
+    }
 
     float xoff = -delta.x() * cam.sensitivity;
     float yoff = -delta.y() * cam.sensitivity;
@@ -85,7 +90,14 @@ void CameraSystem::handleMouse(Math::Vector2<float> const& delta)
 
 void CameraSystem::handleScroll(float yOffset)
 {
-    auto& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
+    auto& cams = m_ecs.getAllComponents<CameraComponent>();
+    if (cams.empty())
+    {
+        LOG(CRITICAL, "No TransformComponents found!");
+        return;
+    }
+
+    auto& cam = cams.begin()->second;
     cam.speed *= std::pow(1.1f, yOffset);
     cam.speed = std::clamp(cam.speed, 1.0f, 1000.0f);
 }

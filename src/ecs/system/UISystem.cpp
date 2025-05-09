@@ -106,8 +106,22 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
 
 void UISystem::render(float deltaTime)
 {
-    auto const& transform = m_ecs.getAllComponents<TransformComponent>().begin()->second;
-    auto const& cam = m_ecs.getAllComponents<CameraComponent>().begin()->second;
+    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
+    if (transforms.empty())
+    {
+        LOG(CRITICAL, "No TransformComponents found!");
+        return;
+    }
+
+    auto& cams = m_ecs.getAllComponents<CameraComponent>();
+    if (cams.empty())
+    {
+        LOG(CRITICAL, "No CameraComponents found!");
+        return;
+    }
+
+    auto const& transform = transforms.begin()->second;
+    auto const& cam = cams.begin()->second;
 
     // FPS
     {

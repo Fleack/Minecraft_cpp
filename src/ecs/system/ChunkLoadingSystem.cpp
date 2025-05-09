@@ -43,7 +43,11 @@ void ChunkLoadingSystem::update(float dt)
 std::optional<Magnum::Vector3i> ChunkLoadingSystem::getCurrentChunk() const
 {
     auto& transforms = m_ecs.getAllComponents<TransformComponent>();
-    if (transforms.empty()) return std::nullopt;
+    if (transforms.empty())
+    {
+        LOG(CRITICAL, "No TransformComponents found!");
+        return std::nullopt;
+    }
 
     auto const& pos = transforms.begin()->second.position;
     int const cx = utils::floor_div(pos.x(), world::CHUNK_SIZE_X);

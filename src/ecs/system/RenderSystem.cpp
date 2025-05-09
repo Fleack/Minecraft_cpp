@@ -62,7 +62,14 @@ void RenderSystem::update(float dt)
 
 void RenderSystem::render(float)
 {
-    auto& playerPosition = m_ecs.getAllComponents<TransformComponent>().begin()->second.position;
+    auto& transformComponents = m_ecs.getAllComponents<TransformComponent>();
+    if (transformComponents.empty())
+    {
+        LOG(CRITICAL, "No TransformComponents found!");
+        return;
+    }
+    auto playerPosition = transformComponents.begin()->second.position;
+
     constexpr float chunkSize = 16.0f;
     float renderDistanceInWorldUnits = 2 * m_renderRadius * chunkSize;
 
@@ -89,7 +96,11 @@ void RenderSystem::render(float)
 std::optional<Magnum::Vector3i> RenderSystem::getCurrentChunk() const
 {
     auto& transforms = m_ecs.getAllComponents<TransformComponent>();
-    if (transforms.empty()) return std::nullopt;
+    if (transforms.empty())
+    {
+        LOG(CRITICAL, "No TransformComponents found!");
+        return std::nullopt;
+    }
 
     auto const& pos = transforms.begin()->second.position;
     int const cx = utils::floor_div(pos.x(), world::CHUNK_SIZE_X);
