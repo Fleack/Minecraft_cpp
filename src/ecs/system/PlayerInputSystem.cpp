@@ -53,7 +53,7 @@ void PlayerInputSystem::update(float)
         }
         else
         {
-            move = move.normalized() * 5.0f;
+            move = move.normalized() * cam.speed;
             velocity->velocity.x() = move.x();
             velocity->velocity.z() = move.z();
         }

@@ -24,9 +24,7 @@ class Chunk;
 class World
 {
 public:
-    World(
-        std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor,
-        std::shared_ptr<concurrencpp::manual_executor> mainExec);
+    explicit World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor);
 
     /**
      * @brief Asynchronously loads a chunk if not already loaded or pending.
@@ -73,16 +71,14 @@ public:
 
 private:
     void enqueueChunk(Magnum::Vector3i const& chunkPos);
-
+    void commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr);
     concurrencpp::lazy_result<std::unique_ptr<Chunk>> generateChunkAsync(Magnum::Vector3i chunkPos) const;
-    concurrencpp::lazy_result<void> commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr);
 
 private:
     std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_chunks;
     std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> m_pendingChunks;
 
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
-    std::shared_ptr<concurrencpp::manual_executor> m_mainExecutor;
     ChunkGenerator m_generator;
 };
 

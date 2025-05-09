@@ -95,7 +95,7 @@ void Application::initializeCamera()
 
 void Application::initializeWorld(uint8_t renderDistance)
 {
-    m_world = std::make_unique<world::World>(m_chunkExecutor, m_mainExecutor);
+    m_world = std::make_unique<world::World>(m_chunkExecutor);
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
     m_ecs->addSystem(m_chunkLoadingSystem);
 }

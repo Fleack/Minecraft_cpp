@@ -20,15 +20,16 @@ ChunkGenerator::ChunkGenerator()
     m_noise.SetFrequency(0.005f);
 }
 
-concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shared_ptr<concurrencpp::executor> executor) const
+concurrencpp::lazy_result<std::unique_ptr<Chunk>> ChunkGenerator::generate(Magnum::Vector3i chunkPos, std::shared_ptr<concurrencpp::executor> executor) const
 {
     SPAM_LOG(DEBUG, "Generating chunk [{}, {}] on thread={}", chunk.getPosition().x(), chunk.getPosition().z(), std::this_thread::get_id());
 
     co_await concurrencpp::resume_on(executor);
+    auto chunk = std::make_unique<Chunk>(chunkPos);
 
     // Compute the world-space origin of this chunk
     Magnum::Vector3i const origin =
-        chunk.getPosition() * Magnum::Vector3i{CHUNK_SIZE_X, 0, CHUNK_SIZE_Z};
+        chunkPos * Magnum::Vector3i{CHUNK_SIZE_X, 0, CHUNK_SIZE_Z};
 
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
@@ -63,12 +64,14 @@ concurrencpp::lazy_result<void> ChunkGenerator::generate(Chunk& chunk, std::shar
                 else if (y < height)
                     type = STONE;
 
-                chunk.setBlock(x, y, z, Block{type});
+                chunk->setBlock(x, y, z, Block{type});
             }
         }
     }
 
     SPAM_LOG(DEBUG, "Generated new chunk at [{}, {}] on thread={}", chunk.getPosition().x(), chunk.getPosition().z(), std::this_thread::get_id());
+
+    co_return std::move(chunk);
 }
 
 } // namespace mc::world

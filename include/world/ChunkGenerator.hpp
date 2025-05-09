@@ -2,9 +2,9 @@
 
 #include "world/Chunk.hpp"
 
+#include <FastNoiseLite.h>
 #include <memory>
 
-#include <FastNoiseLite.h>
 #include <concurrencpp/concurrencpp.h>
 
 namespace mc::world
@@ -38,7 +38,7 @@ public:
      * @param chunk A result which is available
      * @param executor TODO
      */
-    concurrencpp::lazy_result<void> generate(Chunk& chunk, std::shared_ptr<concurrencpp::executor> executor) const;
+    concurrencpp::lazy_result<std::unique_ptr<Chunk>> generate(Magnum::Vector3i chunkPos, std::shared_ptr<concurrencpp::executor> executor) const;
 
 private:
     FastNoiseLite m_noise{}; ///< Noise generator used for terrain shaping.
