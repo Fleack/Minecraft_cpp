@@ -59,15 +59,11 @@ public:
      */
     [[nodiscard]] bool isChunkPending(Magnum::Vector3i const& pos) const;
 
-    [[nodiscard]] auto const& getChunks() const
-    {
-        return m_chunks;
-    }
+    [[nodiscard]] std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> const& getChunks() const;
+    [[nodiscard]] std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> const& getPendingChunks() const;
 
-    [[nodiscard]] auto const& getPendingChunks() const
-    {
-        return m_pendingChunks;
-    }
+    static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3i const& position);
+    static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3d const& position);
 
 private:
     void enqueueChunk(Magnum::Vector3i const& chunkPos);

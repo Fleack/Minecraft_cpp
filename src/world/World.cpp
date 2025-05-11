@@ -2,6 +2,16 @@
 
 #include "core/Logger.hpp"
 
+#include <Magnum/Math/Functions.h>
+
+namespace
+{
+constexpr int div_floor(int a, int b)
+{
+    return (a < 0) ? ((a - b + 1) / b) : (a / b);
+}
+} // namespace
+
 namespace mc::world
 {
 
@@ -56,6 +66,29 @@ bool World::isChunkLoaded(Magnum::Vector3i const& pos) const
 bool World::isChunkPending(Magnum::Vector3i const& pos) const
 {
     return m_pendingChunks.contains(pos);
+}
+
+std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> const& World::getChunks() const
+{
+    return m_chunks;
+}
+
+std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> const& World::getPendingChunks() const
+{
+    return m_pendingChunks;
+}
+
+Magnum::Vector3i World::getChunkOfPosition(Magnum::Vector3i const& position)
+{
+    return {
+        div_floor(position.x(), CHUNK_SIZE_X),
+        0,
+        div_floor(position.z(), CHUNK_SIZE_Z)};
+}
+
+Magnum::Vector3i World::getChunkOfPosition(Magnum::Vector3d const& position)
+{
+    return getChunkOfPosition(Magnum::Vector3i{Magnum::Math::floor(position)});
 }
 
 } // namespace mc::world
