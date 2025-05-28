@@ -65,7 +65,6 @@ void PlayerInputSystem::update(float)
             velocity->velocity.x() = move.x();
             velocity->velocity.z() = move.z();
         }
-        LOG(DEBUG, "vel = {} {}", velocity->velocity.x(), velocity->velocity.z());
     }
 }
 

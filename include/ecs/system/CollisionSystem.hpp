@@ -5,6 +5,7 @@
 
 namespace mc::ecs
 {
+struct AABB;
 
 class CollisionSystem final : public ISystem
 {
@@ -21,6 +22,7 @@ public:
     void render(float) override {}
 
 private:
+    bool collides(const AABB& box) const;
     bool isSolidAt(Magnum::Vector3d const& pos) const;
     SweepResult sweepAABB(
         Magnum::Vector3d const& pos,

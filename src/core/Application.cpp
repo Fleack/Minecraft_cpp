@@ -76,7 +76,7 @@ void Application::initializeEcs()
 void Application::initializePlayer()
 {
     auto player = m_ecs->createEntity();
-    m_ecs->addComponent<ecs::TransformComponent>(player, {.position = {0.0, 100.0, 0.0}});
+    m_ecs->addComponent<ecs::TransformComponent>(player, {.position = {0.0, 70.0, 0.0}});
     m_ecs->addComponent<ecs::VelocityComponent>(player, {});
     m_ecs->addComponent<ecs::PlayerComponent>(player, {});
     m_ecs->addComponent<ecs::CameraComponent>(player, {});

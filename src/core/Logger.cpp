@@ -13,7 +13,7 @@ void Logger::init()
 {
     spdlog::init_thread_pool(8192, 1);
 
-// #define CONSOLE_LOG
+#define CONSOLE_LOG
 #ifdef CONSOLE_LOG
     auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     consoleSink->set_level(spdlog::level::trace);
