@@ -4,6 +4,7 @@
 #include "core/Logger.hpp"
 #include "ecs/Ecs.hpp"
 #include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/ColliderComponent.hpp"
 #include "ecs/component/PlayerComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/component/VelocityComponent.hpp"
@@ -43,9 +44,9 @@ Application::Application(Arguments const& arguments)
 
     initializeCore();
     initializeEcs();
+    initializeWorld(renderDistance);
     initializePlayer();
     initializeCamera();
-    initializeWorld(renderDistance);
     initializeRenderSystems(renderDistance);
     initializeUiSystem();
 
@@ -79,11 +80,18 @@ void Application::initializePlayer()
     m_ecs->addComponent<ecs::VelocityComponent>(player, {});
     m_ecs->addComponent<ecs::PlayerComponent>(player, {});
     m_ecs->addComponent<ecs::CameraComponent>(player, {});
+    m_ecs->addComponent<ecs::ColliderComponent>(player, {});
 
     m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);
+    m_gravitySystem = std::make_shared<ecs::GravitySystem>(*m_ecs);
+    m_jumpSystem = std::make_shared<ecs::JumpSystem>(*m_ecs);
+    m_collisionSystem = std::make_shared<ecs::CollisionSystem>(*m_ecs, *m_world);
     m_movementSystem = std::make_shared<ecs::MovementSystem>(*m_ecs);
 
     m_ecs->addSystem(m_playerInputSystem);
+    m_ecs->addSystem(m_gravitySystem);
+    m_ecs->addSystem(m_jumpSystem);
+    m_ecs->addSystem(m_collisionSystem);
     m_ecs->addSystem(m_movementSystem);
 }
 
@@ -156,7 +164,6 @@ void Application::keyPressEvent(KeyEvent& event)
 
     if (!m_paused)
     {
-        m_cameraSystem->handleKey(event.key(), true);
         m_playerInputSystem->handleKey(event.key(), true);
     }
     event.setAccepted();
@@ -166,7 +173,6 @@ void Application::keyReleaseEvent(KeyEvent& event)
 {
     if (!m_paused)
     {
-        m_cameraSystem->handleKey(event.key(), false);
         m_playerInputSystem->handleKey(event.key(), false);
     }
     event.setAccepted();
@@ -199,7 +205,7 @@ void Application::scrollEvent(ScrollEvent& event)
 {
     if (!m_paused)
     {
-        m_cameraSystem->handleScroll(event.offset().y());
+        m_playerInputSystem->handleScroll(event.offset().y());
     }
     event.setAccepted();
 }

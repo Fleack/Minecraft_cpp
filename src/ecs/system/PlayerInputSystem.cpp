@@ -3,6 +3,7 @@
 #include "core/Logger.hpp"
 #include "ecs/component/CameraComponent.hpp"
 #include "ecs/component/PlayerComponent.hpp"
+#include "ecs/component/TransformComponent.hpp"
 #include "ecs/component/VelocityComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
 
@@ -16,7 +17,7 @@ namespace mc::ecs
 {
 
 PlayerInputSystem::PlayerInputSystem(Ecs& ecs)
-    : m_ecs(ecs) {}
+    : ISystem{Type::PLAYER_INPUT}, m_ecs(ecs) {}
 
 void PlayerInputSystem::update(float)
 {
@@ -34,6 +35,13 @@ void PlayerInputSystem::update(float)
         if (m_keysPressed.contains(Platform::Sdl2Application::Key::S)) move.z() += 1.0f;
         if (m_keysPressed.contains(Platform::Sdl2Application::Key::A)) move.x() -= 1.0f;
         if (m_keysPressed.contains(Platform::Sdl2Application::Key::D)) move.x() += 1.0f;
+
+        if (m_keysPressed.contains(Platform::Sdl2Application::Key::R))
+        {
+            move = Vector3{0.0f};
+            auto& transform = *m_ecs.getComponent<TransformComponent>(entity);
+            transform.position.y() = 100.0f;
+        }
 
         auto& cams = m_ecs.getAllComponents<CameraComponent>();
         if (cams.empty())
@@ -53,10 +61,11 @@ void PlayerInputSystem::update(float)
         }
         else
         {
-            move = move.normalized() * cam.speed;
+            move = move.normalized() * velocity->speed;
             velocity->velocity.x() = move.x();
             velocity->velocity.z() = move.z();
         }
+        LOG(DEBUG, "vel = {} {}", velocity->velocity.x(), velocity->velocity.z());
     }
 }
 
@@ -66,6 +75,28 @@ void PlayerInputSystem::handleKey(Platform::Sdl2Application::Key key, bool press
         m_keysPressed.insert(key);
     else
         m_keysPressed.erase(key);
+
+    if (pressed && key == Platform::Sdl2Application::Key::Space)
+    {
+        for (auto& player : m_ecs.getAllComponents<PlayerComponent>() | std::views::values)
+        {
+            player.wantsToJump = true;
+        }
+    }
+}
+
+void PlayerInputSystem::handleScroll(float yOffset)
+{
+    auto& velocityComponents = m_ecs.getAllComponents<VelocityComponent>();
+    if (velocityComponents.empty())
+    {
+        LOG(CRITICAL, "No VelocityComponents found!");
+        return;
+    }
+
+    auto& velocity = velocityComponents.begin()->second;
+    velocity.speed *= std::pow(1.1f, yOffset);
+    velocity.speed = std::clamp(velocity.speed, 1.0f, 1000.0f);
 }
 
 } // namespace mc::ecs

@@ -7,7 +7,8 @@ namespace mc::ecs
 
 struct VelocityComponent
 {
-    Magnum::Vector3 velocity{0.0f};
+    Magnum::Vector3d velocity{0.0f};
+    float speed{2.5f};
 };
 
 } // namespace mc::ecs

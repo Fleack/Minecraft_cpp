@@ -61,7 +61,7 @@ private:
     static void appendTriangles(std::vector<Vertex>& out, std::array<Vertex, VERTS_PER_FACE> const& faceVerts);
 
     static bool isWorldBlockSolid(CachedChunksMap const& chunks, Magnum::Vector3i const& pos);
-    static std::optional<world::Block> getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks);
+    static std::optional<world::Block> getBlockAt(CachedChunksMap const& chunks, Magnum::Vector3i worldPos);
     static float computeAo(CachedChunksMap const& chunks, Magnum::Vector3i const& vertexPos, OffsetTuple const& offsets);
 };
 

@@ -18,6 +18,7 @@ public:
     void render(float) override {};
 
     void handleKey(Magnum::Platform::Sdl2Application::Key key, bool pressed);
+    void handleScroll(float yOffset);
 
 private:
     Ecs& m_ecs;

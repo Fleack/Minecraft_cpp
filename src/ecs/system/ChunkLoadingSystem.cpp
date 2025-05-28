@@ -13,7 +13,7 @@ namespace mc::ecs
 {
 
 ChunkLoadingSystem::ChunkLoadingSystem(Ecs& ecs, world::World& world, uint8_t radius)
-    : m_ecs(ecs), m_world(world), m_loadRadius(radius)
+    : ISystem{Type::CHUNK_LOADING}, m_ecs(ecs), m_world(world), m_loadRadius(radius)
 {
     LOG(INFO, "ChunkLoadingSystem initialized with load radius: {}", radius);
 }
@@ -54,6 +54,7 @@ std::optional<Magnum::Vector3i> ChunkLoadingSystem::getCurrentChunk() const
     int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
     return Magnum::Vector3i{cx, 0, cz};
+    //return world::World::getChunkOfPosition(static_cast<Magnum::Vector3i>(pos));
 }
 
 void ChunkLoadingSystem::loadChunksInRadius(Magnum::Vector3i currentChunk)

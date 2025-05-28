@@ -1,5 +1,6 @@
 #include "render/ChunkMeshBuilder.hpp"
 
+#include "core/Logger.hpp"
 #include "ecs/component/MeshComponent.hpp"
 #include "render/BlockTextureMapper.hpp"
 #include "render/Vertex.hpp"
@@ -219,18 +220,19 @@ std::vector<ecs::MeshComponent> ChunkMeshBuilder::buildMeshComponents(std::vecto
     return result;
 }
 
-std::optional<world::Block> ChunkMeshBuilder::getBlockAt(Magnum::Vector3i worldPos, CachedChunksMap const& chunks)
+std::optional<world::Block> ChunkMeshBuilder::getBlockAt(CachedChunksMap const& chunks, Magnum::Vector3i worldPos)
 {
     using namespace world;
 
-    Magnum::Vector3i chunkPos{
-        utils::floor_div(worldPos.x(), CHUNK_SIZE_X),
-        utils::floor_div(worldPos.y(), CHUNK_SIZE_Y),
-        utils::floor_div(worldPos.z(), CHUNK_SIZE_Z)};
+    if (worldPos.y() < 0 || worldPos.y() >= CHUNK_SIZE_Y)
+    {
+        return std::nullopt;
+    }
 
+    auto chunkPos = world::World::getChunkOfPosition(worldPos);
     Magnum::Vector3i local{
         worldPos.x() - chunkPos.x() * CHUNK_SIZE_X,
-        worldPos.y() - chunkPos.y() * CHUNK_SIZE_Y,
+        worldPos.y(),
         worldPos.z() - chunkPos.z() * CHUNK_SIZE_Z};
 
     auto it = chunks.find(chunkPos);
@@ -241,7 +243,7 @@ std::optional<world::Block> ChunkMeshBuilder::getBlockAt(Magnum::Vector3i worldP
 
 bool ChunkMeshBuilder::isWorldBlockSolid(CachedChunksMap const& chunks, Magnum::Vector3i const& pos)
 {
-    if (auto block = getBlockAt(pos, chunks))
+    if (auto block = getBlockAt(chunks, pos))
     {
         return block->isSolid();
     }

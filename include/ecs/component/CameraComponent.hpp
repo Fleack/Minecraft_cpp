@@ -12,8 +12,7 @@ namespace mc::ecs
  */
 struct CameraComponent
 {
-    float speed{10.0f};
-    float sensitivity{0.05f};
+    float sensitivity{0.045f};
     float fov{90.0f};
 
     Magnum::Math::Deg<float> yaw{-90.0f};

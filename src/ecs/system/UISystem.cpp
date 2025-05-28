@@ -2,8 +2,8 @@
 
 #include "core/Logger.hpp"
 #include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/PlayerComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
-#include "utils/FastDivFloor.hpp"
 
 #include <Corrade/Utility/Format.h>
 #include <Magnum/GL/Renderer.h>
@@ -21,7 +21,8 @@
 namespace mc::ecs
 {
 UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowSize)
-    : m_ecs{ecs}
+    : ISystem{Type::UI}
+    , m_ecs{ecs}
     , m_world{world}
     , m_ui{windowSize, Magnum::Ui::McssDarkStyle{}}
     , m_fpsLabel{Corrade::NoCreate, m_ui}
@@ -31,6 +32,11 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
     , m_viewLabel{Corrade::NoCreate, m_ui}
     , m_speedLabel{Corrade::NoCreate, m_ui}
     , m_fovLabel{Corrade::NoCreate, m_ui}
+    , m_playerInfo{Corrade::NoCreate, m_ui}
+    , m_transformComponent{m_ecs.getAllComponents<TransformComponent>().begin()->second}
+    , m_cameraComponent{m_ecs.getAllComponents<CameraComponent>().begin()->second}
+    , m_playerComponent{m_ecs.getAllComponents<PlayerComponent>().begin()->second}
+    , m_velocityComponent{m_ecs.getAllComponents<VelocityComponent>().begin()->second}
 {
     using namespace Magnum::Math::Literals;
 
@@ -88,8 +94,8 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
             m_ui,
             Magnum::Ui::Snap::TopLeft,
             {0.0f, 100.0f},
-            {200.0f, 20.0f});
-        m_speedLabel = Magnum::Ui::Label{anchor, "Speed: 0.00", textProps};
+            {250.0f, 20.0f});
+        m_speedLabel = Magnum::Ui::Label{anchor, "Velocity: [X: 0.0, Y: 0.0, Z: 0.0], Speed: 0.00", textProps};
     }
     // FOV
     {
@@ -100,100 +106,23 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
             {200.0f, 20.0f});
         m_fovLabel = Magnum::Ui::Label{anchor, "FOV: 0.00", textProps};
     }
+    // Player Component
+    {
+        auto anchor = Magnum::Ui::snap(
+            m_ui,
+            Magnum::Ui::Snap::TopLeft,
+            {0.0f, 140.0f},
+            {200.0f, 20.0f});
+        m_playerInfo = Magnum::Ui::Label{anchor, "onGround: false", textProps};
+    }
 
     LOG(INFO, "UISystem initialized");
 }
 
 void UISystem::render(float deltaTime)
 {
-    auto& transforms = m_ecs.getAllComponents<TransformComponent>();
-    if (transforms.empty())
-    {
-        LOG(CRITICAL, "No TransformComponents found!");
-        return;
-    }
-
-    auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty())
-    {
-        LOG(CRITICAL, "No CameraComponents found!");
-        return;
-    }
-
-    auto const& transform = transforms.begin()->second;
-    auto const& cam = cams.begin()->second;
-
-    // FPS
-    {
-        m_frameTimes.push_back(deltaTime);
-        if (m_frameTimes.size() > frameSampleSize)
-            m_frameTimes.pop_front();
-
-        m_timeSinceLastFpsUpdate += deltaTime;
-        if (m_timeSinceLastFpsUpdate >= 0.5f)
-        {
-            float fps99 = 1.0f / calculatePercentile(0.99f);
-            float fps999 = 1.0f / calculatePercentile(0.999f);
-            float avgDeltaTime = std::accumulate(m_frameTimes.begin(), m_frameTimes.end(), 0.0f) / m_frameTimes.size();
-            float avgFrameTimeMs = avgDeltaTime * 1000.0f;
-            float avgFps = 1.0f / avgDeltaTime;
-            float fps = 1.0f / deltaTime;
-            m_fpsLabel.setText(
-                Corrade::Utility::format("FPS: {} (AVG: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, Frametime: {:.1f} ms)", std::lround(fps), avgFps, fps99, fps999, avgFrameTimeMs));
-            m_timeSinceLastFpsUpdate = 0.0f;
-        }
-    }
-    // Coords
-    {
-        auto const& pos = transform.position;
-        m_coordsLabel.setText(
-            Corrade::Utility::format(
-                "Coords: {:.2f}, {:.2f}, {:.2f}",
-                pos.x(),
-                pos.y(),
-                pos.z()));
-    }
-    // Current chunk
-    {
-        auto const& pos = transform.position;
-        constexpr uint8_t chunkSize = 16;
-        int cx = utils::floor_div(pos.x(), chunkSize);
-        int cz = utils::floor_div(pos.z(), chunkSize);
-        m_chunkLabel.setText(
-            Corrade::Utility::format("Chunk: {},{}", cx, cz));
-    }
-    // Chunks amount
-    {
-        std::size_t totalChunks = m_world.getChunks().size();
-        m_chunksCountLabel.setText(
-            Corrade::Utility::format("Chunks: {}", totalChunks));
-    }
-    // Camera view
-    {
-        Magnum::Vector3 front{
-            Magnum::Math::cos(Magnum::Rad{cam.pitch}) * Magnum::Math::cos(Magnum::Rad{cam.yaw}),
-            Magnum::Math::sin(Magnum::Rad{cam.pitch}),
-            Magnum::Math::cos(Magnum::Rad{cam.pitch}) * Magnum::Math::sin(Magnum::Rad{cam.yaw})};
-
-        m_viewLabel.setText(
-            Corrade::Utility::format(
-                "View: {:.2f}, {:.2f}, {:.2f}",
-                front.x(),
-                front.y(),
-                front.z()));
-    }
-    // Speed
-    {
-        auto camSpeed = cam.speed;
-        m_speedLabel.setText(
-            Corrade::Utility::format("Speed: {:.2f}", camSpeed));
-    }
-    // FOV
-    {
-        auto camFov = cam.fov;
-        m_fovLabel.setText(
-            Corrade::Utility::format("FOV: {:.1f}", camFov));
-    }
+    renderWithoutInterval();
+    renderWithInterval(deltaTime);
 
     Magnum::GL::Renderer::enable(Magnum::GL::Renderer::Feature::Blending);
     Magnum::GL::Renderer::setBlendFunction(Magnum::GL::Renderer::BlendFunction::One, Magnum::GL::Renderer::BlendFunction::OneMinusSourceAlpha);
@@ -219,6 +148,94 @@ bool UISystem::pointerReleaseEvent(Magnum::Platform::Sdl2Application::PointerEve
 void UISystem::setWindowSize(Magnum::Vector2i windowSize)
 {
     m_ui.setSize(windowSize);
+}
+
+void UISystem::renderWithoutInterval()
+{
+    // Coords
+    {
+        auto const& pos = m_transformComponent.position;
+        m_coordsLabel.setText(
+            Corrade::Utility::format(
+                "Coords: {:.2f}, {:.2f}, {:.2f}",
+                pos.x(),
+                pos.y(),
+                pos.z()));
+    }
+    // Current chunk
+    {
+        auto const& pos = m_transformComponent.position;
+        auto chunkPos = world::World::getChunkOfPosition(static_cast<Magnum::Vector3i>(pos));
+        m_chunkLabel.setText(
+            Corrade::Utility::format("Chunk: {},{}", chunkPos.x(), chunkPos.z()));
+    }
+    // Chunks amount
+    {
+        std::size_t totalChunks = m_world.getChunks().size();
+        m_chunksCountLabel.setText(
+            Corrade::Utility::format("Chunks: {}", totalChunks));
+    }
+    // Camera view
+    {
+        Magnum::Vector3 front{
+            Magnum::Math::cos(Magnum::Rad{m_cameraComponent.pitch}) * Magnum::Math::cos(Magnum::Rad{m_cameraComponent.yaw}),
+            Magnum::Math::sin(Magnum::Rad{m_cameraComponent.pitch}),
+            Magnum::Math::cos(Magnum::Rad{m_cameraComponent.pitch}) * Magnum::Math::sin(Magnum::Rad{m_cameraComponent.yaw})};
+
+        m_viewLabel.setText(
+            Corrade::Utility::format(
+                "View: {:.2f}, {:.2f}, {:.2f}",
+                front.x(),
+                front.y(),
+                front.z()));
+    }
+    // Velocity
+    {
+        auto camSpeed = m_velocityComponent.speed;
+        auto velocityX = m_velocityComponent.velocity.x();
+        auto velocityY = m_velocityComponent.velocity.y();
+        auto velocityZ = m_velocityComponent.velocity.z();
+        m_speedLabel.setText(
+            Corrade::Utility::format("Velocity: [X: {:.1f}, Y: {:.1f}, Z: {:.1f}], Speed: {:.2f}", velocityX, velocityY, velocityZ, camSpeed));
+    }
+    // FOV
+    {
+        auto camFov = m_cameraComponent.fov;
+        m_fovLabel.setText(
+            Corrade::Utility::format("FOV: {:.1f}", camFov));
+    }
+    // Player Component
+    {
+        auto onGround = m_playerComponent.onGround ? "true" : "false";
+        m_playerInfo.setText(
+            Corrade::Utility::format("onGround: {}", onGround));
+    }
+}
+
+void UISystem::renderWithInterval(float deltaTime)
+{
+    if (m_timeSinceLastFpsUpdate <= fpsUpdateInterval)
+    {
+        m_timeSinceLastFpsUpdate += deltaTime;
+        return;
+    }
+    m_timeSinceLastFpsUpdate = 0.0f;
+
+    // FPS
+    {
+        m_frameTimes.push_back(deltaTime);
+        if (m_frameTimes.size() > frameSampleSize)
+            m_frameTimes.pop_front();
+
+        float fps99 = 1.0f / calculatePercentile(0.99f);
+        float fps999 = 1.0f / calculatePercentile(0.999f);
+        float avgDeltaTime = std::accumulate(m_frameTimes.begin(), m_frameTimes.end(), 0.0f) / m_frameTimes.size();
+        float avgFrameTimeMs = avgDeltaTime * 1000.0f;
+        float avgFps = 1.0f / avgDeltaTime;
+        float fps = 1.0f / deltaTime;
+        m_fpsLabel.setText(
+            Corrade::Utility::format("FPS: {} (AVG: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, Frametime: {:.1f} ms)", std::lround(fps), avgFps, fps99, fps999, avgFrameTimeMs));
+    }
 }
 
 float UISystem::calculatePercentile(float percentile)

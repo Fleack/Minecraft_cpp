@@ -28,8 +28,6 @@ public:
     void render(float) override;
 
     void handleMouse(Magnum::Vector2 const& delta);
-    void handleScroll(float yOffset);
-    void handleKey(Magnum::Platform::Sdl2Application::Key key, bool pressed);
 
     Magnum::Matrix4 const& getViewMatrix() const;
     Magnum::Matrix4 const& getProjectionMatrix() const;
@@ -44,8 +42,6 @@ private:
     Scene3D m_scene;
     std::unique_ptr<Object3D> m_cameraObject;
     std::unique_ptr<Camera3D> m_camera;
-
-    std::set<Magnum::Platform::Sdl2Application::Key> m_keysPressed;
 
     Magnum::Matrix4 m_viewMatrix;
     Magnum::Matrix4 m_projectionMatrix;

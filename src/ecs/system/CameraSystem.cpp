@@ -18,7 +18,7 @@ namespace mc::ecs
 {
 
 CameraSystem::CameraSystem(Ecs& ecs, float aspectRatio)
-    : m_ecs(ecs), m_aspectRatio(aspectRatio)
+    : ISystem{Type::CAMERA}, m_ecs(ecs), m_aspectRatio(aspectRatio)
 {
     m_cameraObject = std::make_unique<Object3D>(&m_scene);
 
@@ -53,8 +53,7 @@ void CameraSystem::update(float)
     }
 
     auto playerPos = static_cast<Vector3>(transform->position);
-    m_cameraObject->setTransformation(Matrix4::translation(playerPos + Vector3{0.0f, 1.6f, 0.0f}) * m_rotationMatrix);
-
+    m_cameraObject->setTransformation(Matrix4::translation(playerPos + Vector3{0.0f, 0.8f, 0.0f}) * m_rotationMatrix);
     m_viewMatrix = m_camera->cameraMatrix();
     m_projectionMatrix = m_camera->projectionMatrix();
 }
@@ -85,28 +84,6 @@ void CameraSystem::handleMouse(Magnum::Vector2 const& delta)
     auto qPitch = Quaternion::rotation(cam.pitch, Vector3::xAxis());
     auto q = qYaw * qPitch;
     m_rotationMatrix = Matrix4::from(q.toMatrix(), {});
-}
-
-void CameraSystem::handleScroll(float yOffset)
-{
-    auto& cams = m_ecs.getAllComponents<CameraComponent>();
-    if (cams.empty())
-    {
-        LOG(CRITICAL, "No TransformComponents found!");
-        return;
-    }
-
-    auto& cam = cams.begin()->second;
-    cam.speed *= std::pow(1.1f, yOffset);
-    cam.speed = std::clamp(cam.speed, 1.0f, 1000.0f);
-}
-
-void CameraSystem::handleKey(Platform::Sdl2Application::Key key, bool pressed)
-{
-    if (pressed)
-        m_keysPressed.insert(key);
-    else
-        m_keysPressed.erase(key);
 }
 
 Magnum::Matrix4 const& CameraSystem::getViewMatrix() const

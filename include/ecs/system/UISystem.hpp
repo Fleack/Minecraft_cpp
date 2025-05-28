@@ -1,6 +1,10 @@
 #pragma once
 
 #include "ecs/Ecs.hpp"
+#include "ecs/component/CameraComponent.hpp"
+#include "ecs/component/PlayerComponent.hpp"
+#include "ecs/component/TransformComponent.hpp"
+#include "ecs/component/VelocityComponent.hpp"
 #include "ecs/system/ISystem.hpp"
 #include "world/World.hpp"
 
@@ -26,12 +30,15 @@ public:
     void setWindowSize(Magnum::Vector2i windowSize);
 
 private:
+    void renderWithoutInterval();
+    void renderWithInterval(float deltaTime);
     float calculatePercentile(float percentile);
 
 private:
     ecs::Ecs& m_ecs;
     world::World const& m_world;
 
+    // Labels
     Magnum::Ui::UserInterfaceGL m_ui;
     Magnum::Ui::Label m_fpsLabel;
     Magnum::Ui::Label m_coordsLabel;
@@ -40,10 +47,20 @@ private:
     Magnum::Ui::Label m_viewLabel;
     Magnum::Ui::Label m_speedLabel;
     Magnum::Ui::Label m_fovLabel;
+    Magnum::Ui::Label m_playerInfo;
+
+    // Components
+    TransformComponent& m_transformComponent;
+    CameraComponent& m_cameraComponent;
+    PlayerComponent& m_playerComponent;
+    VelocityComponent& m_velocityComponent;
+
+    // Refresh interval
+    float m_timeSinceLastFpsUpdate = 0.0f;
+    static constexpr float fpsUpdateInterval{0.5f};
 
     // FPS Relates
-    float m_timeSinceLastFpsUpdate = 0.0f;
     std::deque<float> m_frameTimes;
-    static constexpr std::size_t frameSampleSize{1000};
+    static constexpr std::size_t frameSampleSize{500};
 };
 } // namespace mc::ecs

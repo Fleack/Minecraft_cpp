@@ -1,6 +1,9 @@
 #pragma once
 
 #include "ecs/Ecs.hpp"
+#include "ecs/system/CollisionSystem.hpp"
+#include "ecs/system/GravitySystem.hpp"
+#include "ecs/system/JumpSystem.hpp"
 #include "ecs/system/MovementSystem.hpp"
 #include "ecs/system/PlayerInputSystem.hpp"
 #include "ecs/system/UISystem.hpp"
@@ -91,6 +94,9 @@ private:
     std::shared_ptr<ecs::MovementSystem> m_movementSystem;
     std::shared_ptr<ecs::RenderSystem> m_renderSystem; ///< Handles rendering entities.
     std::shared_ptr<ecs::ChunkLoadingSystem> m_chunkLoadingSystem; ///< Dynamically loads chunks.
+    std::shared_ptr<ecs::GravitySystem> m_gravitySystem;
+    std::shared_ptr<ecs::JumpSystem> m_jumpSystem;
+    std::shared_ptr<ecs::CollisionSystem> m_collisionSystem;
 
     float m_aspectRatio = 1920.0f / 1080.0f;
 

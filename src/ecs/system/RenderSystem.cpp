@@ -25,7 +25,8 @@ RenderSystem::RenderSystem(
     std::shared_ptr<CameraSystem> cameraSystem,
     world::World& world,
     uint8_t renderRadius)
-    : m_ecs{ecs}
+    : ISystem{Type::RENDER}
+    , m_ecs{ecs}
     , m_world{world}
     , m_meshExecutor{std::move(meshExecutor)}
     , m_cameraSystem{std::move(cameraSystem)}
@@ -107,6 +108,7 @@ std::optional<Magnum::Vector3i> RenderSystem::getCurrentChunk() const
     int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
     return Magnum::Vector3i{cx, 0, cz};
+    //return world::World::getChunkOfPosition(static_cast<Magnum::Vector3i>(pos));
 }
 
 void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
