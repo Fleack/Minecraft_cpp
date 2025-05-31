@@ -20,16 +20,10 @@ ChunkGenerator::ChunkGenerator()
     m_noise.SetFrequency(0.005f);
 }
 
-concurrencpp::lazy_result<std::unique_ptr<Chunk>> ChunkGenerator::generate(Magnum::Vector3i chunkPos, std::shared_ptr<concurrencpp::executor> executor) const
+std::unique_ptr<Chunk> ChunkGenerator::generate(Magnum::Vector3i const& chunkPos) const
 {
-    SPAM_LOG(DEBUG, "Generating chunk [{}, {}] on thread={}", chunk.getPosition().x(), chunk.getPosition().z(), std::this_thread::get_id());
-
-    co_await concurrencpp::resume_on(executor);
     auto chunk = std::make_unique<Chunk>(chunkPos);
-
-    // Compute the world-space origin of this chunk
-    Magnum::Vector3i const origin =
-        chunkPos * Magnum::Vector3i{CHUNK_SIZE_X, 0, CHUNK_SIZE_Z};
+    Magnum::Vector3i const origin = chunkPos * Magnum::Vector3i{CHUNK_SIZE_X, 0, CHUNK_SIZE_Z};
 
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
@@ -69,9 +63,7 @@ concurrencpp::lazy_result<std::unique_ptr<Chunk>> ChunkGenerator::generate(Magnu
         }
     }
 
-    SPAM_LOG(DEBUG, "Generated new chunk at [{}, {}] on thread={}", chunk.getPosition().x(), chunk.getPosition().z(), std::this_thread::get_id());
-
-    co_return std::move(chunk);
+    return chunk;
 }
 
 } // namespace mc::world

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <queue>
-#include <stdexcept>
 #include <unordered_set>
 #include <vector>
 
@@ -26,7 +26,7 @@ public:
         return m_set.contains(val);
     }
 
-    T pop()
+    std::optional<T> pop()
     {
         while (!m_queue.empty())
         {
@@ -34,7 +34,7 @@ public:
             m_queue.pop();
             if (m_set.erase(val)) return val;
         }
-        throw std::runtime_error("pop from empty queue");
+        return std::nullopt;
     }
 
     bool empty() const

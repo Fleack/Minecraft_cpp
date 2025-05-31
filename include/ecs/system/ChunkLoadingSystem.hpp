@@ -73,8 +73,6 @@ private:
      */
     void loadChunksInRadius(Magnum::Vector3i const& currentChunk);
 
-    void enqueueChunkForLoad(utils::PrioritizedChunk const& chunk);
-
     /**
      * @brief Schedules chunk loading operations within the time budget.
      *

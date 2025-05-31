@@ -19,17 +19,6 @@ World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor)
     : m_chunkExecutor{std::move(chunkExecutor)}
 {}
 
-concurrencpp::lazy_result<void> World::loadChunk(Magnum::Vector3i chunkPos)
-{
-    if (m_chunks.contains(chunkPos) || m_pendingChunks.contains(chunkPos))
-    {
-        co_return;
-    }
-    enqueueChunk(chunkPos);
-    auto chunk = co_await generateChunkAsync(chunkPos);
-    commitChunk(chunkPos, std::move(chunk));
-}
-
 std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Vector3i const& chunkPos) const
 {
     auto it = m_chunks.find(chunkPos);
@@ -42,13 +31,42 @@ std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Vector3i co
 
 void World::enqueueChunk(Magnum::Vector3i const& chunkPos)
 {
-    SPAM_LOG(DEBUG, "Enqueue chunk at [{}, {}] for generation", chunkPos.x(), chunkPos.z());
     m_pendingChunks.insert(chunkPos);
 }
 
-concurrencpp::lazy_result<std::unique_ptr<Chunk>> World::generateChunkAsync(Magnum::Vector3i chunkPos) const
+void World::submitChunkLoad(Magnum::Vector3i const& chunkPos)
 {
-    return m_generator.generate(chunkPos, m_chunkExecutor);
+    if (m_chunks.contains(chunkPos) || m_pendingChunks.contains(chunkPos))
+        return;
+
+    enqueueChunk(chunkPos);
+
+    auto job = m_chunkExecutor->submit([=, this]() {
+        SPAM_LOG(DEBUG, "Enqueue chunk at [{}, {}] for generation on thread {}", chunkPos.x(), chunkPos.z(), std::this_thread::get_id());
+        return m_generator.generate(chunkPos);
+    });
+
+    m_pendingChunkResults[chunkPos] = std::move(job);
+}
+
+void World::integrateFinishedChunks()
+{
+    std::vector<Magnum::Vector3i> toRemove;
+    toRemove.reserve(m_pendingChunkResults.size());
+    for (auto& [pos, result] : m_pendingChunkResults)
+    {
+        if (result.status() != concurrencpp::result_status::value)
+            continue;
+
+        auto chunk = result.get();
+        commitChunk(pos, std::move(chunk));
+        toRemove.push_back(pos);
+    }
+
+    for (auto const& pos : toRemove)
+    {
+        m_pendingChunkResults.erase(pos);
+    }
 }
 
 void World::commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr)

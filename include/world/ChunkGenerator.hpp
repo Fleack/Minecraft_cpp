@@ -36,9 +36,8 @@ public:
      * then fills block columns depending on the height.
      *
      * @param chunk A result which is available
-     * @param executor TODO
      */
-    concurrencpp::lazy_result<std::unique_ptr<Chunk>> generate(Magnum::Vector3i chunkPos, std::shared_ptr<concurrencpp::executor> executor) const;
+    std::unique_ptr<Chunk> generate(Magnum::Vector3i const& chunkPos) const;
 
 private:
     FastNoiseLite m_noise{}; ///< Noise generator used for terrain shaping.

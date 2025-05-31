@@ -38,10 +38,8 @@ void PlayerInputSystem::update(float)
 
         if (m_keysPressed.contains(Platform::Sdl2Application::Key::R))
         {
-            move = Vector3{0.0f};
             auto& transform = *m_ecs.getComponent<TransformComponent>(entity);
             transform.position.y() = 100.0f;
-            velocity->velocity = {0, 0, 0};
         }
 
         auto& cams = m_ecs.getAllComponents<CameraComponent>();

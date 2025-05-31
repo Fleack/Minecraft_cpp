@@ -38,6 +38,7 @@ void ChunkLoadingSystem::update(float dt)
     {
         updateStats(launches, start);
     }
+    m_world.integrateFinishedChunks();
 }
 
 std::optional<Magnum::Vector3i> ChunkLoadingSystem::getCurrentChunk() const
@@ -83,14 +84,8 @@ void ChunkLoadingSystem::loadChunksInRadius(Magnum::Vector3i const& currentChunk
         float dz = pos.z() - currentChunk.z();
         float distanceSq = dx * dx + dz * dz;
 
-        enqueueChunkForLoad({pos, distanceSq});
+        m_loadQueue.push({pos, distanceSq});
     }
-}
-
-void ChunkLoadingSystem::enqueueChunkForLoad(utils::PrioritizedChunk const& chunk)
-{
-    SPAM_LOG(DEBUG, "Enqueue chunk at [{}, {}] for generation", chunk.pos.x(), chunk.pos.z());
-    m_loadQueue.push(chunk);
 }
 
 size_t ChunkLoadingSystem::processLoadQueue(time_point const& start)
@@ -102,8 +97,9 @@ size_t ChunkLoadingSystem::processLoadQueue(time_point const& start)
             break;
 
         auto chunk = m_loadQueue.pop();
+        if (!chunk) break;
 
-        m_world.loadChunk(chunk.pos).run();
+        m_world.submitChunkLoad(chunk->pos);
         ++launches;
     }
     return launches;

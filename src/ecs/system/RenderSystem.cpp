@@ -158,7 +158,6 @@ void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
 void RenderSystem::enqueueChunkForMesh(utils::PrioritizedChunk const& chunk)
 {
     if (m_meshQueue.contains(chunk) || m_pendingMeshes.contains(chunk.pos)) return;
-    SPAM_LOG(DEBUG, "Enqueue mesh at [{}, {}] for generation", chunk.pos.x(), chunk.pos.z());
     m_meshQueue.push(chunk);
 }
 
@@ -171,14 +170,16 @@ size_t RenderSystem::processMeshQueue(time_point const& start)
             break;
 
         auto chunk = m_meshQueue.pop();
-        if (m_pendingMeshes.contains(chunk.pos)) continue;
+        if (!chunk) break;
+        if (m_pendingMeshes.contains(chunk->pos)) continue;
 
-        if (auto opt = m_world.getChunk(chunk.pos))
+        if (auto opt = m_world.getChunk(chunk->pos))
         {
             auto job = m_meshExecutor->submit([=, &world = m_world]() {
+                SPAM_LOG(DEBUG, "Enqueue mesh [{}, {}] for generation map on thread {}", chunk->pos.x(), chunk->pos.z(), std::this_thread::get_id());
                 return render::ChunkMeshBuilder::buildVertexData(opt->get(), world);
             });
-            m_pendingMeshes.emplace(chunk.pos, std::move(job));
+            m_pendingMeshes.emplace(chunk->pos, std::move(job));
             ++launches;
         }
     }
@@ -197,7 +198,7 @@ void RenderSystem::updateStats(size_t launches, time_point const& start)
 void RenderSystem::integrateFinishedMeshes()
 {
     std::vector<Magnum::Vector3i> toRemove;
-
+    toRemove.reserve(m_pendingMeshes.size());
     for (auto& [pos, job] : m_pendingMeshes)
     {
         if (!job)
