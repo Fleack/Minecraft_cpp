@@ -16,7 +16,7 @@ public:
 private:
     Ecs& m_ecs;
 
-    static constexpr float jumpForce = 3.5f;
+    static constexpr float jumpForce = 8.0f;
 };
 
 } // namespace mc::ecs
