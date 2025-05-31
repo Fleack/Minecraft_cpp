@@ -47,5 +47,5 @@ target_link_libraries(voxel_engine
 
 target_compile_features(voxel_engine PRIVATE cxx_std_23)
 
-add_executable(Minecraft main.cpp)
-target_link_libraries(Minecraft PRIVATE voxel_engine)
+add_executable(Radon main.cpp)
+target_link_libraries(Radon PRIVATE voxel_engine)

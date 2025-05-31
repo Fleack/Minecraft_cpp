@@ -33,7 +33,7 @@ using namespace Magnum::Platform;
 Application::Application(Arguments const& arguments)
     : Sdl2Application{
           arguments,
-          Configuration{}.setTitle("MinecraftX").setSize({1280, 720}),
+          Configuration{}.setTitle("Radon").setSize({1280, 720}),
           GLConfiguration{}.setVersion(GL::Version::GL460)}
     , m_chunkExecutor{m_runtime.thread_pool_executor()}
     , m_meshExecutor{m_runtime.thread_pool_executor()}
