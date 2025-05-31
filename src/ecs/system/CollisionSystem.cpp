@@ -15,33 +15,24 @@
 namespace mc::ecs
 {
 
+// ReSharper disable once CppInconsistentNaming
 struct AABB
 {
     Magnum::Vector3d min;
     Magnum::Vector3d max;
 
-    static AABB fromCenterHalfExtents(Magnum::Vector3d const& center, Magnum::Vector3d const& halfExtents)
+    static constexpr double epsilon = 1e-6;
+
+    static constexpr AABB fromCenterHalfExtents(Magnum::Vector3d const& center, Magnum::Vector3d const& halfExtents) noexcept
     {
         return {center - halfExtents, center + halfExtents};
     }
 
-    bool intersects(const AABB& other) const
+    constexpr bool intersects(const AABB& other) const noexcept
     {
-        constexpr double eps = 1e-6;
-        return (min.x() < other.max.x() - eps && max.x() > other.min.x() + eps) &&
-            (min.y() < other.max.y() - eps && max.y() > other.min.y() + eps) &&
-            (min.z() < other.max.z() - eps && max.z() > other.min.z() + eps);
-    }
-
-    void move(Magnum::Vector3d const& offset)
-    {
-        min += offset;
-        max += offset;
-    }
-
-    AABB moved(Magnum::Vector3d const& offset) const
-    {
-        return {min + offset, max + offset};
+        return (min.x() < other.max.x() - epsilon && max.x() > other.min.x() + epsilon) &&
+            (min.y() < other.max.y() - epsilon && max.y() > other.min.y() + epsilon) &&
+            (min.z() < other.max.z() - epsilon && max.z() > other.min.z() + epsilon);
     }
 };
 
@@ -51,34 +42,33 @@ CollisionSystem::CollisionSystem(Ecs& ecs, world::World& world)
 bool CollisionSystem::isSolidAt(Magnum::Vector3d const& pos) const
 {
     using namespace world;
-    auto blockPos = Magnum::Vector3i{Magnum::Math::floor(pos)};
-    Magnum::Vector3i chunkPos = World::getChunkOfPosition(blockPos);
-    Magnum::Vector3i localPos = {
-        (blockPos.x() % CHUNK_SIZE_X + CHUNK_SIZE_X) % CHUNK_SIZE_X,
-        (blockPos.y() % CHUNK_SIZE_Y + CHUNK_SIZE_Y) % CHUNK_SIZE_Y,
-        (blockPos.z() % CHUNK_SIZE_Z + CHUNK_SIZE_Z) % CHUNK_SIZE_Z};
+    auto blockPos = static_cast<Magnum::Vector3i>(Magnum::Math::floor(pos));
+    auto chunkPos = World::getChunkOfPosition(blockPos);
 
     auto chunkOpt = m_world.getChunk(chunkPos);
     if (!chunkOpt) return true;
-    auto& chunk = chunkOpt->get();
-    return chunk.getBlock(localPos.x(), localPos.y(), localPos.z()).isSolid();
+
+    int const localX = blockPos.x() & (CHUNK_SIZE_X - 1);
+    int const localY = blockPos.y() & (CHUNK_SIZE_Y - 1);
+    int const localZ = blockPos.z() & (CHUNK_SIZE_Z - 1);
+
+    return chunkOpt->get().getBlock(localX, localY, localZ).isSolid();
 }
 
 bool CollisionSystem::collides(const AABB& box) const
 {
-    Magnum::Vector3d minD = Magnum::Math::floor(box.min);
-    Magnum::Vector3d maxD = Magnum::Math::floor(box.max);
-
-    Magnum::Vector3i min{int(minD.x()), int(minD.y()), int(minD.z())};
-    Magnum::Vector3i max{int(maxD.x()), int(maxD.y()), int(maxD.z())};
+    auto min = static_cast<Magnum::Vector3i>(Magnum::Math::floor(box.min));
+    auto max = static_cast<Magnum::Vector3i>(Magnum::Math::floor(box.max));
 
     for (int x = min.x(); x <= max.x(); ++x)
         for (int y = min.y(); y <= max.y(); ++y)
             for (int z = min.z(); z <= max.z(); ++z)
             {
-                if (!isSolidAt({x + 0.5, y + 0.5, z + 0.5})) continue;
-
-                AABB block{{(double)x, (double)y, (double)z}, {x + 1.0, y + 1.0, z + 1.0}};
+                Magnum::Vector3d blockCenter{x + 0.5, y + 0.5, z + 0.5};
+                if (!isSolidAt(blockCenter)) continue;
+                AABB block{
+                    {static_cast<double>(x), static_cast<double>(y), static_cast<double>(z)},
+                    {static_cast<double>(x + 1), static_cast<double>(y + 1), static_cast<double>(z + 1)}};
                 if (box.intersects(block))
                     return true;
             }
@@ -86,20 +76,21 @@ bool CollisionSystem::collides(const AABB& box) const
     return false;
 }
 
-CollisionSystem::SweepResult CollisionSystem::sweepAABB(
+// ReSharper disable once CppInconsistentNaming
+Magnum::Vector3d CollisionSystem::sweepAABB(
     Magnum::Vector3d const& pos,
     Magnum::Vector3d const& vel,
     Magnum::Vector3d const& halfExtents,
     float dt)
 {
-    Magnum::Vector3d position = pos;
     Magnum::Vector3d velocity = vel;
+    AABB box = AABB::fromCenterHalfExtents(pos, halfExtents);
+    static constexpr double epsilon = 1e-7;
 
     for (int axis = 0; axis < 3; ++axis)
     {
-        AABB box = AABB::fromCenterHalfExtents(position, halfExtents);
         double move = velocity[axis] * dt;
-        if (move == 0.0)
+        if (Magnum::Math::abs(move) < epsilon)
             continue;
 
         double sign = move > 0.0 ? 1.0 : -1.0;
@@ -109,78 +100,64 @@ CollisionSystem::SweepResult CollisionSystem::sweepAABB(
         expanded.min[axis] += std::min(0.0, move);
         expanded.max[axis] += std::max(0.0, move);
 
+        auto min = static_cast<Magnum::Vector3i>(Magnum::Math::floor(expanded.min));
+        auto max = static_cast<Magnum::Vector3i>(Magnum::Math::floor(expanded.max));
+
         int axis1 = (axis + 1) % 3;
         int axis2 = (axis + 2) % 3;
-
-        Magnum::Vector3d minD = Magnum::Math::floor(expanded.min);
-        Magnum::Vector3d maxD = Magnum::Math::floor(expanded.max);
-
-        Magnum::Vector3i min{int(minD.x()), int(minD.y()), int(minD.z())};
-        Magnum::Vector3i max{int(maxD.x()), int(maxD.y()), int(maxD.z())};
-        LOG(DEBUG, "[AXIS {}] Start sweep: move = {}, sign = {}", axis, move, sign);
 
         for (int x = min.x(); x <= max.x(); ++x)
             for (int y = min.y(); y <= max.y(); ++y)
                 for (int z = min.z(); z <= max.z(); ++z)
                 {
-                    Magnum::Vector3d blockMin{double(x), double(y), double(z)};
+                    Magnum::Vector3d blockMin{Magnum::Vector3i{x, y, z}};
                     Magnum::Vector3d blockMax = blockMin + Magnum::Vector3d{1.0};
-                    LOG(DEBUG, "[AXIS {}] Checking block {}, {}, {}", axis, x, y, z);
 
                     if (!isSolidAt(blockMin + Magnum::Vector3d{0.5})) continue;
 
                     if (box.max[axis1] <= blockMin[axis1] || box.min[axis1] >= blockMax[axis1]) continue;
                     if (box.max[axis2] <= blockMin[axis2] || box.min[axis2] >= blockMax[axis2]) continue;
-                    LOG(DEBUG, "[AXIS {}] Potential collision with block [{}, {}, {}]", axis, x, y, z);
 
                     double blockFace = sign > 0.0 ? blockMin[axis] : blockMax[axis];
                     double boxFace = sign > 0.0 ? box.max[axis] : box.min[axis];
                     double distance = blockFace - boxFace;
-                    LOG(DEBUG, "[AXIS {}] boxFace = {}, blockFace = {}, distance = {}, old maxMove = {}", axis, boxFace, blockFace, distance, maxMove);
 
-                    if (sign > 0.0)
+                    if (sign * distance < sign * maxMove)
                     {
-                        if (distance < maxMove) maxMove = distance;
+                        maxMove = distance - sign * epsilon;
                     }
-                    else
-                    {
-                        if (distance > maxMove) maxMove = distance;
-                    }
-                    LOG(DEBUG, "[AXIS {}] Updating maxMove = {}", axis, maxMove);
                 }
 
-        LOG(DEBUG, "[AXIS {}] Final move = {}, new position = {}", axis, maxMove, position[axis]);
-
-        position[axis] += maxMove;
         if (maxMove != move)
         {
-            LOG(DEBUG, "[AXIS {}] Collision occurred, velocity = 0", axis);
-            velocity[axis] = 0.0;
+            velocity[axis] = maxMove / dt;
+            if (std::abs(velocity[axis]) < epsilon)
+                velocity[axis] = 0.0;
         }
+
+        box.min[axis] += maxMove;
+        box.max[axis] += maxMove;
     }
 
-    return {position, velocity};
+    return velocity;
 }
 
 bool CollisionSystem::isOnGround(Magnum::Vector3d const& pos, Magnum::Vector3d const& halfExtents) const
 {
-    constexpr double eps = 0.05;
-    Magnum::Vector3d bbMin = pos - halfExtents;
-    Magnum::Vector3d bbMax = pos + halfExtents;
-    bbMin.y() -= eps;
-    bbMax.y() = bbMin.y();
+    constexpr double epsilon = 0.05;
 
-    int minX = std::floor(bbMin.x());
-    int maxX = std::floor(bbMax.x());
-    int minZ = std::floor(bbMin.z());
-    int maxZ = std::floor(bbMax.z());
-    int blockY = std::floor(bbMin.y());
+    double checkY = std::floor(pos.y() - halfExtents.y() - epsilon);
+    int minX = std::floor(pos.x() - halfExtents.x());
+    int maxX = std::floor(pos.x() + halfExtents.x());
+    int minZ = std::floor(pos.z() - halfExtents.z());
+    int maxZ = std::floor(pos.z() + halfExtents.z());
 
     for (int x = minX; x <= maxX; ++x)
     {
         for (int z = minZ; z <= maxZ; ++z)
         {
-            if (isSolidAt({x + 0.5, blockY + 0.5, z + 0.5}))
+            Magnum::Vector3d blockCenter{x + 0.5, checkY + 0.5, z + 0.5};
+            if (isSolidAt(blockCenter))
                 return true;
         }
     }
@@ -200,11 +177,8 @@ void CollisionSystem::update(float dt)
         auto vel = velocity->velocity;
         auto halfExtents = collider.halfExtents;
 
-        auto [newPos, newVel] = sweepAABB(pos, vel, halfExtents, dt);
-
-        transform->position = newPos;
-        velocity->velocity = newVel;
-        player->onGround = isOnGround(newPos, halfExtents);
+        velocity->velocity = sweepAABB(pos, vel, halfExtents, dt);
+        player->onGround = isOnGround(pos, halfExtents);
     }
 }
 

@@ -170,8 +170,8 @@ void Application::initializeSystems()
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
     m_gravitySystem = std::make_shared<ecs::GravitySystem>(*m_ecs);
     m_jumpSystem = std::make_shared<ecs::JumpSystem>(*m_ecs);
-    m_movementSystem = std::make_shared<ecs::MovementSystem>(*m_ecs);
     m_collisionSystem = std::make_shared<ecs::CollisionSystem>(*m_ecs, *m_world);
+    m_movementSystem = std::make_shared<ecs::MovementSystem>(*m_ecs);
     m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio);
     m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_meshExecutor, m_cameraSystem, *m_world, renderDistance);
     m_uiSystem = std::make_shared<ecs::UISystem>(*m_ecs, *m_world, windowSize());

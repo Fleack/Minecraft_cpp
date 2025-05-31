@@ -10,12 +10,6 @@ struct AABB;
 class CollisionSystem final : public ISystem
 {
 public:
-    struct SweepResult
-    {
-        Magnum::Vector3d position;
-        Magnum::Vector3d velocity;
-    };
-
     CollisionSystem(Ecs& ecs, world::World& world);
 
     void update(float dt) override;
@@ -24,7 +18,7 @@ public:
 private:
     bool collides(const AABB& box) const;
     bool isSolidAt(Magnum::Vector3d const& pos) const;
-    SweepResult sweepAABB(
+    Magnum::Vector3d sweepAABB(
         Magnum::Vector3d const& pos,
         Magnum::Vector3d const& vel,
         Magnum::Vector3d const& halfExtents,
