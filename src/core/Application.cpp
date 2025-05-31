@@ -40,15 +40,7 @@ Application::Application(Arguments const& arguments)
     , m_mainExecutor{m_runtime.make_manual_executor()}
     , m_aspectRatio{static_cast<float>(windowSize().x()) / windowSize().y()}
 {
-    constexpr uint8_t renderDistance = 16;
-
-    initializeCore();
-    initializeEcs();
-    initializeWorld(renderDistance);
-    initializePlayer();
-    initializeCamera();
-    initializeRenderSystems(renderDistance);
-    initializeUiSystem();
+    initializeSystems();
 
     setCursor(Cursor::Hidden);
     SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -59,65 +51,6 @@ Application::Application(Arguments const& arguments)
 
     setSwapInterval(1);
     redraw();
-}
-
-void Application::initializeCore() const
-{
-    Logger::init();
-    CrashReporter::init();
-    LOG(INFO, "Core systems initialized");
-}
-
-void Application::initializeEcs()
-{
-    m_ecs = std::make_unique<ecs::Ecs>();
-}
-
-void Application::initializePlayer()
-{
-    auto player = m_ecs->createEntity();
-    m_ecs->addComponent<ecs::TransformComponent>(player, {.position = {0.0, 70.0, 0.0}});
-    m_ecs->addComponent<ecs::VelocityComponent>(player, {});
-    m_ecs->addComponent<ecs::PlayerComponent>(player, {});
-    m_ecs->addComponent<ecs::CameraComponent>(player, {});
-    m_ecs->addComponent<ecs::ColliderComponent>(player, {});
-
-    m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);
-    m_gravitySystem = std::make_shared<ecs::GravitySystem>(*m_ecs);
-    m_jumpSystem = std::make_shared<ecs::JumpSystem>(*m_ecs);
-    m_collisionSystem = std::make_shared<ecs::CollisionSystem>(*m_ecs, *m_world);
-    m_movementSystem = std::make_shared<ecs::MovementSystem>(*m_ecs);
-
-    m_ecs->addSystem(m_playerInputSystem);
-    m_ecs->addSystem(m_gravitySystem);
-    m_ecs->addSystem(m_jumpSystem);
-    m_ecs->addSystem(m_collisionSystem);
-    m_ecs->addSystem(m_movementSystem);
-}
-
-void Application::initializeCamera()
-{
-    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio);
-    m_ecs->addSystem(m_cameraSystem);
-}
-
-void Application::initializeWorld(uint8_t renderDistance)
-{
-    m_world = std::make_unique<world::World>(m_chunkExecutor);
-    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
-    m_ecs->addSystem(m_chunkLoadingSystem);
-}
-
-void Application::initializeRenderSystems(uint8_t renderDistance)
-{
-    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_meshExecutor, m_cameraSystem, *m_world, renderDistance);
-    m_ecs->addSystem(m_renderSystem);
-}
-
-void Application::initializeUiSystem()
-{
-    m_uiSystem = std::make_shared<ecs::UISystem>(*m_ecs, *m_world, windowSize());
-    m_ecs->addSystem(m_uiSystem);
 }
 
 void Application::drawEvent()
@@ -193,12 +126,20 @@ void Application::pointerMoveEvent(Magnum::Platform::Sdl2Application::PointerMov
 
 void Application::pointerPressEvent(Magnum::Platform::Sdl2Application::PointerEvent& event)
 {
-    if (m_paused && m_uiSystem->pointerPressEvent(event)) return;
+    if (!m_paused)
+    {
+        m_uiSystem->pointerPressEvent(event);
+    }
+    event.setAccepted();
 }
 
 void Application::pointerReleaseEvent(Magnum::Platform::Sdl2Application::PointerEvent& event)
 {
-    if (m_paused && m_uiSystem->pointerReleaseEvent(event)) return;
+    if (!m_paused)
+    {
+        m_uiSystem->pointerReleaseEvent(event);
+    }
+    event.setAccepted();
 }
 
 void Application::scrollEvent(ScrollEvent& event)
@@ -208,6 +149,42 @@ void Application::scrollEvent(ScrollEvent& event)
         m_playerInputSystem->handleScroll(event.offset().y());
     }
     event.setAccepted();
+}
+
+void Application::initializeSystems()
+{
+    Logger::init();
+    CrashReporter::init();
+    m_ecs = std::make_unique<ecs::Ecs>();
+
+    auto player = m_ecs->createEntity();
+    m_ecs->addComponent<ecs::TransformComponent>(player, {.position = {0.0, 70.0, 0.0}});
+    m_ecs->addComponent<ecs::VelocityComponent>(player, {});
+    m_ecs->addComponent<ecs::PlayerComponent>(player, {});
+    m_ecs->addComponent<ecs::CameraComponent>(player, {});
+    m_ecs->addComponent<ecs::ColliderComponent>(player, {});
+
+    m_world = std::make_unique<world::World>(m_chunkExecutor);
+
+    m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);
+    m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);
+    m_gravitySystem = std::make_shared<ecs::GravitySystem>(*m_ecs);
+    m_jumpSystem = std::make_shared<ecs::JumpSystem>(*m_ecs);
+    m_movementSystem = std::make_shared<ecs::MovementSystem>(*m_ecs);
+    m_collisionSystem = std::make_shared<ecs::CollisionSystem>(*m_ecs, *m_world);
+    m_cameraSystem = std::make_shared<ecs::CameraSystem>(*m_ecs, m_aspectRatio);
+    m_renderSystem = std::make_shared<ecs::RenderSystem>(*m_ecs, m_meshExecutor, m_cameraSystem, *m_world, renderDistance);
+    m_uiSystem = std::make_shared<ecs::UISystem>(*m_ecs, *m_world, windowSize());
+
+    m_ecs->addSystem(m_playerInputSystem);
+    m_ecs->addSystem(m_chunkLoadingSystem);
+    m_ecs->addSystem(m_gravitySystem);
+    m_ecs->addSystem(m_jumpSystem);
+    m_ecs->addSystem(m_collisionSystem);
+    m_ecs->addSystem(m_movementSystem);
+    m_ecs->addSystem(m_cameraSystem);
+    m_ecs->addSystem(m_renderSystem);
+    m_ecs->addSystem(m_uiSystem);
 }
 
 void Application::shutdown()

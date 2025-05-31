@@ -44,35 +44,7 @@ private:
     void pointerReleaseEvent(PointerEvent& event) override;
     void scrollEvent(ScrollEvent& event) override;
 
-    void initializeCore() const;
-
-    /**
-     * @brief Initializes the ECS (Entity-Component-System) core.
-     */
-    void initializeEcs();
-
-    void initializePlayer();
-
-    /**
-     * @brief Sets up the camera system and default camera entity.
-     */
-    void initializeCamera();
-
-    /**
-     * @brief Initializes the world and loads the initial chunks.
-     *
-     * @param renderDistance render distance from camera position
-     */
-    void initializeWorld(uint8_t renderDistance);
-
-    /**
-     * @brief Registers and sets up render-related ECS systems.
-     *
-     * @param renderDistance render distance from camera position
-     */
-    void initializeRenderSystems(uint8_t renderDistance);
-
-    void initializeUiSystem();
+    void initializeSystems();
 
     /**
      * @brief Cleans up and shuts down the application.
@@ -98,7 +70,8 @@ private:
     std::shared_ptr<ecs::JumpSystem> m_jumpSystem;
     std::shared_ptr<ecs::CollisionSystem> m_collisionSystem;
 
-    float m_aspectRatio = 1920.0f / 1080.0f;
+    float m_aspectRatio{1920.0f / 1080.0f};
+    static constexpr uint8_t renderDistance{10};
 
     bool m_paused{false};
 };

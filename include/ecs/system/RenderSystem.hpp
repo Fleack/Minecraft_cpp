@@ -147,5 +147,8 @@ private:
     std::unordered_map<Magnum::Vector3i, chunk_mesh_job, utils::IVec3Hasher> m_pendingMeshes;
     utils::PriorityUniqueQueue<utils::PrioritizedChunk, utils::PrioritizedChunkHasher> m_meshQueue;
     std::unordered_map<Magnum::Vector3i, std::vector<Entity>, utils::IVec3Hasher> m_chunkToMesh;
+
+    std::optional<Magnum::Vector3i> m_cachedCurrentChunk;
+    tsl::hopscotch_set<Magnum::Vector3i, utils::IVec3Hasher> m_visibleChunks;
 };
 } // namespace mc::ecs

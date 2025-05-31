@@ -16,6 +16,7 @@ public:
 private:
     Ecs& m_ecs;
     constexpr static float gravity = 9.81f;
+    constexpr static float terminalVelocity = -25.0f;
 };
 
 } // namespace mc::ecs

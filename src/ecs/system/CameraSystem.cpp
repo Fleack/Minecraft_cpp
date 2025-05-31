@@ -54,8 +54,6 @@ void CameraSystem::update(float)
 
     auto playerPos = static_cast<Vector3>(transform->position);
     m_cameraObject->setTransformation(Matrix4::translation(playerPos + Vector3{0.0f, 0.8f, 0.0f}) * m_rotationMatrix);
-    m_viewMatrix = m_camera->cameraMatrix();
-    m_projectionMatrix = m_camera->projectionMatrix();
 }
 
 void CameraSystem::render(float)

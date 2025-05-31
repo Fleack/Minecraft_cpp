@@ -13,19 +13,17 @@ void JumpSystem::update(float)
 {
     for (auto& [entity, player] : m_ecs.getAllComponents<PlayerComponent>())
     {
-        if (player.wantsToJump)
-        {
-            if (player.onGround)
-            {
-                if (auto velocity = m_ecs.getComponent<VelocityComponent>(entity))
-                {
-                    static constexpr float jumpForce = 3.5f;
-                    velocity->velocity.y() = jumpForce;
-                    player.onGround = false;
-                }
-            }
+        if (!player.wantsToJump)
+            continue;
 
-            player.wantsToJump = false;
+        player.wantsToJump = false;
+
+        if (!player.onGround)
+            continue;
+
+        if (auto velocity = m_ecs.getComponent<VelocityComponent>(entity); velocity->velocity.y() <= 0.01f)
+        {
+            velocity->velocity.y() = jumpForce;
         }
     }
 }

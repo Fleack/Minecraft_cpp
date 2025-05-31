@@ -22,7 +22,7 @@ void ChunkLoadingSystem::update(float dt)
 {
     constexpr float targetFrame = 1.0f / 60.0f;
     float const leftover = targetFrame - dt;
-    m_timeBudget = (leftover > 0.0f ? leftover : 0.0f) * workFraction;
+    m_timeBudget = std::max(0.001f, leftover) * workFraction;
 
     auto currentChunk = getCurrentChunk();
     if (!currentChunk) return;
@@ -54,10 +54,9 @@ std::optional<Magnum::Vector3i> ChunkLoadingSystem::getCurrentChunk() const
     int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
     return Magnum::Vector3i{cx, 0, cz};
-    //return world::World::getChunkOfPosition(static_cast<Magnum::Vector3i>(pos));
 }
 
-void ChunkLoadingSystem::loadChunksInRadius(Magnum::Vector3i currentChunk)
+void ChunkLoadingSystem::loadChunksInRadius(Magnum::Vector3i const& currentChunk)
 {
     m_loadQueue.clear();
     float radius = static_cast<float>(m_loadRadius) + 0.5f;
@@ -80,11 +79,8 @@ void ChunkLoadingSystem::loadChunksInRadius(Magnum::Vector3i currentChunk)
 
     for (auto const& pos : candidates)
     {
-        auto const current = getCurrentChunk();
-        if (!current) return;
-
-        float dx = pos.x() - current->x();
-        float dz = pos.z() - current->z();
+        float dx = pos.x() - currentChunk.x();
+        float dz = pos.z() - currentChunk.z();
         float distanceSq = dx * dx + dz * dz;
 
         enqueueChunkForLoad({pos, distanceSq});

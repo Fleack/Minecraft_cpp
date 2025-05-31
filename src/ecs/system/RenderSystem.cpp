@@ -32,6 +32,7 @@ RenderSystem::RenderSystem(
     , m_cameraSystem{std::move(cameraSystem)}
     , m_renderRadius{renderRadius}
 {
+    m_visibleChunks.reserve((2 * m_renderRadius + 1) * (2 * m_renderRadius + 1));
     m_textureManager = std::make_unique<mc::render::TextureManager>("assets/textures/blocks");
     LOG(INFO, "RenderSystem initialized with render radius: {}", renderRadius);
 }
@@ -42,15 +43,15 @@ void RenderSystem::update(float dt)
     float leftover = targetFrame - dt;
     m_timeBudget = std::max(leftover, 0.0f) * workFraction;
 
+    m_cachedCurrentChunk = getCurrentChunk();
+    if (!m_cachedCurrentChunk) return;
+
     integrateFinishedMeshes();
 
-    auto current = getCurrentChunk();
-    if (!current) return;
-
     static Magnum::Vector3i lastChunk{0};
-    if (*current != lastChunk)
+    if (*m_cachedCurrentChunk != lastChunk)
     {
-        lastChunk = *current;
+        lastChunk = *m_cachedCurrentChunk;
         m_meshQueue.clear();
     }
 
@@ -88,9 +89,9 @@ void RenderSystem::render(float)
         .setFogColor({0.6f, 0.8f, 1.0f})
         .setFogDistance(renderDistanceInWorldUnits);
 
-    if (auto currentChunk = getCurrentChunk())
+    if (m_cachedCurrentChunk)
     {
-        drawChunksInRadius(*currentChunk);
+        drawChunksInRadius(*m_cachedCurrentChunk);
     }
 }
 
@@ -108,7 +109,6 @@ std::optional<Magnum::Vector3i> RenderSystem::getCurrentChunk() const
     int const cz = utils::floor_div(pos.z(), world::CHUNK_SIZE_Z);
 
     return Magnum::Vector3i{cx, 0, cz};
-    //return world::World::getChunkOfPosition(static_cast<Magnum::Vector3i>(pos));
 }
 
 void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
@@ -117,19 +117,17 @@ void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
     float const r = static_cast<float>(m_renderRadius) + 0.5f;
     float const r2 = r * r;
 
-    tsl::hopscotch_set<Magnum::Vector3i, utils::IVec3Hasher> positions;
-    positions.reserve((2 * m_renderRadius + 1) * (2 * m_renderRadius + 1));
-
+    m_visibleChunks.clear();
     for (int dz = -m_renderRadius; dz <= m_renderRadius; ++dz)
     {
         for (int dx = -m_renderRadius; dx <= m_renderRadius; ++dx)
         {
             if (sq(dx) + sq(dz) > r2) continue;
-            positions.emplace(currentChunkPos.x() + dx, 0, currentChunkPos.z() + dz);
+            m_visibleChunks.emplace(currentChunkPos.x() + dx, 0, currentChunkPos.z() + dz);
         }
     }
 
-    for (auto const& pos : positions)
+    for (auto const& pos : m_visibleChunks)
     {
         auto it = m_chunkToMesh.find(pos);
         if (it != m_chunkToMesh.end())
@@ -146,11 +144,10 @@ void RenderSystem::drawChunksInRadius(Magnum::Vector3i const& currentChunkPos)
         }
         else
         {
-            auto const current = getCurrentChunk();
-            if (!current) return;
+            if (!m_cachedCurrentChunk) return;
 
-            float dx = pos.x() - current->x();
-            float dz = pos.z() - current->z();
+            float dx = pos.x() - m_cachedCurrentChunk->x();
+            float dz = pos.z() - m_cachedCurrentChunk->z();
             float distanceSq = dx * dx + dz * dz;
 
             enqueueChunkForMesh({pos, distanceSq});

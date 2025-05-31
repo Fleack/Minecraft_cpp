@@ -25,14 +25,6 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
     , m_ecs{ecs}
     , m_world{world}
     , m_ui{windowSize, Magnum::Ui::McssDarkStyle{}}
-    , m_fpsLabel{Corrade::NoCreate, m_ui}
-    , m_coordsLabel{Corrade::NoCreate, m_ui}
-    , m_chunkLabel{Corrade::NoCreate, m_ui}
-    , m_chunksCountLabel{Corrade::NoCreate, m_ui}
-    , m_viewLabel{Corrade::NoCreate, m_ui}
-    , m_speedLabel{Corrade::NoCreate, m_ui}
-    , m_fovLabel{Corrade::NoCreate, m_ui}
-    , m_playerInfo{Corrade::NoCreate, m_ui}
     , m_transformComponent{m_ecs.getAllComponents<TransformComponent>().begin()->second}
     , m_cameraComponent{m_ecs.getAllComponents<CameraComponent>().begin()->second}
     , m_playerComponent{m_ecs.getAllComponents<PlayerComponent>().begin()->second}
@@ -42,78 +34,22 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
 
     Magnum::Ui::TextProperties textProps;
     textProps.setAlignment(Magnum::Text::Alignment::BottomLeft);
-    // FPS
+
+    std::vector<LabelDef> labels = {
+        {"FPS: 0 (AVG: 0, 99%: 0, 99.9%: 0, Frametime: 0 ms)", {0, 0}, 400, &m_fpsLabel},
+        {"Coords: 0, 0, 0", {0, 20}, 200, &m_coordsLabel},
+        {"Chunk: 0,0", {0, 40}, 200, &m_chunkLabel},
+        {"Chunks: 0", {0, 60}, 200, &m_chunksCountLabel},
+        {"View: 0.00, 0.00, 0.00", {0, 80}, 200, &m_viewLabel},
+        {"Velocity: [X: 0.0, Y: 0.0, Z: 0.0], Speed: 0.00", {0, 100}, 300, &m_speedLabel},
+        {"FOV: 0.00", {0, 120}, 200, &m_fovLabel},
+        {"onGround: false", {0, 140}, 200, &m_playerInfo},
+    };
+
+    for (auto& label : labels)
     {
-        m_frameTimes.resize(frameSampleSize);
-        auto fpsAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 0.0f},
-            {400.0f, 20.0f});
-        m_fpsLabel = Magnum::Ui::Label{fpsAnchor, "FPS: 0 (AVG: 0, 99%: 0, 99.9%: 0, Frametime: 0 ms)", textProps};
-    }
-    // Coords
-    {
-        auto coordsAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 20.0f},
-            {200.0f, 20.0f});
-        m_coordsLabel = Magnum::Ui::Label{coordsAnchor, "Coords: 0, 0, 0", textProps};
-    }
-    // CurrentChunk
-    {
-        auto chunkAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 40.0f},
-            {200.0f, 20.0f});
-        m_chunkLabel = Magnum::Ui::Label{chunkAnchor, "Chunk: 0,0", textProps};
-    }
-    // Chunks amount
-    {
-        auto countAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 60.0f},
-            {200.0f, 20.0f});
-        m_chunksCountLabel = Magnum::Ui::Label{countAnchor, "Chunks: 0", textProps};
-    }
-    // Camera view
-    {
-        auto viewAnchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 80.0f},
-            {200.0f, 20.0f});
-        m_viewLabel = Magnum::Ui::Label{viewAnchor, "View: 0.00, 0.00, 0.00", textProps};
-    }
-    // Speed
-    {
-        auto anchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 100.0f},
-            {250.0f, 20.0f});
-        m_speedLabel = Magnum::Ui::Label{anchor, "Velocity: [X: 0.0, Y: 0.0, Z: 0.0], Speed: 0.00", textProps};
-    }
-    // FOV
-    {
-        auto anchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 120.0f},
-            {200.0f, 20.0f});
-        m_fovLabel = Magnum::Ui::Label{anchor, "FOV: 0.00", textProps};
-    }
-    // Player Component
-    {
-        auto anchor = Magnum::Ui::snap(
-            m_ui,
-            Magnum::Ui::Snap::TopLeft,
-            {0.0f, 140.0f},
-            {200.0f, 20.0f});
-        m_playerInfo = Magnum::Ui::Label{anchor, "onGround: false", textProps};
+        auto anchor = Magnum::Ui::snap(m_ui, Magnum::Ui::Snap::TopLeft, label.offset, {label.width, 20});
+        *label.label = Magnum::Ui::Label{anchor, label.name + ":", textProps};
     }
 
     LOG(INFO, "UISystem initialized");
@@ -223,27 +159,15 @@ void UISystem::renderWithInterval(float deltaTime)
 
     // FPS
     {
-        m_frameTimes.push_back(deltaTime);
-        if (m_frameTimes.size() > frameSampleSize)
-            m_frameTimes.pop_front();
-
-        float fps99 = 1.0f / calculatePercentile(0.99f);
-        float fps999 = 1.0f / calculatePercentile(0.999f);
-        float avgDeltaTime = std::accumulate(m_frameTimes.begin(), m_frameTimes.end(), 0.0f) / m_frameTimes.size();
-        float avgFrameTimeMs = avgDeltaTime * 1000.0f;
-        float avgFps = 1.0f / avgDeltaTime;
-        float fps = 1.0f / deltaTime;
+        m_fpsStats.pushFrame(deltaTime);
         m_fpsLabel.setText(
-            Corrade::Utility::format("FPS: {} (AVG: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, Frametime: {:.1f} ms)", std::lround(fps), avgFps, fps99, fps999, avgFrameTimeMs));
+            Corrade::Utility::format(
+                "FPS: {:.0f} (AVG: {:.0f}, 99%: {:.0f}, 99.9%: {:.0f}, Frametime: {:.1f} ms)",
+                m_fpsStats.currentFps(),
+                m_fpsStats.averageFps(),
+                m_fpsStats.fps99(),
+                m_fpsStats.fps999(),
+                deltaTime * 1000.0f));
     }
-}
-
-float UISystem::calculatePercentile(float percentile)
-{
-    if (m_frameTimes.empty()) return 0.0f;
-    std::vector<float> sorted(m_frameTimes.begin(), m_frameTimes.end());
-    std::sort(sorted.begin(), sorted.end());
-    std::size_t index = percentile * (sorted.size() - 1);
-    return sorted[index];
 }
 } // namespace mc::ecs

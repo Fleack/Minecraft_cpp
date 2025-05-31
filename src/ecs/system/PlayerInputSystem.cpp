@@ -41,12 +41,13 @@ void PlayerInputSystem::update(float)
             move = Vector3{0.0f};
             auto& transform = *m_ecs.getComponent<TransformComponent>(entity);
             transform.position.y() = 100.0f;
+            velocity->velocity = {0, 0, 0};
         }
 
         auto& cams = m_ecs.getAllComponents<CameraComponent>();
         if (cams.empty())
         {
-            LOG(CRITICAL, "No TransformComponents found!");
+            LOG(CRITICAL, "No CameraComponent found!");
             return;
         }
 
@@ -79,7 +80,10 @@ void PlayerInputSystem::handleKey(Platform::Sdl2Application::Key key, bool press
     {
         for (auto& player : m_ecs.getAllComponents<PlayerComponent>() | std::views::values)
         {
-            player.wantsToJump = true;
+            if (player.onGround)
+            {
+                player.wantsToJump = true;
+            }
         }
     }
 }

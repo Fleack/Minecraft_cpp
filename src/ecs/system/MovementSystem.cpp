@@ -19,16 +19,17 @@ void MovementSystem::update(float deltaTime)
 {
     for (auto& [entity, velocity] : m_ecs.getAllComponents<VelocityComponent>())
     {
-        auto transform = m_ecs.getComponent<TransformComponent>(entity);
+        if (velocity.velocity.isZero()) continue;
+        auto* transform = m_ecs.getComponent<TransformComponent>(entity);
         if (!transform)
         {
             LOG(CRITICAL, "No TransformComponent found for entity: {}", entity);
             continue;
         }
-        LOG(DEBUG, "Setting position by vel = {} {}", velocity.velocity.x(), velocity.velocity.z());
         transform->position += Magnum::Vector3d(velocity.velocity * deltaTime);
         if (transform->position.y() < -100.0f)
         {
+            LOG(WARN, "Entity {} fell out of the world", entity);
             transform->position.y() = 100.0f;
         }
     }

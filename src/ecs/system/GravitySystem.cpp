@@ -18,10 +18,7 @@ void GravitySystem::update(float dt)
             if (auto velocity = m_ecs.getComponent<VelocityComponent>(entity))
             {
                 auto& velocityY = velocity->velocity.y();
-                if (velocityY > -25.0f)
-                {
-                    velocityY -= gravity * dt;
-                }
+                velocityY = std::max(velocityY - gravity * dt, static_cast<double>(terminalVelocity));
             }
         }
     }

@@ -71,7 +71,7 @@ private:
      *
      * @param currentChunk Current camera chunk position.
      */
-    void loadChunksInRadius(Magnum::Vector3i currentChunk);
+    void loadChunksInRadius(Magnum::Vector3i const& currentChunk);
 
     void enqueueChunkForLoad(utils::PrioritizedChunk const& chunk);
 

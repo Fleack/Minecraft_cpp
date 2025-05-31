@@ -6,6 +6,7 @@
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/component/VelocityComponent.hpp"
 #include "ecs/system/ISystem.hpp"
+#include "utils/FpsStats.hpp"
 #include "world/World.hpp"
 
 #include <Magnum/Platform/Sdl2Application.h>
@@ -14,10 +15,19 @@
 
 namespace mc::ecs
 {
+
 // ReSharper disable once CppInconsistentNaming
 class UISystem final : public ISystem
 {
 public:
+    struct LabelDef
+    {
+        std::string name;
+        Magnum::Vector2 offset;
+        float width;
+        Magnum::Ui::Label* label;
+    };
+
     UISystem(Ecs&, world::World const& world, Magnum::Vector2i windowSize);
 
     void update(float) override {};
@@ -32,7 +42,6 @@ public:
 private:
     void renderWithoutInterval();
     void renderWithInterval(float deltaTime);
-    float calculatePercentile(float percentile);
 
 private:
     ecs::Ecs& m_ecs;
@@ -40,14 +49,14 @@ private:
 
     // Labels
     Magnum::Ui::UserInterfaceGL m_ui;
-    Magnum::Ui::Label m_fpsLabel;
-    Magnum::Ui::Label m_coordsLabel;
-    Magnum::Ui::Label m_chunkLabel;
-    Magnum::Ui::Label m_chunksCountLabel;
-    Magnum::Ui::Label m_viewLabel;
-    Magnum::Ui::Label m_speedLabel;
-    Magnum::Ui::Label m_fovLabel;
-    Magnum::Ui::Label m_playerInfo;
+    Magnum::Ui::Label m_fpsLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_coordsLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_chunkLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_chunksCountLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_viewLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_speedLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_fovLabel{Corrade::NoCreate, m_ui};
+    Magnum::Ui::Label m_playerInfo{Corrade::NoCreate, m_ui};
 
     // Components
     TransformComponent& m_transformComponent;
@@ -60,7 +69,6 @@ private:
     static constexpr float fpsUpdateInterval{0.5f};
 
     // FPS Relates
-    std::deque<float> m_frameTimes;
-    static constexpr std::size_t frameSampleSize{500};
+    FpsStats m_fpsStats;
 };
 } // namespace mc::ecs
