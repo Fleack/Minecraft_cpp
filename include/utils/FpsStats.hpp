@@ -55,6 +55,11 @@ public:
         m_mean = 0;
         m_m2 = 0;
         m_last = 0;
+        m_fps99 = 0;
+        m_fps999 = 0;
+        m_samples.fill(0.0f);
+        m_index = 0;
+        m_percentileCounter = 0;
     }
 
 private:
@@ -78,7 +83,7 @@ private:
     float m_fps99 = 0.0f;
     float m_fps999 = 0.0f;
 
-    static constexpr std::size_t sampleSize = 128;
+    static constexpr std::size_t sampleSize = 256;
     std::array<float, sampleSize> m_samples{};
     std::size_t m_index = 0;
 

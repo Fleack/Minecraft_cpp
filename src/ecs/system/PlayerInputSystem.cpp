@@ -103,7 +103,7 @@ void PlayerInputSystem::handleScroll(float yOffset)
 
     auto& velocity = velocityComponents.begin()->second;
     velocity.maxSpeed *= std::pow(1.1f, yOffset);
-    velocity.maxSpeed = std::clamp(velocity.maxSpeed, 1.0f, 1000.0f);
+    velocity.maxSpeed = std::clamp(velocity.maxSpeed, 1.0f, 10000.0f);
 }
 
 } // namespace mc::ecs

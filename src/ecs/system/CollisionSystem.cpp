@@ -49,7 +49,7 @@ bool CollisionSystem::isSolidAt(Magnum::Vector3d const& pos) const
     auto chunkPos = World::getChunkOfPosition(blockPos);
 
     auto chunkOpt = m_world.getChunk(chunkPos);
-    if (!chunkOpt) return true;
+    if (!chunkOpt) return false;
 
     int const localX = blockPos.x() & (CHUNK_SIZE_X - 1);
     int const localY = blockPos.y() & (CHUNK_SIZE_Y - 1);
