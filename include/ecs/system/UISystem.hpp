@@ -66,7 +66,7 @@ private:
 
     // Refresh interval
     float m_timeSinceLastFpsUpdate = 0.0f;
-    static constexpr float fpsUpdateInterval{0.5f};
+    static constexpr float FPS_UPDATE_INTERVAL{0.5f};
 
     // FPS Relates
     FpsStats m_fpsStats;

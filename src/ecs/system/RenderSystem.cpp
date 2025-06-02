@@ -41,7 +41,7 @@ void RenderSystem::update(float dt)
 {
     constexpr float targetFrame = 1.0f / 60.0f;
     float leftover = targetFrame - dt;
-    m_timeBudget = std::max(leftover, 0.0f) * workFraction;
+    m_timeBudget = std::max(leftover, 0.0f) * WORK_FRACTION;
 
     m_cachedCurrentChunk = getCurrentChunk();
     if (!m_cachedCurrentChunk) return;
@@ -190,7 +190,7 @@ void RenderSystem::updateStats(size_t launches, time_point const& start)
 {
     double duration = std::chrono::duration<double>(clock::now() - start).count();
     double avg = duration / static_cast<double>(launches);
-    m_avgBuildTime = alpha * avg + (1.0 - alpha) * m_avgBuildTime;
+    m_avgBuildTime = ALPHA * avg + (1.0 - ALPHA) * m_avgBuildTime;
 
     // SPAM_LOG(DEBUG, "Built {} meshes in {:.3f} ms (EMA {:.3f} ms)", launches, duration * 1000.0, m_avgBuildTime * 1000.0);
 }

@@ -71,7 +71,7 @@ private:
     std::shared_ptr<ecs::CollisionSystem> m_collisionSystem;
 
     float m_aspectRatio{1920.0f / 1080.0f};
-    static constexpr uint8_t renderDistance{10};
+    static constexpr uint8_t RENDER_DISTANCE{10};
 
     bool m_paused{false};
 };

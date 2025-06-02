@@ -151,7 +151,7 @@ void UISystem::renderWithoutInterval()
 
 void UISystem::renderWithInterval(float deltaTime)
 {
-    if (m_timeSinceLastFpsUpdate <= fpsUpdateInterval)
+    if (m_timeSinceLastFpsUpdate <= FPS_UPDATE_INTERVAL)
     {
         m_timeSinceLastFpsUpdate += deltaTime;
         return;

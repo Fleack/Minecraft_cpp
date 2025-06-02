@@ -17,7 +17,7 @@ public:
         float delta2 = fps - m_mean;
         m_m2 += delta * delta2;
 
-        if (++m_percentileCounter >= percentileInterval)
+        if (++m_percentileCounter >= PERCENTILE_INTERVAL)
         {
             m_percentileCounter = 0;
             updatePercentiles(fps);
@@ -83,10 +83,10 @@ private:
     float m_fps99 = 0.0f;
     float m_fps999 = 0.0f;
 
-    static constexpr std::size_t sampleSize = 256;
-    std::array<float, sampleSize> m_samples{};
+    static constexpr std::size_t SAMPLE_SIZE = 256;
+    std::array<float, SAMPLE_SIZE> m_samples{};
     std::size_t m_index = 0;
 
     int m_percentileCounter = 0;
-    static constexpr int percentileInterval = 10;
+    static constexpr int PERCENTILE_INTERVAL = 10;
 };

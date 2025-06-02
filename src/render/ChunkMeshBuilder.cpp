@@ -109,8 +109,8 @@ std::vector<std::vector<Vertex>> ChunkMeshBuilder::buildVertexData(
 void ChunkMeshBuilder::collectVertices(world::Chunk const& chunk, CachedChunksMap const& chunks, std::vector<std::vector<Vertex>>& out)
 {
     using namespace world;
-    static constexpr Magnum::Vector3i chunkSize{CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
-    Magnum::Vector3i chunkOffset = chunk.getPosition() * chunkSize;
+    static constexpr Magnum::Vector3i CHUNK_SIZE{CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z};
+    Magnum::Vector3i chunkOffset = chunk.getPosition() * CHUNK_SIZE;
     for (int x = 0; x < CHUNK_SIZE_X; ++x)
     {
         for (int y = 0; y < CHUNK_SIZE_Y; ++y)

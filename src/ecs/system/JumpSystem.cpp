@@ -27,7 +27,7 @@ void JumpSystem::update(float)
 
         if (auto velocity = m_ecs.getComponent<VelocityComponent>(entity); velocity->velocity.y() <= 0.01f)
         {
-            velocity->velocity.y() = jumpForce;
+            velocity->velocity.y() = JUMP_FORCE;
         }
     }
 }

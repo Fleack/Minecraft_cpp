@@ -22,7 +22,7 @@ void ChunkLoadingSystem::update(float dt)
 {
     constexpr float targetFrame = 1.0f / 60.0f;
     float const leftover = targetFrame - dt;
-    m_timeBudget = std::max(0.001f, leftover) * workFraction;
+    m_timeBudget = std::max(0.001f, leftover) * WORK_FRACTION;
 
     auto currentChunk = getCurrentChunk();
     if (!currentChunk) return;
@@ -109,7 +109,7 @@ void ChunkLoadingSystem::updateStats(size_t launches, time_point const& start)
 {
     auto const duration = std::chrono::duration<double>(clock::now() - start).count();
     double const avg = duration / static_cast<double>(launches);
-    m_avgScheduleTime = alpha * avg + (1.0 - alpha) * m_avgScheduleTime;
+    m_avgScheduleTime = ALPHA * avg + (1.0 - ALPHA) * m_avgScheduleTime;
 
     SPAM_LOG(DEBUG, "Scheduled {} chunks in {:.3f} ms (EMA {:.3f} ms)", launches, duration * 1000.0, m_avgScheduleTime * 1000.0);
 }

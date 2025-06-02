@@ -21,7 +21,7 @@ struct AABB
     Magnum::Vector3d min;
     Magnum::Vector3d max;
 
-    static constexpr double epsilon = 1e-6;
+    static constexpr double EPSILON = 1e-6;
 
     static constexpr AABB fromCenterHalfExtents(Magnum::Vector3d const& center, Magnum::Vector3d const& halfExtents) noexcept
     {
@@ -30,9 +30,9 @@ struct AABB
 
     constexpr bool intersects(const AABB& other) const noexcept
     {
-        return (min.x() < other.max.x() - epsilon && max.x() > other.min.x() + epsilon) &&
-            (min.y() < other.max.y() - epsilon && max.y() > other.min.y() + epsilon) &&
-            (min.z() < other.max.z() - epsilon && max.z() > other.min.z() + epsilon);
+        return (min.x() < other.max.x() - EPSILON && max.x() > other.min.x() + EPSILON) &&
+            (min.y() < other.max.y() - EPSILON && max.y() > other.min.y() + EPSILON) &&
+            (min.z() < other.max.z() - EPSILON && max.z() > other.min.z() + EPSILON);
     }
 };
 
@@ -88,12 +88,12 @@ Magnum::Vector3d CollisionSystem::sweepAABB(
 {
     Magnum::Vector3d velocity = vel;
     AABB box = AABB::fromCenterHalfExtents(pos, halfExtents);
-    static constexpr double epsilon = 1e-7;
+    static constexpr double EPSILON = 1e-7;
 
     for (int axis = 0; axis < 3; ++axis)
     {
         double move = velocity[axis] * dt;
-        if (Magnum::Math::abs(move) < epsilon)
+        if (Magnum::Math::abs(move) < EPSILON)
             continue;
 
         double sign = move > 0.0 ? 1.0 : -1.0;
@@ -127,14 +127,14 @@ Magnum::Vector3d CollisionSystem::sweepAABB(
 
                     if (sign * distance < sign * maxMove)
                     {
-                        maxMove = distance - sign * epsilon;
+                        maxMove = distance - sign * EPSILON;
                     }
                 }
 
         if (maxMove != move)
         {
             velocity[axis] = maxMove / dt;
-            if (std::abs(velocity[axis]) < epsilon)
+            if (std::abs(velocity[axis]) < EPSILON)
                 velocity[axis] = 0.0;
         }
 
