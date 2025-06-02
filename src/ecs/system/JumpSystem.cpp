@@ -1,5 +1,6 @@
 #include "ecs/system/JumpSystem.hpp"
 
+#include "core/Logger.hpp"
 #include "ecs/component/PlayerComponent.hpp"
 #include "ecs/component/VelocityComponent.hpp"
 
@@ -7,7 +8,10 @@ namespace mc::ecs
 {
 
 JumpSystem::JumpSystem(Ecs& ecs)
-    : ISystem{Type::JUMP}, m_ecs(ecs) {}
+    : ISystem{Type::JUMP}, m_ecs(ecs)
+{
+    LOG(INFO, "JumpSystem initialized");
+}
 
 void JumpSystem::update(float)
 {

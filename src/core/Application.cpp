@@ -165,6 +165,7 @@ void Application::initializeSystems()
     m_ecs->addComponent<ecs::ColliderComponent>(player, {});
 
     m_world = std::make_unique<world::World>(m_chunkExecutor);
+    LOG(INFO, "Initialized world with seed={}", m_world->getSeed());
 
     m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, renderDistance);

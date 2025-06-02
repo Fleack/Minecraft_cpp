@@ -15,8 +15,10 @@ constexpr int div_floor(int a, int b)
 namespace mc::world
 {
 
-World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor)
+World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor, int32_t seed)
     : m_chunkExecutor{std::move(chunkExecutor)}
+    , m_seed{seed}
+    , m_generator{seed}
 {}
 
 std::optional<std::reference_wrapper<Chunk>> World::getChunk(Magnum::Vector3i const& chunkPos) const
@@ -94,6 +96,11 @@ std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher>
 std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> const& World::getPendingChunks() const
 {
     return m_pendingChunks;
+}
+
+int32_t World::getSeed() const
+{
+    return m_seed;
 }
 
 Magnum::Vector3i World::getChunkOfPosition(Magnum::Vector3i const& position)

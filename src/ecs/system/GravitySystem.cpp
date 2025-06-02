@@ -1,5 +1,6 @@
 #include "ecs/system/GravitySystem.hpp"
 
+#include "core/Logger.hpp"
 #include "ecs/component/PlayerComponent.hpp"
 #include "ecs/component/VelocityComponent.hpp"
 
@@ -7,7 +8,10 @@ namespace mc::ecs
 {
 
 GravitySystem::GravitySystem(Ecs& ecs)
-    : ISystem{Type::GRAVITY}, m_ecs(ecs) {}
+    : ISystem{Type::GRAVITY}, m_ecs(ecs)
+{
+    LOG(INFO, "GravitySystem initialized");
+}
 
 void GravitySystem::update(float dt)
 {

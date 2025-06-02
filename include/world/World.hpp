@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <optional>
+#include <random>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -24,7 +25,7 @@ class Chunk;
 class World
 {
 public:
-    explicit World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor);
+    explicit World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor, int32_t seed = std::random_device{}());
 
     void submitChunkLoad(Magnum::Vector3i const& chunkPos);
     void integrateFinishedChunks();
@@ -56,6 +57,8 @@ public:
     [[nodiscard]] std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> const& getChunks() const;
     [[nodiscard]] std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> const& getPendingChunks() const;
 
+    int32_t getSeed() const;
+
     static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3i const& position);
     static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3d const& position);
 
@@ -69,6 +72,7 @@ private:
     std::unordered_map<Magnum::Vector3i, concurrencpp::result<std::unique_ptr<Chunk>>, utils::IVec3Hasher> m_pendingChunkResults;
 
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
+    int32_t m_seed;
     ChunkGenerator m_generator;
 };
 

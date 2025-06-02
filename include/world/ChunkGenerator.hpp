@@ -27,7 +27,7 @@ public:
      * - 5 octaves, lacunarity of 2.0, gain of 0.5
      * - Low frequency for smooth large-scale features
      */
-    ChunkGenerator();
+    ChunkGenerator(int32_t seed);
 
     /**
      * @brief Fills a chunk with procedurally generated block data.
@@ -40,6 +40,6 @@ public:
     std::unique_ptr<Chunk> generate(Magnum::Vector3i const& chunkPos) const;
 
 private:
-    FastNoiseLite m_noise{}; ///< Noise generator used for terrain shaping.
+    FastNoiseLite m_noise; ///< Noise generator used for terrain shaping.
 };
 } // namespace mc::world

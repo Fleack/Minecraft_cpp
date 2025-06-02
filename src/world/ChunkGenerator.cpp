@@ -10,7 +10,8 @@
 namespace mc::world
 {
 
-ChunkGenerator::ChunkGenerator()
+ChunkGenerator::ChunkGenerator(int32_t seed)
+    : m_noise{seed}
 {
     m_noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     m_noise.SetFractalType(FastNoiseLite::FractalType_FBm);

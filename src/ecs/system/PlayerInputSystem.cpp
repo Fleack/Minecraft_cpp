@@ -17,7 +17,10 @@ namespace mc::ecs
 {
 
 PlayerInputSystem::PlayerInputSystem(Ecs& ecs)
-    : ISystem{Type::PLAYER_INPUT}, m_ecs(ecs) {}
+    : ISystem{Type::PLAYER_INPUT}, m_ecs(ecs)
+{
+    LOG(INFO, "PlayerInputSystem initialized");
+}
 
 void PlayerInputSystem::update(float dt)
 {

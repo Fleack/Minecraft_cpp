@@ -37,7 +37,10 @@ struct AABB
 };
 
 CollisionSystem::CollisionSystem(Ecs& ecs, world::World& world)
-    : ISystem{Type::COLLISION}, m_ecs(ecs), m_world(world) {}
+    : ISystem{Type::COLLISION}, m_ecs(ecs), m_world(world)
+{
+    LOG(INFO, "CollisionSystem initialized");
+}
 
 bool CollisionSystem::isSolidAt(Magnum::Vector3d const& pos) const
 {
