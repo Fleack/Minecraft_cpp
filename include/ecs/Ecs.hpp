@@ -1,7 +1,8 @@
 #pragma once
 
 #include "component/ComponentStorage.hpp"
-#include "ecs/Entity.hpp"
+#include "ecs/EntityManager.hpp"
+#include "ecs/events/EventBus.hpp"
 #include "ecs/system/ISystem.hpp"
 
 #include <memory>
@@ -9,85 +10,78 @@
 
 namespace mc::ecs
 {
-/**
- * @brief Core ECS (Entity-Component-System) manager.
- *
- * Handles entity creation, component management, and system updates.
- */
+
 class Ecs
 {
 public:
-    /**
-     * @brief Constructs a new ECS instance.
-     */
     Ecs()
-        : m_nextEntity(1)
-    {
-    }
+        : m_entityManager(m_components, m_eventBus) {}
 
-    /**
-     * @brief Creates and returns a new unique entity ID.
-     *
-     * @return New entity identifier.
-     */
     Entity createEntity()
     {
-        return m_nextEntity++;
+        return m_entityManager.createEntity();
     }
 
-    /**
-     * @brief Adds a component to the specified entity.
-     *
-     * @tparam T Component type.
-     * @param e Entity to attach the component to.
-     * @param component Component instance to add.
-     */
+    void destroyEntity(Entity e)
+    {
+        m_entityManager.destroyEntity(e);
+    }
+
+    bool isAlive(Entity e) const
+    {
+        return m_entityManager.isAlive(e);
+    }
+
+    std::unordered_set<Entity> const& entities() const
+    {
+        return m_entityManager.entities();
+    }
+
     template <typename T>
     void addComponent(Entity e, T component)
     {
         m_components.add<T>(e, component);
     }
 
-    /**
-     * @brief Retrieves a component of the given type from an entity.
-     *
-     * @tparam T Component type.
-     * @param e Entity to query.
-     * @return Optional containing the component if present.
-     */
     template <typename T>
     T* getComponent(Entity e)
     {
         return m_components.get<T>(e);
     }
 
-    /**
-     * @brief Retrieves all components of the given type.
-     *
-     * @tparam T Component type.
-     * @return Reference to the internal map of components.
-     */
+    template <typename T>
+    bool hasComponent(Entity e) const
+    {
+        return m_components.has<T>(e);
+    }
+
+    template <typename T>
+    void removeComponent(Entity e)
+    {
+        m_components.remove<T>(e);
+    }
+
     template <typename T>
     std::unordered_map<Entity, T>& getAllComponents()
     {
         return m_components.getAll<T>();
     }
 
-    /**
-     * @brief Adds a system to the ECS.
-     *
-     * @param system Shared pointer to a system.
-     */
+    EventBus& eventBus()
+    {
+        return m_eventBus;
+    }
+
+    EventBus const& eventBus() const
+    {
+        return m_eventBus;
+    }
+
     void addSystem(std::shared_ptr<ISystem> system)
     {
         m_systems.push_back(system);
     }
 
-    /**
-     * @brief Updates all systems with the given delta time.
-     *
-     * @param dt Time elapsed since last update.
-     */
     void update(float dt)
     {
         for (auto& sys : m_systems)
@@ -96,9 +90,6 @@ public:
         }
     }
 
-    /**
-     * @brief Calls render for all systems
-     */
     void render(float dt)
     {
         for (auto& sys : m_systems)
@@ -108,8 +99,10 @@ public:
     }
 
 private:
-    Entity m_nextEntity; ///< Next entity ID to assign.
-    ComponentStorage m_components; ///< Storage for all components.
-    std::vector<std::shared_ptr<ISystem>> m_systems; ///< List of active systems.
+    ComponentStorage m_components;
+    EntityManager m_entityManager;
+    std::vector<std::shared_ptr<ISystem>> m_systems;
+    EventBus m_eventBus;
 };
+
 } // namespace mc::ecs

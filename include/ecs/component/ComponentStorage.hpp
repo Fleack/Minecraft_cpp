@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/Entity.hpp"
+#include "ecs/component/ComponentList.hpp"
 
 #include <unordered_map>
 
@@ -26,6 +27,35 @@ public:
     void add(Entity entity, T component)
     {
         getStorage<T>()[entity] = component;
+    }
+
+    /**
+     * @brief Removes a component of type T by a specified entity.
+     *
+     * @tparam T Component type.
+     * @param entity Target entity.
+     */
+    template <typename T>
+    void remove(Entity entity)
+    {
+        getStorage<T>().erase(entity);
+    }
+
+    template <typename T>
+    bool has(Entity entity) const
+    {
+        return getStorage<T>().contains(entity);
+    }
+
+    void removeByEntity(Entity entity)
+    {
+        auto removeFunc = [&]<typename... T>() {
+            (remove<T>(entity), ...);
+        };
+
+        [removeFunc]<typename... T>(std::type_identity<std::tuple<T...>>) {
+            removeFunc.template operator()<T...>();
+        }(std::type_identity<AllComponentTypes>{});
     }
 
     /**
