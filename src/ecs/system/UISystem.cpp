@@ -41,7 +41,7 @@ UISystem::UISystem(Ecs& ecs, world::World const& world, Magnum::Vector2i windowS
         {"Chunk: 0,0", {0, 40}, 200, &m_chunkLabel},
         {"Chunks: 0", {0, 60}, 200, &m_chunksCountLabel},
         {"View: 0.00, 0.00, 0.00", {0, 80}, 200, &m_viewLabel},
-        {"Velocity: [X: 0.0, Y: 0.0, Z: 0.0], Speed: 0.00", {0, 100}, 300, &m_speedLabel},
+        {"Velocity: 0.0 [X: 0.0, Y: 0.0, Z: 0.0]: Max Speed: 0.00", {0, 100}, 300, &m_speedLabel},
         {"FOV: 0.00", {0, 120}, 200, &m_fovLabel},
         {"onGround: false", {0, 140}, 200, &m_playerInfo},
     };
@@ -127,12 +127,13 @@ void UISystem::renderWithoutInterval()
     }
     // Velocity
     {
-        auto camSpeed = m_velocityComponent.speed;
+        auto maxSpeed = m_velocityComponent.maxSpeed;
+        auto velocity = m_velocityComponent.velocity.length() * 2;
         auto velocityX = m_velocityComponent.velocity.x();
         auto velocityY = m_velocityComponent.velocity.y();
         auto velocityZ = m_velocityComponent.velocity.z();
         m_speedLabel.setText(
-            Corrade::Utility::format("Velocity: [X: {:.1f}, Y: {:.1f}, Z: {:.1f}], Speed: {:.2f}", velocityX, velocityY, velocityZ, camSpeed));
+            Corrade::Utility::format("Velocity: {:.1f} [X: {:.1f}, Y: {:.1f}, Z: {:.1f}]: Max Speed: {:.2f}", velocity, velocityX, velocityY, velocityZ, maxSpeed));
     }
     // FOV
     {

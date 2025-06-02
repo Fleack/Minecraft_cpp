@@ -19,7 +19,7 @@ namespace mc::ecs
 PlayerInputSystem::PlayerInputSystem(Ecs& ecs)
     : ISystem{Type::PLAYER_INPUT}, m_ecs(ecs) {}
 
-void PlayerInputSystem::update(float)
+void PlayerInputSystem::update(float dt)
 {
     for (auto const& entity : m_ecs.getAllComponents<PlayerComponent>() | std::views::keys)
     {
@@ -30,11 +30,11 @@ void PlayerInputSystem::update(float)
             continue;
         }
 
-        Vector3 move{0.0f};
-        if (m_keysPressed.contains(Platform::Sdl2Application::Key::W)) move.z() -= 1.0f;
-        if (m_keysPressed.contains(Platform::Sdl2Application::Key::S)) move.z() += 1.0f;
-        if (m_keysPressed.contains(Platform::Sdl2Application::Key::A)) move.x() -= 1.0f;
-        if (m_keysPressed.contains(Platform::Sdl2Application::Key::D)) move.x() += 1.0f;
+        Math::Vector3 inputDir{0.0f};
+        if (m_keysPressed.contains(Platform::Sdl2Application::Key::W)) inputDir.z() -= 1.0f;
+        if (m_keysPressed.contains(Platform::Sdl2Application::Key::S)) inputDir.z() += 1.0f;
+        if (m_keysPressed.contains(Platform::Sdl2Application::Key::A)) inputDir.x() -= 1.0f;
+        if (m_keysPressed.contains(Platform::Sdl2Application::Key::D)) inputDir.x() += 1.0f;
 
         if (m_keysPressed.contains(Platform::Sdl2Application::Key::R))
         {
@@ -48,22 +48,25 @@ void PlayerInputSystem::update(float)
             LOG(CRITICAL, "No CameraComponent found!");
             return;
         }
-
         auto& cam = cams.begin()->second;
-        auto qYaw = Math::Quaternion<float>::rotation(cam.yaw, Vector3::yAxis());
-        move = qYaw.transformVector(move);
 
-        if (move.isZero())
-        {
-            velocity->velocity.x() = 0.0f;
-            velocity->velocity.z() = 0.0f;
-        }
-        else
-        {
-            move = move.normalized() * velocity->speed;
-            velocity->velocity.x() = move.x();
-            velocity->velocity.z() = move.z();
-        }
+        auto qYaw = Math::Quaternion<float>::rotation(cam.yaw, Vector3::yAxis());
+        inputDir = qYaw.transformVector(inputDir);
+
+        if (!inputDir.isZero())
+            inputDir = inputDir.normalized();
+
+        velocity->desiredVelocity = static_cast<Magnum::Vector3d>(inputDir * velocity->maxSpeed);
+
+        auto springMove = [](float current, float target, float stiffness, float damping, float dt) -> float {
+            float delta = target - current;
+            float accel = delta * stiffness - current * damping;
+            return current + accel * dt;
+        };
+
+        auto& v = velocity->velocity;
+        v.x() = springMove(v.x(), velocity->desiredVelocity.x(), velocity->acceleration, velocity->damping, dt);
+        v.z() = springMove(v.z(), velocity->desiredVelocity.z(), velocity->acceleration, velocity->damping, dt);
     }
 }
 
@@ -96,8 +99,8 @@ void PlayerInputSystem::handleScroll(float yOffset)
     }
 
     auto& velocity = velocityComponents.begin()->second;
-    velocity.speed *= std::pow(1.1f, yOffset);
-    velocity.speed = std::clamp(velocity.speed, 1.0f, 1000.0f);
+    velocity.maxSpeed *= std::pow(1.1f, yOffset);
+    velocity.maxSpeed = std::clamp(velocity.maxSpeed, 1.0f, 1000.0f);
 }
 
 } // namespace mc::ecs
