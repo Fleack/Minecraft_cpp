@@ -16,6 +16,7 @@
 
 namespace mc::ecs
 {
+class CameraInputSystem;
 class CameraSystem;
 class ChunkLoadingSystem;
 class RenderSystem;
@@ -61,6 +62,7 @@ private:
     std::unique_ptr<ecs::Ecs> m_ecs; ///< ECS manager.
     std::unique_ptr<world::World> m_world; ///< Game world and chunk storage.
     std::shared_ptr<ecs::UISystem> m_uiSystem; ///< Handles UI rendering.
+    std::shared_ptr<ecs::CameraInputSystem> m_cameraInputSystem;
     std::shared_ptr<ecs::CameraSystem> m_cameraSystem; ///< Handles camera movement.
     std::shared_ptr<ecs::PlayerInputSystem> m_playerInputSystem;
     std::shared_ptr<ecs::MovementSystem> m_movementSystem;

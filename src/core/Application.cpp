@@ -9,9 +9,11 @@
 #include "ecs/component/TransformComponent.hpp"
 #include "ecs/component/VelocityComponent.hpp"
 #include "ecs/system/CameraSystem.hpp"
+#include "ecs/system/CameraInputSystem.hpp"
 #include "ecs/system/ChunkLoadingSystem.hpp"
 #include "ecs/system/PlayerInputSystem.hpp"
 #include "ecs/system/RenderSystem.hpp"
+#include "ecs/events/Events.hpp"
 #include "world/World.hpp"
 
 #include <chrono>
@@ -81,7 +83,7 @@ void Application::drawEvent()
 void Application::viewportEvent(ViewportEvent& event)
 {
     m_aspectRatio = static_cast<float>(event.windowSize().x()) / event.windowSize().y();
-    m_cameraSystem->setAspectRatio(m_aspectRatio);
+    m_ecs->eventBus().emit(ViewportResized{m_aspectRatio});
     m_uiSystem->setWindowSize(event.windowSize());
     GL::defaultFramebuffer.setViewport({{}, event.framebufferSize()});
 }
@@ -119,7 +121,7 @@ void Application::pointerMoveEvent(Magnum::Platform::Sdl2Application::PointerMov
     }
     else
     {
-        m_cameraSystem->handleMouse(event.relativePosition());
+        m_cameraInputSystem->handleMouse(event.relativePosition());
         event.setAccepted();
     }
 }
@@ -168,6 +170,7 @@ void Application::initializeSystems()
     LOG(INFO, "Initialized world with seed={}", m_world->getSeed());
 
     m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);
+    m_cameraInputSystem = std::make_shared<ecs::CameraInputSystem>(*m_ecs);
     m_chunkLoadingSystem = std::make_shared<ecs::ChunkLoadingSystem>(*m_ecs, *m_world, RENDER_DISTANCE);
     m_gravitySystem = std::make_shared<ecs::GravitySystem>(*m_ecs);
     m_jumpSystem = std::make_shared<ecs::JumpSystem>(*m_ecs);
@@ -178,6 +181,7 @@ void Application::initializeSystems()
     m_uiSystem = std::make_shared<ecs::UISystem>(*m_ecs, *m_world, windowSize());
 
     m_ecs->addSystem(m_playerInputSystem);
+    m_ecs->addSystem(m_cameraInputSystem);
     m_ecs->addSystem(m_chunkLoadingSystem);
     m_ecs->addSystem(m_gravitySystem);
     m_ecs->addSystem(m_jumpSystem);

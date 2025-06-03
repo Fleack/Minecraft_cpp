@@ -5,6 +5,7 @@ namespace mc::ecs
 enum Type
 {
     CAMERA,
+    CAMERA_INPUT,
     CHUNK_LOADING,
     COLLISION,
     GRAVITY,

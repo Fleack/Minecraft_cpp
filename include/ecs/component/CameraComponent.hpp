@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Magnum/Math/Angle.h>
+#include <Magnum/Math/Quaternion.h>
+#include <Magnum/Math/Matrix4.h>
 
 namespace mc::ecs
 {
@@ -17,5 +19,11 @@ struct CameraComponent
 
     Magnum::Math::Deg<float> yaw{-90.0f};
     Magnum::Math::Deg<float> pitch{0.0f};
+
+    Magnum::Quaternion orientation{};
+    Magnum::Matrix4 viewMatrix{Magnum::Math::IdentityInit};
+    Magnum::Matrix4 projectionMatrix{Magnum::Math::IdentityInit};
+    Magnum::Matrix4 rotationMatrix{Magnum::Math::IdentityInit};
+    bool active{true};
 };
 } // namespace mc::ecs

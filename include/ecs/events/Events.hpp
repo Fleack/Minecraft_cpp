@@ -15,4 +15,9 @@ struct EntityDestroyed
     Entity entity;
 };
 
+struct ViewportResized
+{
+    float aspectRatio;
+};
+
 } // namespace mc::ecs
