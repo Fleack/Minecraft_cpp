@@ -18,39 +18,28 @@ public:
     template <typename EVENT>
     void subscribe(Listener<EVENT> listenerCallback)
     {
-        auto& listeners = getListeners<EVENT>();
-        listeners.push_back(std::move(listenerCallback));
+        auto& vec = m_callbacks[std::type_index{typeid(EVENT)}];
+        vec.emplace_back([fn = std::move(listenerCallback)](void const* p) {
+            fn(*static_cast<EVENT const*>(p));
+        });
     }
 
     template <typename EVENT>
-    void emit(EVENT const& event) const
+    void emit(EVENT const& e) const
     {
-        auto it = m_listeners.find(std::type_index(typeid(EVENT)));
-        if (it == m_listeners.end()) return;
+        auto it = m_callbacks.find(std::type_index(typeid(EVENT)));
+        if (it == m_callbacks.end()) return;
 
-        auto const& baseList = it->second;
-        for (auto const& baseFn : *baseList)
+        auto local = it->second;
+        for (auto const& f : local)
         {
-            auto* fn = static_cast<Listener<EVENT> const*>(baseFn.get());
-            (*fn)(event);
+            f(&e);
         }
     }
 
 private:
-    template <typename EVENT>
-    std::vector<std::shared_ptr<void>>& getListeners()
-    {
-        auto type = std::type_index(typeid(EVENT));
-        auto& baseList = m_listeners[type];
-        if (!baseList)
-            baseList = std::make_shared<BaseListenerList>();
-
-        return *baseList;
-    }
-
-private:
-    using BaseListenerList = std::vector<std::shared_ptr<void>>;
-    std::unordered_map<std::type_index, std::shared_ptr<BaseListenerList>> m_listeners;
+    using ErasedCallback = std::function<void(void const*)>;
+    std::unordered_map<std::type_index, std::vector<ErasedCallback>> m_callbacks;
 };
 
 } // namespace mc::ecs
