@@ -3,6 +3,7 @@
 #include "utils/IVec3Hasher.hpp"
 #include "world/ChunkGenerator.hpp"
 
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <random>
@@ -10,6 +11,11 @@
 #include <unordered_set>
 
 #include <Magnum/Math/Vector3.h>
+
+namespace mc::ecs
+{
+class EventBus;
+}
 
 namespace mc::world
 {
@@ -25,7 +31,10 @@ class Chunk;
 class World
 {
 public:
-    explicit World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor, int32_t seed = std::random_device{}());
+    explicit World(
+        std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor,
+        ecs::EventBus& eventBus,
+        int32_t seed = std::random_device{}());
 
     void submitChunkLoad(Magnum::Vector3i const& chunkPos);
     void integrateFinishedChunks();
@@ -57,6 +66,35 @@ public:
     [[nodiscard]] std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> const& getChunks() const;
     [[nodiscard]] std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> const& getPendingChunks() const;
 
+    /**
+     * @brief Unloads chunks that are outside the specified radius.
+     *
+     * Saves modified chunks to disk (TODO) and removes them from memory.
+     * Emits ChunkUnloaded events for each unloaded chunk.
+     *
+     * @param centerChunk Center chunk position (typically player position)
+     * @param radius Maximum distance to keep loaded
+     * @return Number of chunks unloaded
+     */
+    size_t unloadChunksOutsideRadius(Magnum::Vector3i const& centerChunk, uint8_t radius);
+
+    /**
+     * @brief Gets the number of currently loaded chunks.
+     *
+     * @return Total number of chunks in memory
+     */
+    [[nodiscard]] size_t getLoadedChunkCount() const;
+
+    /**
+     * @brief Marks a chunk as modified (dirty).
+     *
+     * Dirty chunks will be saved to disk before unloading.
+     * TODO: Implement when block modification is added
+     *
+     * @param chunkPos Position of the modified chunk
+     */
+    void markChunkDirty(Magnum::Vector3i const& chunkPos);
+
     int32_t getSeed() const;
 
     static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3i const& position);
@@ -66,14 +104,32 @@ private:
     void enqueueChunk(Magnum::Vector3i const& chunkPos);
     void commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkPtr);
 
+    /**
+     * @brief Finds chunks that should be unloaded based on distance.
+     *
+     * @param centerChunk Center position
+     * @param radius Maximum radius to keep loaded
+     * @return Vector of chunk positions to unload
+     */
+    std::vector<Magnum::Vector3i> findChunksToUnload(Magnum::Vector3i const& centerChunk, uint8_t radius) const;
+
 private:
     std::unordered_map<Magnum::Vector3i, std::unique_ptr<Chunk>, utils::IVec3Hasher> m_chunks;
     std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> m_pendingChunks;
     std::unordered_map<Magnum::Vector3i, concurrencpp::result<std::unique_ptr<Chunk>>, utils::IVec3Hasher> m_pendingChunkResults;
 
     std::shared_ptr<concurrencpp::thread_pool_executor> m_chunkExecutor;
+    ecs::EventBus& m_eventBus;
     int32_t m_seed;
     ChunkGenerator m_generator;
+
+    // Chunks that have been modified and should be saved before unloading
+    // TODO: Implement saving when block modification is added
+    std::unordered_set<Magnum::Vector3i, utils::IVec3Hasher> m_dirtyChunks;
+
+    // Path for saving world data to disk
+    // TODO: Make configurable, currently using default
+    std::filesystem::path m_worldSavePath{"worlds/default"};
 };
 
 } // namespace mc::world

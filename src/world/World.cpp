@@ -1,6 +1,11 @@
 #include "world/World.hpp"
 
 #include "core/Logger.hpp"
+#include "ecs/events/EventBus.hpp"
+#include "ecs/events/Events.hpp"
+#include "world/ChunkSerializer.hpp"
+
+#include <ranges>
 
 #include <Magnum/Math/Functions.h>
 
@@ -15,8 +20,12 @@ constexpr int div_floor(int a, int b)
 namespace mc::world
 {
 
-World::World(std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor, int32_t seed)
+World::World(
+    std::shared_ptr<concurrencpp::thread_pool_executor> chunkExecutor,
+    ecs::EventBus& eventBus,
+    int32_t seed)
     : m_chunkExecutor{std::move(chunkExecutor)}
+    , m_eventBus{eventBus}
     , m_seed{seed}
     , m_generator{seed}
 {}
@@ -76,6 +85,8 @@ void World::commitChunk(Magnum::Vector3i chunkPos, std::unique_ptr<Chunk> chunkP
     SPAM_LOG(INFO, "Committing chunk [{}, {}] into final map", chunkPos.x(), chunkPos.z());
     m_chunks[chunkPos] = std::move(chunkPtr);
     m_pendingChunks.erase(chunkPos);
+    
+    m_eventBus.emit(ecs::ChunkLoaded{chunkPos});
 }
 
 bool World::isChunkLoaded(Magnum::Vector3i const& pos) const
@@ -114,6 +125,75 @@ Magnum::Vector3i World::getChunkOfPosition(Magnum::Vector3i const& position)
 Magnum::Vector3i World::getChunkOfPosition(Magnum::Vector3d const& position)
 {
     return getChunkOfPosition(Magnum::Vector3i{Magnum::Math::floor(position)});
+}
+
+size_t World::unloadChunksOutsideRadius(Magnum::Vector3i const& centerChunk, uint8_t radius)
+{
+    auto chunksToUnload = findChunksToUnload(centerChunk, radius);
+    
+    if (chunksToUnload.empty())
+    {
+        return 0;
+    }
+    
+    LOG(INFO, "Unloading {} chunks outside radius {}", chunksToUnload.size(), radius);
+    
+    for (auto const& chunkPos : chunksToUnload)
+    {
+        // TODO: Save dirty chunks to disk before unloading
+        if (m_dirtyChunks.contains(chunkPos))
+        {
+            SPAM_LOG(DEBUG, "TODO: Save dirty chunk [{}, {}] to disk", chunkPos.x(), chunkPos.z());
+            // ChunkSerializer::saveChunkAsync(*m_chunks[chunkPos], m_worldSavePath);
+            m_dirtyChunks.erase(chunkPos);
+        }
+        
+        // Remove chunk from memory
+        m_chunks.erase(chunkPos);
+        
+        // Emit event so systems can clean up related data
+        m_eventBus.emit(ecs::ChunkUnloaded{chunkPos});
+        
+        SPAM_LOG(DEBUG, "Unloaded chunk [{}, {}]", chunkPos.x(), chunkPos.z());
+    }
+    
+    LOG(INFO, "Chunks remaining in memory: {}", m_chunks.size());
+    return chunksToUnload.size();
+}
+
+std::vector<Magnum::Vector3i> World::findChunksToUnload(Magnum::Vector3i const& centerChunk, uint8_t radius) const
+{
+    std::vector<Magnum::Vector3i> toUnload;
+    toUnload.reserve(m_chunks.size() / 4);
+    
+    auto const radiusSq = static_cast<float>(radius * radius);
+    
+    for (auto const& chunkPos : m_chunks | std::views::keys)
+    {
+        int const dx = chunkPos.x() - centerChunk.x();
+        int const dz = chunkPos.z() - centerChunk.z();
+        auto distanceSq = static_cast<float>(dx * dx + dz * dz);
+        if (distanceSq > radiusSq)
+        {
+            toUnload.push_back(chunkPos);
+        }
+    }
+    
+    return toUnload;
+}
+
+size_t World::getLoadedChunkCount() const
+{
+    return m_chunks.size();
+}
+
+void World::markChunkDirty(Magnum::Vector3i const& chunkPos)
+{
+    if (m_chunks.contains(chunkPos))
+    {
+        m_dirtyChunks.insert(chunkPos);
+        SPAM_LOG(DEBUG, "Marked chunk [{}, {}] as dirty", chunkPos.x(), chunkPos.z());
+    }
 }
 
 } // namespace mc::world
