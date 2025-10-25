@@ -29,7 +29,7 @@ void Logger::init()
 #endif
 
     m_sLogger = std::make_shared<spdlog::async_logger>(
-        "Radon",
+        "Minecraft_cpp",
         sinks.begin(),
         sinks.end(),
         spdlog::thread_pool(),

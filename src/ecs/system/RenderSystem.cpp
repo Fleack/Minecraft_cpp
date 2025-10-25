@@ -72,7 +72,7 @@ void RenderSystem::render(float)
     }
     auto playerPosition = transformComponents.begin()->second.position;
 
-    constexpr float chunkSize = 16.0f;
+    static constexpr float chunkSize = 16.0f;
     float renderDistanceInWorldUnits = 2 * m_renderRadius * chunkSize;
 
     m_shaderProgram
