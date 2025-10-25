@@ -83,6 +83,16 @@ public:
      */
     void render(float) override;
 
+    /**
+     * @brief Cleans up mesh entities associated with a specific chunk.
+     *
+     * Destroys all mesh entities and removes the chunk from the mesh cache.
+     * Called when a chunk is unloaded or regenerated.
+     *
+     * @param chunkPos Position of the chunk to clean up
+     */
+    void cleanupChunkMeshes(Magnum::Vector3i const& chunkPos);
+
 private:
     /**
      * @brief Gets the current chunk position based on the camera.

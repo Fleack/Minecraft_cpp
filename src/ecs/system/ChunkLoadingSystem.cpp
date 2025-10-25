@@ -31,6 +31,9 @@ void ChunkLoadingSystem::update(float dt)
     {
         m_lastCameraChunk = *currentChunk;
         loadChunksInRadius(*currentChunk);
+
+        static constexpr uint8_t UNLOAD_BUFFER = 2;
+        m_world.unloadChunksOutsideRadius(*currentChunk, m_loadRadius + UNLOAD_BUFFER);
     }
 
     auto start = clock::now();

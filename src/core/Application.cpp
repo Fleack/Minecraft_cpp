@@ -164,7 +164,7 @@ void Application::initializeSystems()
     m_ecs->addComponent<ecs::CameraComponent>(player, {});
     m_ecs->addComponent<ecs::ColliderComponent>(player, {});
 
-    m_world = std::make_unique<world::World>(m_chunkExecutor);
+    m_world = std::make_unique<world::World>(m_chunkExecutor, m_ecs->eventBus());
     LOG(INFO, "Initialized world with seed={}", m_world->getSeed());
 
     m_playerInputSystem = std::make_shared<ecs::PlayerInputSystem>(*m_ecs);

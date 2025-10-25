@@ -4,6 +4,7 @@
 #include "ecs/Ecs.hpp"
 #include "ecs/component/MeshComponent.hpp"
 #include "ecs/component/TransformComponent.hpp"
+#include "ecs/events/Events.hpp"
 #include "ecs/system/CameraSystem.hpp"
 #include "render/ChunkMeshBuilder.hpp"
 #include "render/TextureManager.hpp"
@@ -34,6 +35,11 @@ RenderSystem::RenderSystem(
 {
     m_visibleChunks.reserve((2 * m_renderRadius + 1) * (2 * m_renderRadius + 1));
     m_textureManager = std::make_unique<mc::render::TextureManager>("assets/textures/blocks");
+    
+    m_ecs.eventBus().subscribe<ChunkUnloaded>([this](ChunkUnloaded const& event) {
+        cleanupChunkMeshes(event.position);
+    });
+    
     LOG(INFO, "RenderSystem initialized with render radius: {}", renderRadius);
 }
 
@@ -213,6 +219,9 @@ void RenderSystem::integrateFinishedMeshes()
         auto blocksMeshes = render::ChunkMeshBuilder::buildMeshComponents(vertsByTex);
 
         SPAM_LOG(DEBUG, "Commiting mesh [{}, {}] into mesh map", pos.x(), pos.z());
+        
+        cleanupChunkMeshes(pos);
+        
         auto& vec = m_chunkToMesh[pos];
         for (auto& mesh : blocksMeshes)
         {
@@ -220,11 +229,28 @@ void RenderSystem::integrateFinishedMeshes()
             m_ecs.addComponent<MeshComponent>(e, mesh);
             vec.push_back(e);
         }
+        
+        toRemove.push_back(pos);
     }
 
     for (auto& pos : toRemove)
     {
         m_pendingMeshes.erase(pos);
+    }
+}
+
+void RenderSystem::cleanupChunkMeshes(Magnum::Vector3i const& chunkPos)
+{
+    auto it = m_chunkToMesh.find(chunkPos);
+    if (it != m_chunkToMesh.end())
+    {
+        SPAM_LOG(DEBUG, "Cleaning up {} mesh entities for chunk [{}, {}]", it->second.size(), chunkPos.x(), chunkPos.z());
+        
+        for (Entity e : it->second)
+        {
+            m_ecs.destroyEntity(e);
+        }
+        m_chunkToMesh.erase(it);
     }
 }
 } // namespace mc::ecs
