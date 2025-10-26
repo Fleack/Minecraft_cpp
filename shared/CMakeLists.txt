@@ -19,12 +19,14 @@ target_include_directories(Shared
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/extern/enet/include
+    ${PROJECT_SOURCE_DIR}/extern/magnum/src
+    ${PROJECT_SOURCE_DIR}/extern/corrade/src
 )
 
 target_link_libraries(Shared
     PUBLIC
+    Magnum::Magnum
     spdlog::spdlog
-    glm::glm
     tsl::hopscotch_map
 )
 
