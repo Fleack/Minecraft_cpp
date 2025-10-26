@@ -13,3 +13,9 @@
 [submodule "extern/magnum-plugins"]
 	path = extern/magnum-plugins
 	url = https://github.com/mosra/magnum-plugins.git
+[submodule "extern/zpl"]
+	path = extern/zpl
+	url = https://github.com/zpl-c/zpl.git
+[submodule "extern/enet"]
+	path = extern/enet
+	url = https://github.com/zpl-c/enet.git

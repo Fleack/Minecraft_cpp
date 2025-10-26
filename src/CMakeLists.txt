@@ -43,6 +43,7 @@ target_link_libraries(voxel_engine
         concurrencpp::concurrencpp
         cpptrace::cpptrace
         tsl::hopscotch_map
+        enet::enet_static
 )
 
 target_compile_features(voxel_engine PRIVATE cxx_std_23)
