@@ -9,7 +9,6 @@
 #include "utils/IVec3Hasher.hpp"
 #include "utils/PrioritizedChunk.hpp"
 #include "utils/PriorityUniqueQueue.hpp"
-#include "utils/UniqueQueue.hpp"
 
 #include <chrono>
 #include <memory>
