@@ -18,11 +18,14 @@ target_compile_options(Server PRIVATE
 target_include_directories(Server
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/extern/magnum/src
+    ${PROJECT_SOURCE_DIR}/extern/corrade/src
 )
 
 target_link_libraries(Server
     PRIVATE
     Shared
+    Magnum::Magnum  # Base module for Math (Vector3)
     concurrencpp::concurrencpp
     fastnoise-lite::fastnoise-lite
     cpptrace::cpptrace
