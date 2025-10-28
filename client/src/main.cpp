@@ -1,14 +1,3 @@
-#include <iostream>
+#include "core/ClientApplication.hpp"
 
-int main(int, char**)
-{
-    std::cout << "Minecraft Client - Starting..." << std::endl;
-    
-    // TODO: Initialize ClientApplication
-    // TODO: Connect to server
-    // TODO: Run game loop
-    
-    std::cout << "Client not implemented yet" << std::endl;
-    return 0;
-}
-
+MAGNUM_APPLICATION_MAIN(mc::core::ClientApplication)
