@@ -13,7 +13,7 @@ list(APPEND CMAKE_MODULE_PATH
 include(cmake/ConanSetup.cmake)
 include(cmake/MagnumSetup.cmake)
 include(cmake/Dependencies.cmake)
-include(cmake/InstallAssets.cmake)
 
-add_subdirectory(src)
-# add_subdirectory(test)
+add_subdirectory(shared)
+add_subdirectory(server)
+add_subdirectory(client)
