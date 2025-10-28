@@ -25,6 +25,9 @@ public:
     [[nodiscard]] Block getBlock(int x, int y, int z) const;
     void setBlock(int x, int y, int z, Block block);
 
+    static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3i const& position);
+    static Magnum::Vector3i getChunkOfPosition(Magnum::Vector3d const& position);
+
 private:
     Magnum::Vector3i m_position; ///< Chunk position in chunk-space (not world-space).
     block_volume m_blocks; ///< 3D grid of blocks within the chunk.

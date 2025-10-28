@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../../client/include/systems/IRenderableSystem.hpp"
 #include "component/ComponentStorage.hpp"
 #include "ecs/EntityManager.hpp"
 #include "ecs/events/EventBus.hpp"
@@ -82,6 +83,12 @@ public:
         m_systems.push_back(system);
     }
 
+    void addSystem(std::shared_ptr<IRenderableSystem> system)
+    {
+        addSystem(static_cast<std::shared_ptr<ISystem>>(system));
+        m_renderableSystems.push_back(system);
+    }
+
     void update(float dt)
     {
         for (auto& sys : m_systems)
@@ -90,10 +97,19 @@ public:
         }
     }
 
+    void render(float dt)
+    {
+        for (auto& sys : m_renderableSystems)
+        {
+            sys->render(dt);
+        }
+    }
+
 private:
     ComponentStorage m_components;
     EntityManager m_entityManager;
     std::vector<std::shared_ptr<ISystem>> m_systems;
+    std::vector<std::shared_ptr<IRenderableSystem>> m_renderableSystems;
     EventBus m_eventBus;
 };
 

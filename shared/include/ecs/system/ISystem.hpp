@@ -7,7 +7,6 @@ class ISystem
 {
 public:
     virtual ~ISystem() = default;
-
     virtual void update(float deltaTime) = 0;
 };
 

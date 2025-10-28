@@ -1,9 +1,9 @@
 #pragma once
 
+#include "ColliderComponent.hpp"
+#include "PlayerComponent.hpp"
 #include "TransformComponent.hpp"
 #include "VelocityComponent.hpp"
-#include "PlayerComponent.hpp"
-#include "ColliderComponent.hpp"
 
 #include <tuple>
 
@@ -17,4 +17,3 @@ using AllComponentTypes = std::tuple<
     ColliderComponent>;
 
 } // namespace mc::ecs
-
