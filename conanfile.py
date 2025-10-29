@@ -2,8 +2,8 @@ from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 
 
-class RadonConan(ConanFile):
-    name = "Radon"
+class MinecraftCppConan(ConanFile):
+    name = "MinecraftCpp"
     version = "0.1"
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps", "CMakeToolchain"
